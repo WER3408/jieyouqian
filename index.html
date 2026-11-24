@@ -7,7 +7,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>解忧签 · 摇一签，解千愁</title>
-<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600;900&display=swap" rel="stylesheet">
 <style>
 :root{
   --paper:#f5f0e6;
@@ -364,24 +364,6 @@ footer{text-align:center;margin-top:26px;padding:14px;font-size:12px;color:var(-
 .badge.cloud{background:rgba(46,125,91,.12);color:#2e7d5b;border-color:rgba(46,125,91,.3);}
 .badge.local{background:rgba(192,57,43,.1);color:var(--red);border-color:rgba(192,57,43,.25);}
 .badge .lamp{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.8s infinite;}
-
-/* ===== 左上角：已注册账号数徽章 ===== */
-.meta-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;}
-.meta-badges .badge{margin-top:0;}
-.badge.acct{
-  background:linear-gradient(135deg,rgba(192,57,43,.13) 0%,rgba(232,200,122,.22) 100%);
-  color:var(--red-dark);border:1px solid rgba(192,57,43,.28);
-  padding:3px 11px 3px 8px;cursor:default;transition:.25s;
-}
-.badge.acct:hover{border-color:rgba(192,57,43,.5);box-shadow:0 1px 6px rgba(192,57,43,.14);}
-.badge.acct .ico{width:13px;height:13px;flex:none;opacity:.85;}
-.badge.acct b{font-size:14px;font-weight:600;color:var(--red);letter-spacing:0;margin:0 1px;}
-.badge.acct.bump{animation:acctBump .75s ease;}
-@keyframes acctBump{
-  0%{transform:scale(1)}
-  30%{transform:scale(1.13);box-shadow:0 0 0 4px rgba(192,57,43,.18)}
-  100%{transform:scale(1);box-shadow:0 0 0 0 rgba(192,57,43,0)}
-}
 .nick{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .feed li.me b{color:var(--red);}
 .feed li .tm{float:right;font-size:10px;opacity:.6;}
@@ -481,6 +463,44 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 </style>
 </head>
 <body>
+<div id="meishiSplash" aria-hidden="true">
+  <div class="ms-logo">没事</div>
+  <div class="ms-foot">
+    <p>本页面仅供个人使用，签文内容纯属娱乐</p>
+    <p>请理性看待结果，合理安排时间</p>
+    <p>© 2026 解忧签</p>
+  </div>
+</div>
+<style>
+#meishiSplash{position:fixed;inset:0;z-index:2147483000;background:#ffffff;display:flex;align-items:center;justify-content:center;flex-direction:column;opacity:1;transition:opacity .7s ease;}
+#meishiSplash.ms-hide{opacity:0;pointer-events:none;}
+#meishiSplash .ms-logo{font-family:'Noto Serif SC','Source Han Serif SC','STZhongsong','SimSun',serif;font-weight:900;color:#0d0d0d;font-size:clamp(84px,16vw,196px);line-height:1.15;letter-spacing:.02em;user-select:none;white-space:nowrap;animation:msLogoIn 1.5s cubic-bezier(.16,.84,.28,1) .15s both;}
+@keyframes msLogoIn{0%{opacity:0;transform:scale(.86);letter-spacing:-.03em;filter:blur(8px);}55%{opacity:1;filter:blur(0);}100%{opacity:1;transform:scale(1);letter-spacing:.16em;filter:blur(0);}}
+#meishiSplash .ms-foot{position:absolute;left:0;right:0;bottom:6vh;text-align:center;font-family:'Noto Serif SC','SimSun',serif;color:#9a9a9a;font-size:13px;line-height:2.05;}
+#meishiSplash .ms-foot p{margin:0;opacity:0;animation:msFootIn .9s ease both;}
+#meishiSplash .ms-foot p:nth-child(1){animation-delay:1.7s;}
+#meishiSplash .ms-foot p:nth-child(2){animation-delay:2.1s;}
+#meishiSplash .ms-foot p:nth-child(3){animation-delay:2.5s;}
+@keyframes msFootIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@media (max-width:600px){#meishiSplash .ms-foot{font-size:11px;}}
+</style>
+<script>
+(function(){
+  var el=document.getElementById('meishiSplash');
+  if(!el)return;
+  var KEY='meishiSplashSeen',done=false;
+  function remove(){if(done)return;done=true;el.remove();document.body.style.overflow='';}
+  function hide(){if(done)return;el.classList.add('ms-hide');setTimeout(remove,700);}
+  if(sessionStorage.getItem(KEY)){remove();return;}
+  sessionStorage.setItem(KEY,'1');
+  document.body.style.overflow='hidden';
+  var t=setTimeout(hide,4200);
+  function skip(){clearTimeout(t);hide();}
+  document.addEventListener('click',skip,{once:true,capture:true});
+  document.addEventListener('keydown',skip,{once:true,capture:true});
+})();
+</script>
+
 <div class="watermark">签</div>
 <div class="wrap">
 
@@ -496,13 +516,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
     <div class="meta">
       自建站以来 <b id="totalCount">0</b> 次求签<br>
       <span style="font-size:12px"><span class="dot"></span>此刻 <b id="onlineCount" style="font-size:13px">1</b> 人在线</span><br>
-      <div class="meta-badges">
-        <span class="badge acct" id="acctBadge" title="本机已注册的账号数量（账号数据存于本浏览器，换设备需重新注册）">
-          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          已注册签友 <b id="acctCount">0</b> 位
-        </span>
-        <span class="badge local" id="cloudBadge"><span class="lamp"></span><span id="cloudText">正在连接云数据库…</span></span>
-      </div>
+      <span class="badge local" id="cloudBadge"><span class="lamp"></span><span id="cloudText">正在连接云数据库…</span></span>
     </div>
   </div>
   <nav class="nav">
@@ -1545,25 +1559,8 @@ const Account = (()=>{
   function current(){ const n=localStorage.getItem(SESSION_KEY); return (n&&users()[n])?n:null; }
   function nick(n){ const r=users()[n]; return r?r.nick:n; }
   function setNick(n,nick){ const u=users(); if(u[n]){ u[n].nick=nick; saveUsers(u); } }
-  function count(){ return Object.keys(users()).length; }
-  return {register,login,logout,current,nick,setNick,count};
+  return {register,login,logout,current,nick,setNick};
 })();
-
-/* ============ 左上角：已注册账号数（本机 localStorage） ============ */
-let LAST_ACCT_N = -1;
-function renderAcctCount(){
-  const el = document.getElementById('acctCount');
-  if(!el) return;
-  const n = Account.count();
-  el.textContent = n;
-  const badge = document.getElementById('acctBadge');
-  if(badge && LAST_ACCT_N >= 0 && n > LAST_ACCT_N){   /* 新增账号时轻弹一下 */
-    badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump');
-  }
-  LAST_ACCT_N = n;
-}
-/* 其他标签页注册了新账号时同步刷新 */
-window.addEventListener('storage', e=>{ if(!e.key || e.key==='jieyou_users') renderAcctCount(); });
 
 /* ============ 当前登录态 ============ */
 let CUR_USER = Account.current();
@@ -1595,7 +1592,7 @@ async function submitLogin(){
   let r;
   if(loginMode==='reg'){
     r = await Account.register(name, pw);
-    if(r.ok){ localStorage.setItem('jieyou_session', name.trim()); renderAcctCount(); }
+    if(r.ok) localStorage.setItem('jieyou_session', name.trim());
   }else{
     r = await Account.login(name, pw);
   }
@@ -1649,7 +1646,6 @@ async function boot(){
   refreshUserUI();
   resetIdle();
   updateGoldOrigin();
-  renderAcctCount();
 
   noAnimChk.checked = localStorage.getItem('jieyou_noanim')==='1';
   noAnimChk.addEventListener('change', ()=>{
