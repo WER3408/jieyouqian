@@ -1051,7 +1051,6 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 <!-- 登录 / 注册弹窗 -->
 <div class="mask" id="loginMask">
   <div class="pop login-pop">
-    <button class="close" onclick="closeLogin()">×</button>
     <div class="login-head">
       <div class="seal">签</div>
       <div>
@@ -1067,7 +1066,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
     <label class="fld"><span>密码</span><input id="loginPw" type="password" placeholder="至少 8 位" autocomplete="off"></label>
     <div class="login-err" id="loginErr"></div>
     <button class="btn primary wide" id="loginSubmit" onclick="submitLogin()">登录</button>
-    <div class="login-guest">只想随便看看？关闭本窗口即可继续游客浏览<br>摇签、收入签匣等功能需登录后使用</div>
+    <div class="login-guest">本站需登录后使用，未登录无法浏览或操作任何功能<br>请先登录或注册一个账号</div>
   </div>
 </div>
 
@@ -1958,6 +1957,7 @@ function showSign(sign){
 
 /* ============ 收藏 / 分享 ============ */
 function saveSign(){
+  if(!requireLogin()) return;
   if(!state.current) return;
   const sign = state.current;
   if(state.collected.has(sign.id)){ toast('这支签已经在你的签匣里了'); return; }
@@ -1969,6 +1969,7 @@ function saveSign(){
   });
 }
 function shareSign(){
+  if(!requireLogin()) return;
   if(!state.current) return;
   const txt = `【${state.current.level}】${state.current.text} —— 来自「解忧签」`;
   if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); }
@@ -2082,6 +2083,7 @@ function renderAll(){
 
 /* ===== 签匣详情：左键点击已收集的签 → 旋转放大到屏幕中央，显示具体签文 ===== */
 function openSignView(id){
+  if(!requireLogin()) return;
   const s = ALL.find(x=>x.id===id);
   if(!s) return;
   const lv = document.getElementById('svLevel');
@@ -2152,6 +2154,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState=
 
 /* ===== 设置弹窗 ===== */
 function openSettings(){
+  if(!requireLogin()) return;
   document.getElementById('setSoundChk').checked = Sound.isEnabled();
   const v = Math.round(Sound.getVolume()*100);
   const slider = document.getElementById('volSlider');
@@ -2165,6 +2168,7 @@ function closeSettings(){ document.getElementById('settingsMask').classList.remo
 
 /* ===== 求签动态弹窗 ===== */
 function openFeed(){
+  if(!requireLogin()) return;
   renderFeedLog();
   document.getElementById('feedMask').classList.add('on');
 }
@@ -2172,18 +2176,19 @@ function closeFeed(){ document.getElementById('feedMask').classList.remove('on')
 
 /* ===== 我的签匣弹窗 ===== */
 function openMyBox(){
+  if(!requireLogin()) return;
   document.getElementById('boxTip').textContent = CUR_USER ? `你是「${MY_NICK}」 · 集签进度` : '游客模式 · 登录后签匣随账号保存';
   document.getElementById('boxMask').classList.add('on');
 }
 function closeMyBox(){ document.getElementById('boxMask').classList.remove('on'); }
 
-/* 弹窗统一关闭：点遮罩 / 按 Esc */
-[['settingsMask', closeSettings], ['feedMask', closeFeed], ['boxMask', closeMyBox], ['rankMask', closeRank], ['loginMask', closeLogin], ['signViewMask', closeSignView]]
+/* 弹窗统一关闭：点遮罩 / 按 Esc（登录弹窗不可关闭，必须先登录） */
+[['settingsMask', closeSettings], ['feedMask', closeFeed], ['boxMask', closeMyBox], ['rankMask', closeRank], ['signViewMask', closeSignView]]
   .forEach(([id, fn])=>{
     document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) fn(); });
   });
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ closeSettings(); closeFeed(); closeMyBox(); closeRank(); closeLogin(); closeSignView(); }
+  if(e.key==='Escape'){ closeSettings(); closeFeed(); closeMyBox(); closeRank(); closeSignView(); }
 });
 
 let toastTimer;
@@ -2216,6 +2221,7 @@ async function refreshMyCollection(){
 
 /* 签运榜 */
 async function openRank(){
+  if(!requireLogin()) return;
   const mask = document.getElementById('rankMask');
   const list = document.getElementById('rankList');
   mask.classList.add('on');
@@ -2308,6 +2314,31 @@ function openLogin(msg){
   setTimeout(()=>document.getElementById('loginUser').focus(), 60);
 }
 function closeLogin(){ document.getElementById('loginMask').classList.remove('on'); }
+
+/* 登录守卫：已登录返回 true，未登录则弹出登录框并返回 false */
+function requireLogin(msg){
+  if(CUR_USER) return true;
+  openLogin(msg || '请先登录账号后再使用本站');
+  return false;
+}
+
+/* ===== 全局强制登录拦截 =====
+   未登录时，点击 / 按键一律在捕获阶段拦截并弹出登录框，同时阻断原本要触发的操作；
+   登录弹窗内部（输入框、标签页、登录按钮）不拦截。 */
+document.addEventListener('click', e=>{
+  if(CUR_USER) return;
+  if(e.target && e.target.closest && e.target.closest('#loginMask')) return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  openLogin('请先登录账号后再使用本站');
+}, true);
+document.addEventListener('keydown', e=>{
+  if(CUR_USER) return;
+  if(e.target && e.target.closest && e.target.closest('#loginMask')) return;
+  e.preventDefault();
+  e.stopPropagation();
+}, true);
 function switchLoginTab(mode){
   loginMode = mode;
   document.getElementById('tabLogin').classList.toggle('on', mode==='login');
@@ -2359,8 +2390,9 @@ function acctAction(){
     resetIdle();
     refreshUserUI();
     renderAll();
-    toast('已退出登录，回到游客模式');
     SOCIAL.afterAuthChange();
+    toast('已退出登录，请重新登录');
+    openLogin('已退出登录，请重新登录');
   }else{
     openLogin();
   }
@@ -2717,6 +2749,7 @@ function closeWishResult(){
   document.getElementById('wishResultMask').classList.remove('on');
 }
 function collectAllWish(){
+  if(!requireLogin()) return;
   if(!wishResults.length){ toast('没有可收纳的签'); return; }
   let added = 0;
   wishResults.forEach(s=>{
@@ -2727,9 +2760,10 @@ function collectAllWish(){
 }
 
 /* ===== 祈愿详情 / 祈愿记录 ===== */
-function openWishDetail(){ document.getElementById('wishDetailMask').classList.add('on'); }
+function openWishDetail(){ if(!requireLogin()) return; document.getElementById('wishDetailMask').classList.add('on'); }
 function closeWishDetail(){ document.getElementById('wishDetailMask').classList.remove('on'); }
 function openWishHistory(){
+  if(!requireLogin()) return;
   const list = document.getElementById('wishHistoryList');
   list.innerHTML = '';
   if(!FEED_LOG.length){
@@ -2927,6 +2961,7 @@ const SOCIAL = (()=>{
   }
 
   async function search(kw){
+    if(!CUR_USER){ openLogin('搜索账号需要先登录'); return; }
     const ul = document.getElementById('socSearchList');
     if(!ul) return;
     kw = String(kw||'').trim();
@@ -3257,6 +3292,9 @@ async function boot(){
   updateGoldOrigin();
   SOCIAL.init();
 
+  /* 未登录一律先弹出登录框，阻断游客使用 */
+  if(!CUR_USER) openLogin('请先登录账号后再使用本站');
+
   noAnimChk.checked = localStorage.getItem('jieyou_noanim')==='1';
   noAnimChk.addEventListener('change', ()=>{
     localStorage.setItem('jieyou_noanim', noAnimChk.checked ? '1' : '0');
@@ -3331,6 +3369,7 @@ boot();
 let unreadHallCount = 0, lastHallMsgTime = 0;
 
 async function openHall() {
+  if(!requireLogin('茶话会需要先登录')) return;
   unreadHallCount = 0;
   document.getElementById('hallBadge').hidden = true;
   document.getElementById('hallMask').classList.add('on');
@@ -3361,6 +3400,7 @@ function renderHallMsg(m) {
 }
 
 async function sendHallMsg() {
+  if(!requireLogin('茶话会需要先登录')) return;
   if(!Cloud.isOn()) return toast('大厅未连接云端');
   const input = document.getElementById('hallMsgInput');
   const txt = input.value.trim();
