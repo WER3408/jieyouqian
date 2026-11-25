@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -1783,7 +1784,7 @@ const Cloud = (()=>{
   async function fetchFriends(){
     if(!available) return [];
     const {data, error} = await sb.from('friends').select('*')
-      .or('user_id.eq.'+MY_ID+',friend_id.eq.'+MY_ID).eq('status','accepted').limit(500);
+      .or('user_id.eq.'+encodeURIComponent(MY_ID)+',friend_id.eq.'+encodeURIComponent(MY_ID)).eq('status','accepted').limit(500);
     if(error){ console.warn('[Supabase] 读取好友列表失败：', error.message); return []; }
     return data||[];
   }
@@ -1817,7 +1818,7 @@ const Cloud = (()=>{
     if(!available) return [];
     const lim = limit || 200;
     const {data, error} = await sb.from('messages').select('*')
-      .or('and(from_id.eq.'+MY_ID+',to_id.eq.'+peerId+'),and(from_id.eq.'+peerId+',to_id.eq.'+MY_ID+')')
+      .or('and(from_id.eq.'+encodeURIComponent(MY_ID)+',to_id.eq.'+encodeURIComponent(peerId)+'),and(from_id.eq.'+encodeURIComponent(peerId)+',to_id.eq.'+encodeURIComponent(MY_ID)+')')
       .order('created_at', {ascending:false}).limit(lim);
     if(error){ console.warn('[Supabase] 读取聊天记录失败：', error.message); return []; }
     return (data||[]).reverse();
@@ -2552,43 +2553,103 @@ async function editNick(e){
 /* ============ 本地账号系统（用户名 + 密码哈希，存于本机浏览器） ============ */
 const Account = (()=>{
   const USERS_KEY='jieyou_users', SESSION_KEY='jieyou_session';
-  function users(){ try{ const u=JSON.parse(localStorage.getItem(USERS_KEY)); return (u&&typeof u==='object'&&u)?u:{}; }catch(e){ return {}; } }
-  function saveUsers(u){ localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
-  function fbHash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return 'f'+(h>>>0).toString(16); }
-  async function hash(pw){
-    const s='jyq::'+pw;
-    if(window.crypto && crypto.subtle && crypto.subtle.digest){
-      try{
-        const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-        return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');
-      }catch(e){ /* 降级本地哈希 */ }
-    }
-    return fbHash(s);
+
+  /* 修复①：用户名保留字。
+     'guest' 会和「未登录游客」共用同一套 localStorage 主键
+     （dataKey()='jieyou_sign_guest'、jieyou_unread_guest、jieyou_tday_guest…），
+     注册一个叫 guest 的账号 = 直接读写游客的历史签匣，两边数据互相污染。 */
+  const RESERVED = ['guest','admin','root','public','public_hall','demo','null','undefined'];
+
+  /* 修复②：一律用 hasOwnProperty 判断键是否存在。
+     原来写 `if(u[name])`，当用户名是 __proto__ / toString / constructor / valueOf
+     这类原型链上的键时恒为 truthy → 永远提示「该用户名已注册，请直接登录」，
+     而这些名字其实根本没被注册过（JSON.stringify 不会序列化原型）。 */
+  function has(u,k){ return Object.prototype.hasOwnProperty.call(u,k); }
+
+  /* 用 null 原型对象承载账号表：这样 '__proto__' 也能作为普通键正常读写与序列化，
+     不会出现「注册返回成功、实际没落盘、下次登不进来」的静默失败。 */
+  function users(){
+    let u = null;
+    try{ u = JSON.parse(localStorage.getItem(USERS_KEY)); }catch(e){ u = null; }
+    return (u && typeof u==='object' && u) ? Object.assign(Object.create(null), u) : Object.create(null);
   }
-  async function register(name,pw){
-    name=name.trim();
+  /* 注意：这里不能 Object.assign({}, u) —— 普通对象带 __proto__ 访问器，
+     会把名为 __proto__ 的账号键吞掉，导致注册「成功」却没落盘。 */
+  function saveUsers(u){ localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+
+  function fbHash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return 'f'+(h>>>0).toString(16); }
+  async function sha(pw){
+    const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('jyq::'+pw));
+    return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  /* 修复③：哈希记录里带上算法标记，登录时按标记（老数据按长度推断）回验。
+     原来 hash() 在 crypto.subtle 不可用时静默降级成 32 位 FNV，
+     同一个账号在 https 下注册（存 SHA-256）、换到 http://内网IP / 旧浏览器登录（算 FNV），
+     两个哈希永远对不上 → 密码明明输对了却提示「密码不正确」，且无任何线索。 */
+  async function makeHash(pw){
+    try{ return {alg:'sha256', pw:await sha(pw)}; }
+    catch(e){ return {alg:'fnv', pw:fbHash('jyq::'+pw)}; }
+  }
+  async function verify(rec, pw){
+    if(!rec || !rec.pw) return false;
+    const alg = rec.alg || (String(rec.pw).length > 16 ? 'sha256' : 'fnv');
+    if(alg === 'sha256'){
+      let h = null;
+      try{ h = await sha(pw); }catch(e){}
+      return h === rec.pw || fbHash('jyq::'+pw) === rec.pw;   /* 后者兜极老的降级数据 */
+    }
+    return fbHash('jyq::'+pw) === rec.pw;
+  }
+
+  /* 修复④：用户名合法性校验。
+     用户名会被拼进 PostgREST 的 .or() 过滤串（好友列表、聊天记录），
+     也直接当 localStorage 键用；含 , . : * ( ) 时查询语法会被破坏，
+     表现为「登录成功但好友/聊天永远空白」这类说不清的故障。 */
+  function checkName(name){
+    name = String(name==null?'':name).trim();
     if(!name) return {ok:false,msg:'请填写用户名'};
     if(name.length>12) return {ok:false,msg:'用户名最长 12 个字'};
+    if(RESERVED.indexOf(name.toLowerCase())>=0) return {ok:false,msg:'这个用户名被占用了，换一个吧'};
+    if(/[,.:*()]/.test(name)) return {ok:false,msg:'用户名不能包含 , . : * ( ) 这些符号'};
+    return {ok:true, name:name};
+  }
+
+  async function register(name,pw){
+    const chk = checkName(name);
+    if(!chk.ok) return chk;
+    name = chk.name;
     if(!pw||pw.length<8) return {ok:false,msg:'密码至少 8 位'};
     const u=users();
-    if(u[name]) return {ok:false,msg:'该用户名已注册，请直接登录'};
-    u[name]={pw:await hash(pw), nick:name, created:Date.now()};
-    saveUsers(u);
+    if(has(u,name)) return {ok:false,msg:'该用户名已注册，请直接登录'};
+    const h = await makeHash(pw);
+    u[name]={pw:h.pw, alg:h.alg, nick:name, created:Date.now()};
+    /* 修复⑤：配额写满 / 无痕模式 / 禁用站点数据时 setItem 会抛异常，
+       必须转成人话提示，否则异常会一路冒到 submitLogin 把按钮永久禁掉。 */
+    try{ saveUsers(u); }
+    catch(e){ return {ok:false,msg:'本地存储写入失败：浏览器可能禁用了站点数据，或存储空间已满'}; }
     return {ok:true};
   }
   async function login(name,pw){
-    name=name.trim();
-    const rec=users()[name];
-    if(!rec) return {ok:false,msg:'用户名未注册，请先注册'};
-    if(rec.pw!==await hash(pw)) return {ok:false,msg:'密码不正确'};
-    localStorage.setItem(SESSION_KEY,name);
+    const chk = checkName(name);
+    if(!chk.ok) return chk;
+    name = chk.name;
+    if(!pw) return {ok:false,msg:'请输入密码'};   /* 修复⑥：原来空密码会走到哈希比对，误报「密码不正确」 */
+    const u = users();
+    if(!has(u,name)) return {ok:false,msg:'用户名未注册，请先注册'};
+    let ok=false;
+    try{ ok = await verify(u[name], pw); }
+    catch(e){ ok = (u[name].pw === fbHash('jyq::'+pw)); }
+    if(!ok) return {ok:false,msg:'密码不正确'};
+    try{ setSession(name); }
+    catch(e){ return {ok:false,msg:'本地存储写入失败，请检查浏览器的隐私/站点数据设置'}; }
     return {ok:true};
   }
+  function setSession(n){ localStorage.setItem(SESSION_KEY, n); }
   function logout(){ localStorage.removeItem(SESSION_KEY); }
-  function current(){ const n=localStorage.getItem(SESSION_KEY); return (n&&users()[n])?n:null; }
-  function nick(n){ const r=users()[n]; return r?r.nick:n; }
-  function setNick(n,nick){ const u=users(); if(u[n]){ u[n].nick=nick; saveUsers(u); } }
-  return {register,login,logout,current,nick,setNick};
+  function current(){ const n=localStorage.getItem(SESSION_KEY); return (n&&has(users(),n))?n:null; }
+  function nick(n){ const u=users(); return has(u,n)?(u[n].nick||n):n; }
+  function setNick(n,nick){ const u=users(); if(has(u,n)){ u[n].nick=nick; saveUsers(u); } }
+  return {register,login,logout,current,nick,setNick,setSession,checkName};
 })();
 
 /* ============ 当前登录态 ============ */
@@ -2598,8 +2659,24 @@ function isMeRec(rec){ return rec.u ? rec.u === (CUR_USER||'guest') : !!rec.me; 
 
 let loginMode = 'login';
 function openLogin(msg){
+  const mask = document.getElementById('loginMask');
+  const alreadyOpen = mask.classList.contains('on');
+  /* 修复⑦：只在「重新打开」时复位到「登录」页签。
+     原来 loginMode 只在点标签时改变，openLogin 从不重置 —— 只要注册过一次
+     （或手动切到过「注册」页签），之后每次弹窗都会停在注册态：
+     按钮写着「注册并登录」，用户输入正确的账号密码点下去，走的是 register 分支
+     → 永远提示「该用户名已注册，请直接登录」。
+     这就是典型的「登录好像坏了，但说不上来哪里坏」。
+     弹窗已经开着时不重置，避免误触遮罩把用户填了一半的注册表单清空。 */
+  if(!alreadyOpen){
+    switchLoginTab('login');
+    const pwEl = document.getElementById('loginPw');
+    if(pwEl) pwEl.value = '';                 /* 修复⑧：不残留上一个账号的密码 */
+  }
+  const btn = document.getElementById('loginSubmit');
+  if(btn) btn.disabled = false;               /* 修复⑧：清掉可能残留的禁用态（弹窗不可关闭，一旦灰死就再也进不去） */
   document.getElementById('loginErr').textContent = msg || '';
-  document.getElementById('loginMask').classList.add('on');
+  mask.classList.add('on');
   setTimeout(()=>document.getElementById('loginUser').focus(), 60);
 }
 function closeLogin(){ document.getElementById('loginMask').classList.remove('on'); }
@@ -2638,24 +2715,43 @@ function switchLoginTab(mode){
   document.getElementById('loginErr').textContent = '';
 }
 async function submitLogin(){
-  const name = document.getElementById('loginUser').value;
-  const pw = document.getElementById('loginPw').value;
+  const nameEl = document.getElementById('loginUser');
+  const pwEl   = document.getElementById('loginPw');
   const err = document.getElementById('loginErr');
   const btn = document.getElementById('loginSubmit');
+  if(btn.disabled) return;                     /* 修复⑨：防连点重复提交 */
+  const name = String(nameEl.value||'').trim();
+  const pw   = String(pwEl.value||'');
+  err.textContent = '';
   btn.disabled = true;
-  let r;
-  if(loginMode==='reg'){
-    r = await Account.register(name, pw);
-    if(r.ok) localStorage.setItem('jieyou_session', name.trim());
-  }else{
-    r = await Account.login(name, pw);
+  const isReg = (loginMode==='reg');
+  let r = {ok:false, msg:''};
+  try{
+    if(isReg){
+      r = await Account.register(name, pw);
+      if(r.ok) Account.setSession(name);      /* 原来这里硬编码字面量 'jieyou_session'，与 SESSION_KEY 常量脱钩 */
+    }else{
+      r = await Account.login(name, pw);
+    }
+    if(!r.ok){ err.textContent = r.msg; return; }
+    pwEl.value = '';
+    closeLogin();
+    /* 修复⑨：原来整段没有 try/catch/finally。
+       Account.register 里的 localStorage.setItem 一旦抛错（配额写满 / 无痕模式 /
+       浏览器禁用站点数据），btn.disabled 就永远停在 true，
+       而登录弹窗按设计不可关闭 → 按钮永久灰死，整站再也进不去。
+       现在先关弹窗再异步收尾，登录反馈不被云端往返拖住。 */
+    Promise.resolve(onLogin(name, {registered: isReg}))
+           .catch(e=>console.warn('[登录] 登录后初始化异常：', e));
+  }catch(e){
+    console.warn('[登录] 提交异常：', e);
+    err.textContent = '操作失败：' + ((e && e.message) || '本地存储不可用，请检查浏览器是否禁用了站点数据');
+  }finally{
+    btn.disabled = false;
   }
-  btn.disabled = false;
-  if(!r.ok){ err.textContent = r.msg; return; }
-  onLogin(name.trim());
-  closeLogin();
 }
-function onLogin(name){
+async function onLogin(name, opts){
+  const isReg = !!(opts && opts.registered);
   save();                 /* 先把当前游客/上一账号的数据落盘 */
   CUR_USER = name;
   MY_NICK = Account.nick(name) || name;
@@ -2664,16 +2760,41 @@ function onLogin(name){
   resetIdle();
   refreshUserUI();
   renderAll();
-  toast(`欢迎回来，「${MY_NICK}」，轻摇签筒开始`);
+  toast(isReg ? `注册成功，欢迎「${MY_NICK}」，轻摇签筒开始` : `欢迎回来，「${MY_NICK}」，轻摇签筒开始`);
   Cloud.syncAccount(name, MY_NICK);   /* 让本账号可被他人搜索到 */
   SOCIAL.afterAuthChange();
+
+  /* 修复⑩：登录成功后立刻和云端对齐一次。
+     原来 onLogin 只 load() 本地 localStorage，而「刷新页面」走的 boot() 会再拉一次
+     Cloud.fetchCollection()/fetchMyDrawCount() 覆盖本地 —— 两条路径口径不一致，
+     于是出现：刚登录时「我的签匣」是空的、次数是 0，但「签运榜」上你的集签数是真实的；
+     刷新一下页面数字又突然变多。顺手摇一签还会把不完整的数据 save() 回本地。 */
+  if(Cloud.isOn()){
+    try{
+      const [colRes, cntRes] = await Promise.allSettled([
+        Cloud.fetchCollection(), Cloud.fetchMyDrawCount()
+      ]);
+      if(CUR_USER !== name) return;              /* 期间已切号/退出，丢弃这次结果 */
+      if(colRes.status==='fulfilled' && Array.isArray(colRes.value)
+         && (colRes.value.length || state.collected.size===0)){
+        state.collected = new Set(colRes.value); save(); renderAll();
+      }
+      if(cntRes.status==='fulfilled' && typeof cntRes.value==='number'
+         && (cntRes.value>0 || state.drawCount===0)){
+        state.drawCount = cntRes.value; save();
+      }
+    }catch(e){ /* 云端不可用就沿用本地数据，不打断登录 */ }
+  }
 }
 function acctAction(){
   if(CUR_USER){
     save();
     Account.logout();
     CUR_USER = null;
-    MY_NICK = '访客';
+    /* 修复⑪：退出后取回本机访客昵称，而不是硬编码 '访客'。
+       原来这里写死 MY_NICK='访客'，但 localStorage 里的 jieyou_nick 没有同步，
+       结果退出当场显示「访客」，一刷新又变回原来的访客昵称，前后不一致。 */
+    MY_NICK = localStorage.getItem('jieyou_nick') || '访客';
     MY_ID = null;
     load();
     resetIdle();
@@ -2694,6 +2815,7 @@ function refreshUserUI(){
   document.getElementById('acctName').textContent = CUR_USER ? MY_NICK : '未登录';
   document.getElementById('acctBtn').textContent = CUR_USER ? '退出登录' : '登录';
 }
+document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') submitLogin(); });
 document.getElementById('loginPw').addEventListener('keydown', e=>{ if(e.key==='Enter') submitLogin(); });
 
 
@@ -3643,11 +3765,20 @@ async function boot(){
   ]);
 
   // 1) 我的签匣
-  if(colRes.status === 'fulfilled' && colRes.value){
+  // 1) 我的签匣
+  /* 修复⑫：云端返回「空数组」不再无条件覆盖本地并落盘。
+     原来 `if(colRes.value)` 里 [] 也是 truthy —— 只要 collection 表按当前身份查不到行
+     （新的匿名访客身份、项目迁移、表被清、RLS 策略改动、bot 清理误伤），
+     就会把本地已有的签匣清空并 save()，数据永久丢失且没有任何提示。
+     现在只在「云端确实有数据」或「本地本来就是空的」时才覆盖。 */
+  if(colRes.status === 'fulfilled' && Array.isArray(colRes.value)
+     && (colRes.value.length || state.collected.size === 0)){
     state.collected = new Set(colRes.value); save(); renderAll();
   }
   // 2) 我自己的历史摇签次数（隐藏签「天选」按真实次数判定）
-  if(mineRes.status === 'fulfilled' && mineRes.value !== null){
+  /* 修复⑬：同上，云端 count 为 0 而本地有记录时不覆盖 */
+  if(mineRes.status === 'fulfilled' && typeof mineRes.value === 'number'
+     && (mineRes.value > 0 || state.drawCount === 0)){
     state.drawCount = mineRes.value; save();
   }
   // 3) 动态流历史（写入本地历史日志，供弹窗滚动查看）
