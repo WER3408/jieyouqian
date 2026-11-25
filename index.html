@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -1023,7 +1024,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
         <button class="btn mini" id="acctBtn" onclick="acctAction()">登录</button>
       </div>
     </div>
-    <div class="set-tip">勾选求签播报后，当有人抽出隐藏签时屏幕上方会滑出提示；不勾选则不会提示。勾选「氛围动态」后，站内长时间无人摇签时会补上占位动态让动态流保持流动（仅本机展示，不写入云端、不计入真实统计）；关掉则只显示真实求签。账号与签匣保存在本机浏览器，换设备需重新注册。</div>
+    <div class="set-tip">勾选求签播报后，当有人抽出隐藏签时屏幕上方会滑出提示；不勾选则不会提示。勾选「氛围动态」后，站内长时间无人摇签时会补上占位动态让动态流保持流动（仅本机展示，不写入云端、不计入真实统计）；关掉则只显示真实求签。</div>
   </div>
 </div>
 
@@ -1541,12 +1542,26 @@ const Cloud = (()=>{
         realtime: { params: { eventsPerSecond: 20, heartbeatIntervalMs: 15000 } }
       });
       await ensureIdentity();
-      /* 性能：available 先置位，让首屏立刻开始并行拉数据；
-         下面两个「写」操作（写 users 表 / 同步账号名）不返回页面渲染所需的数据，
-         原来是 await 串在主链上，白白多等 1~2 个 RTT。改成后台执行。 */
+      /* 性能：available 先置位，让首屏立刻开始并行拉数据。
+         下面整段「写」操作（读云端昵称 → 写 users 表 → 同步账号名）都不返回
+         页面渲染所需的数据，全部放后台执行，一个 RTT 都不占首屏。 */
       available = true;
-      sb.from('users').upsert({id:MY_ID, nickname:MY_NICK}, {onConflict:'id'})
-        .then(({error})=>{ if(error) console.warn('[Supabase] 写入 users 失败：', error.message); });
+      (async ()=>{
+        /* 换设备 / 清过缓存后本机没有该账号的昵称缓存，Account.nick() 只能回用户名本身。
+           此时若直接 users.upsert，会把云端已改过的昵称覆盖回用户名 ——
+           所以先把真实昵称读回来，再写 users 表（仅缺缓存时付这一次往返，且在后台）。 */
+        if(CUR_USER && !Account.hasLocal(CUR_USER)){
+          const info = await accountInfo(CUR_USER);
+          if(info && info.nickname){
+            MY_NICK = info.nickname;
+            try{ localStorage.setItem('jieyou_nick', MY_NICK); }catch(e){}
+            Account.setNick(CUR_USER, MY_NICK);
+            try{ refreshUserUI(); }catch(e){}   /* 顶栏 / 设置面板的昵称同步刷新 */
+          }
+        }
+        const {error} = await sb.from('users').upsert({id:MY_ID, nickname:MY_NICK}, {onConflict:'id'});
+        if(error) console.warn('[Supabase] 写入 users 失败：', error.message);
+      })().catch(e=>console.warn('[Supabase] users 表同步异常：', e));
       /* 把用户名一并写入 users 表，供「搜索账号 / 加好友」使用（失败不影响主流程） */
       try{ syncAccount(CUR_USER, MY_NICK); }catch(e){ /* 忽略 */ }
       return true;
@@ -1653,7 +1668,40 @@ const Cloud = (()=>{
     return open();
   }
 
-  /* 我的签匣 */
+  /* ===== 我的签匣（云端为权威，本机 localStorage 只是秒开缓存 + 离线兜底） =====
+     写入失败（断网 / RLS 未开 / 服务抖动）时不再静默丢弃，
+     而是进「待补传队列」按账号分键落盘，下次启动或网络恢复时自动补传。
+     否则就会出现「本机看着有这支签，换设备登录后却少了」的鬼故事。 */
+  function pendingKey(){ return 'jieyou_pending_collect_' + (CUR_USER || MY_ID || 'guest'); }
+  function readPending(){
+    try{ const a = JSON.parse(localStorage.getItem(pendingKey())); return Array.isArray(a) ? a : []; }
+    catch(e){ return []; }
+  }
+  function pushPending(signId){
+    const a = readPending();
+    if(a.indexOf(signId) < 0) a.push(signId);
+    try{ localStorage.setItem(pendingKey(), JSON.stringify(a)); }catch(e){}
+  }
+  /* 补传队列：顺序写，遇到第一个失败就停（保留剩余，下轮再试） */
+  async function flushPending(){
+    if(!available) return 0;
+    const a = readPending();
+    if(!a.length) return 0;
+    let n = 0;
+    for(const id of a){
+      const {error} = await sb.from('collection').upsert(
+        {user_id: MY_ID, sign_id: id}, {onConflict:'user_id,sign_id'});
+      if(error){ console.warn('[Supabase] 签匣补传失败，稍后自动重试：', error.message); break; }
+      n++;
+    }
+    if(n){
+      try{ localStorage.setItem(pendingKey(), JSON.stringify(readPending().slice(n))); }catch(e){}
+      console.info('[Supabase] 已补传 ' + n + ' 支离线签匣记录');
+    }
+    return n;
+  }
+
+  /* 返回 null = 查询失败（与「云端确实为空」的 [] 区分开，上层才不会误清空本地签匣） */
   async function fetchCollection(){
     if(!available) return null;
     const {data, error} = await sb.from('collection').select('sign_id').eq('user_id', MY_ID);
@@ -1661,10 +1709,14 @@ const Cloud = (()=>{
     return (data||[]).map(r=>r.sign_id);
   }
   async function collect(sign){
-    if(!available) return false;
+    if(!available){ pushPending(sign.id); return false; }
     const {error} = await sb.from('collection').upsert(
       {user_id: MY_ID, sign_id: sign.id}, {onConflict:'user_id,sign_id'});
-    if(error){ console.warn('[Supabase] 收藏失败：', error.message); return false; }
+    if(error){
+      console.warn('[Supabase] 收藏失败，已转入离线补传队列：', error.message);
+      pushPending(sign.id);
+      return false;
+    }
     return true;
   }
 
@@ -1705,13 +1757,103 @@ const Cloud = (()=>{
     return data||[];
   }
 
-  /* 改昵称 */
+  /* 改昵称：users 表（动态流 / 签运榜显示用）一并更新 */
   async function rename(nick){
     MY_NICK = nick;
     localStorage.setItem('jieyou_nick', nick);
     if(!available) return false;
     const {error} = await sb.from('users').update({nickname:nick}).eq('id', MY_ID);
     return !error;
+  }
+
+  /* ===== 云端账号系统（新增）=====
+     账号权威数据在 accounts 表：换设备 / 换浏览器 / 清过缓存后仍能登录，
+     签匣与摇签次数随账号从云端拉回，不再「换设备就得重新注册」。
+     密码永不明文上网、也永不明文入库：
+       · 客户端算 pwHash = SHA-256('jyq::' + username + '::' + password)，用户名作盐
+       · 服务端只存这个哈希；登录比对在 account_login()（SECURITY DEFINER）里完成，
+         哈希不出库，anon 角色对 accounts 表没有 select 权限，拖不走密码哈希。
+     云端不可达时全站自动降级回本机 localStorage 账号（老行为），不报错、不白屏。 */
+  function rpcOne(data){ return (Array.isArray(data) ? data[0] : data) || {}; }
+
+  async function accountRegister(username, pwHash, pwAlg, nickname){
+    if(!available) return {ok:false, offline:true};
+    try{
+      const {data, error} = await sb.rpc('account_register', {
+        p_username: username, p_hash: pwHash,
+        p_alg: pwAlg || 'sha256u', p_nickname: nickname || username
+      });
+      if(error){
+        console.warn('[Supabase] 账号注册失败（请确认已执行「云端账号.sql」）：', error.message);
+        return {ok:false, msg:'注册失败：' + error.message};
+      }
+      const r = rpcOne(data);
+      if(r.ok) return {ok:true};
+      if(r.reason === 'exists') return {ok:false, exists:true, msg:'该用户名已注册，请直接登录'};
+      return {ok:false, msg: r.reason==='badname' ? '用户名不合法' : '注册失败，请稍后再试'};
+    }catch(e){
+      console.warn('[Supabase] 账号注册异常：', e);
+      return {ok:false, offline:true};
+    }
+  }
+
+  /* p_hashes：同一个密码的多种算法哈希（带用户名盐的新算法 + 无盐老算法），
+     服务端命中任一即通过 —— 这样本机老账号原样上云后，换设备仍用原密码可登。 */
+  async function accountLogin(username, pwHashes){
+    if(!available) return {ok:false, offline:true};
+    try{
+      const {data, error} = await sb.rpc('account_login', {p_username: username, p_hashes: pwHashes});
+      if(error){
+        console.warn('[Supabase] 账号登录失败（请确认已执行「云端账号.sql」）：', error.message);
+        return {ok:false, offline:true};
+      }
+      const r = rpcOne(data);
+      return {ok: !!r.ok, reason: r.reason || '', nickname: r.nickname || ''};
+    }catch(e){
+      console.warn('[Supabase] 账号登录异常：', e);
+      return {ok:false, offline:true};
+    }
+  }
+
+  /* 读账号信息（换设备后本机没有昵称缓存时，用它把真实昵称拉回来） */
+  async function accountInfo(username){
+    if(!available) return null;
+    try{
+      const {data, error} = await sb.rpc('account_info', {p_username: username});
+      if(error) return null;
+      const r = rpcOne(data);
+      return r && r.found ? r : null;
+    }catch(e){ return null; }
+  }
+
+  /* 改昵称同步到账号权威表 */
+  async function accountSetNick(username, nickname){
+    if(!available) return false;
+    try{
+      const {data, error} = await sb.rpc('account_set_nick', {p_username: username, p_nickname: nickname});
+      return !error && !!rpcOne(data).ok;
+    }catch(e){ return false; }
+  }
+
+  /* 把本机已注册的老账号静默搬上云（幂等：云端已有同名则跳过，绝不覆盖云端密码）。
+     返回 synced = 云端确认「已写入」或「本来就有」的用户名列表。 */
+  async function accountMigrate(list){
+    const out = {ok:0, skip:0, fail:0, synced:[]};
+    if(!available || !Array.isArray(list) || !list.length) return out;
+    for(const it of list){
+      try{
+        const {data, error} = await sb.rpc('account_register', {
+          p_username: it.username, p_hash: it.pwHash,
+          p_alg: it.pwAlg || 'sha256', p_nickname: it.nickname || it.username
+        });
+        if(error){ out.fail++; continue; }
+        const r = rpcOne(data);
+        if(r.ok){ out.ok++; out.synced.push(it.username); }
+        else if(r.reason === 'exists'){ out.skip++; out.synced.push(it.username); }
+        else out.fail++;
+      }catch(e){ out.fail++; }
+    }
+    return out;
   }
 
   /* ===== 好友与聊天（新增云端接口） =====
@@ -1858,6 +2000,8 @@ const Cloud = (()=>{
     init, recordDraw, fetchFeed, fetchFeedSince, subscribeFeed, subscribeCollection,
     fetchCollection, collect,
     fetchStats, fetchMyDrawCount, fetchRank, rename,
+    /* 云端账号（新增）：注册 / 登录 / 昵称 / 老账号上云迁移 / 签匣离线补传 */
+    accountRegister, accountLogin, accountInfo, accountSetNick, accountMigrate, flushPending,
     /* 好友与聊天（新增） */
     syncAccount, searchUsers, sendFriendRequest, fetchRequests, fetchSentRequests,
     fetchFriends, respondRequest, sendMessage, fetchMessages, fetchIncomingSince, subscribeSocial,
@@ -2546,11 +2690,22 @@ async function editNick(e){
   Account.setNick(CUR_USER, nick);
   MY_NICK = nick;
   const ok = await Cloud.rename(nick);
+  /* 账号权威表里的昵称一并更新：换设备登录后显示的名字才一致 */
+  try{ await Cloud.accountSetNick(CUR_USER, nick); }catch(e){}
+  localStorage.setItem('jieyou_nick', nick);
   refreshUserUI();
   toast(ok ? `昵称已改为「${nick}」` : `已本地改名为「${nick}」（云端未连接）`);
 }
 
-/* ============ 本地账号系统（用户名 + 密码哈希，存于本机浏览器） ============ */
+/* ============ 账号系统（云端为权威 + 本机 localStorage 缓存） ============
+   改造要点：账号不再只存在本机浏览器。
+     · 注册 / 登录都先走云端 accounts 表（Cloud.accountRegister / accountLogin），
+       换设备、换浏览器、清过缓存之后，用同一个用户名 + 密码就能重新登录，
+       登录成功后 boot() / onLogin() 会把云端的签匣与摇签次数拉回来。
+     · 本机 localStorage 退化为「缓存 + 离线兜底」：断网时仍能登录已缓存的账号，
+       页面不会因为 Supabase 不可达而白屏。
+     · 本机只存密码哈希，绝不存明文密码。
+   注意：本模块在 Cloud 之后定义，但只在运行时被调用，可以安全引用 Cloud。 */
 const Account = (()=>{
   const USERS_KEY='jieyou_users', SESSION_KEY='jieyou_session';
 
@@ -2590,9 +2745,13 @@ const Account = (()=>{
     try{ return {alg:'sha256', pw:await sha(pw)}; }
     catch(e){ return {alg:'fnv', pw:fbHash('jyq::'+pw)}; }
   }
-  async function verify(rec, pw){
+  async function verify(rec, pw, name){
     if(!rec || !rec.pw) return false;
     const alg = rec.alg || (String(rec.pw).length > 16 ? 'sha256' : 'fnv');
+    /* 新版：用户名作盐（云端账号就是这个算法） */
+    if(alg === 'sha256u'){
+      try{ return (await sha(String(name||'') + '::' + pw)) === rec.pw; }catch(e){ return false; }
+    }
     if(alg === 'sha256'){
       let h = null;
       try{ h = await sha(pw); }catch(e){}
@@ -2600,6 +2759,21 @@ const Account = (()=>{
     }
     return fbHash('jyq::'+pw) === rec.pw;
   }
+
+  /* 同一个密码算出「带用户名盐」与「无盐老算法」两份哈希。
+     · 注册：取第一份（sha256u）上云；
+     · 登录：两份一起送给服务端，命中任一即通过 ——
+       这样「老版本在本机注册的无盐账号」原样搬上云后，
+       换设备依然能用原密码登录，不需要重设密码。 */
+  async function pwHashesFor(name, pw){
+    const list = [];
+    try{ list.push(await sha(String(name) + '::' + pw)); }catch(e){}
+    try{ list.push(await sha(pw)); }catch(e){}
+    if(!list.length){ list.push(fbHash('jyq::'+name+'::'+pw), fbHash('jyq::'+pw)); }
+    return list;
+  }
+  /* 本机是否已有该账号的缓存记录（决定要不要花一次往返去云端读昵称） */
+  function hasLocal(n){ return has(users(), n); }
 
   /* 修复④：用户名合法性校验。
      用户名会被拼进 PostgREST 的 .or() 过滤串（好友列表、聊天记录），
@@ -2621,13 +2795,27 @@ const Account = (()=>{
     if(!pw||pw.length<8) return {ok:false,msg:'密码至少 8 位'};
     const u=users();
     if(has(u,name)) return {ok:false,msg:'该用户名已注册，请直接登录'};
-    const h = await makeHash(pw);
-    u[name]={pw:h.pw, alg:h.alg, nick:name, created:Date.now()};
-    /* 修复⑤：配额写满 / 无痕模式 / 禁用站点数据时 setItem 会抛异常，
+
+    /* ① 云端优先：用户名是否可用由服务端唯一约束说了算。
+          原来只查本机 localStorage，两个人（或同一人换浏览器）注册同名会各自
+          「注册成功」，而 user_id = 'u_' + 用户名 完全相同 →
+          签匣、求签动态、签运榜、好友、私聊全部串号。现在由云端一票否决。 */
+    let cloud = {ok:false, offline:true};
+    if(Cloud.isOn()){
+      const hs = await pwHashesFor(name, pw);
+      cloud = await Cloud.accountRegister(name, hs[0], 'sha256u', name);
+      if(!cloud.ok && cloud.exists) return {ok:false, msg:'该用户名已注册，请直接登录'};
+    }
+
+    /* ② 本机同时留一份哈希：断网时可离线登录，也作为秒开缓存。
+       修复⑤：配额写满 / 无痕模式 / 禁用站点数据时 setItem 会抛异常，
        必须转成人话提示，否则异常会一路冒到 submitLogin 把按钮永久禁掉。 */
+    const h = await makeHash(pw);
+    u[name]={pw:h.pw, alg:h.alg, nick:name, created:Date.now(), cloudSynced:!!cloud.ok};
     try{ saveUsers(u); }
     catch(e){ return {ok:false,msg:'本地存储写入失败：浏览器可能禁用了站点数据，或存储空间已满'}; }
-    return {ok:true};
+    if(!cloud.ok) return {ok:true, offline:true, msg:'已在本机注册，联网后会自动同步到云端'};
+    return {ok:true, cloud:true};
   }
   async function login(name,pw){
     const chk = checkName(name);
@@ -2635,10 +2823,45 @@ const Account = (()=>{
     name = chk.name;
     if(!pw) return {ok:false,msg:'请输入密码'};   /* 修复⑥：原来空密码会走到哈希比对，误报「密码不正确」 */
     const u = users();
-    if(!has(u,name)) return {ok:false,msg:'用户名未注册，请先注册'};
+
+    /* ① 云端优先：换设备 / 换浏览器 / 清过缓存时本机根本没有这个账号，
+          必须让服务端来认 —— 这正是「换设备登不上」的根因。 */
+    if(Cloud.isOn()){
+      const hs = await pwHashesFor(name, pw);
+      const c = await Cloud.accountLogin(name, hs);
+      if(c.ok){
+        /* 把云端账号镜像到本机（存哈希不存明文），下次断网也能登 */
+        if(!has(u,name)){
+          u[name] = {pw:hs[0], alg:'sha256u', nick:c.nickname||name, created:Date.now(), cloudSynced:true};
+          try{ saveUsers(u); }catch(e){}
+        }else if(c.nickname && u[name].nick !== c.nickname){
+          u[name].nick = c.nickname;
+          try{ saveUsers(u); }catch(e){}
+        }
+        try{ setSession(name); }
+        catch(e){ return {ok:false,msg:'本地存储写入失败，请检查浏览器的隐私/站点数据设置'}; }
+        return {ok:true, cloud:true, nickname:c.nickname||''};
+      }
+      if(c.reason === 'badpw') return {ok:false,msg:'密码不正确'};
+      if(c.reason === 'nouser'){
+        /* 云端没这个账号：可能是本机老账号还没上云 → 交给下面的本地校验兜底 */
+        if(!has(u,name)) return {ok:false,msg:'用户名未注册，请先注册'};
+      }else{
+        /* 云端不可达 / 函数没建：降级本机校验，保证老用户不被锁在门外 */
+        if(!has(u,name)) return {ok:false,msg:'用户名未注册，请先注册（当前连不上云端）'};
+      }
+    }else if(!has(u,name)){
+      return {ok:false,msg:'用户名未注册，请先注册'};
+    }
+
+    /* ② 本地校验（离线兜底 / 尚未上云的老账号） */
     let ok=false;
-    try{ ok = await verify(u[name], pw); }
+    try{ ok = await verify(u[name], pw, name); }
     catch(e){ ok = (u[name].pw === fbHash('jyq::'+pw)); }
+    if(!ok){
+      /* 本机镜像存的是带用户名盐的哈希，而 verify 走异常分支时可能漏比，补一次 */
+      try{ ok = (u[name].pw === await sha(name + '::' + pw)); }catch(e){}
+    }
     if(!ok) return {ok:false,msg:'密码不正确'};
     try{ setSession(name); }
     catch(e){ return {ok:false,msg:'本地存储写入失败，请检查浏览器的隐私/站点数据设置'}; }
@@ -2646,10 +2869,40 @@ const Account = (()=>{
   }
   function setSession(n){ localStorage.setItem(SESSION_KEY, n); }
   function logout(){ localStorage.removeItem(SESSION_KEY); }
-  function current(){ const n=localStorage.getItem(SESSION_KEY); return (n&&has(users(),n))?n:null; }
+  /* 会话里的用户名直接采信：账号权威在云端，本机 users 表只是缓存。
+     原来要求「本机 users 表里必须有这个键」才认登录态，换设备 / 清过缓存之后
+     本机必然没有 → 明明云端有账号，刷新一下页面就被当成没登录。 */
+  function current(){
+    const n = localStorage.getItem(SESSION_KEY);
+    return (n && String(n).trim()) ? String(n).trim() : null;
+  }
   function nick(n){ const u=users(); return has(u,n)?(u[n].nick||n):n; }
   function setNick(n,nick){ const u=users(); if(has(u,n)){ u[n].nick=nick; saveUsers(u); } }
-  return {register,login,logout,current,nick,setNick,setSession,checkName};
+
+  /* 把本机已注册、但尚未上云的账号静默搬上云（幂等，绝不覆盖云端已有密码）。
+     老账号存的是无盐哈希，原样上云（alg=sha256）；登录时客户端新老两种哈希一起送验，
+     所以换设备后依然能用原密码登录，不需要重设密码。 */
+  async function migrateToCloud(){
+    const out = {ok:0, skip:0, fail:0};
+    if(!Cloud.isOn()) return out;
+    const u = users(), list = [];
+    for(const name of Object.keys(u)){
+      const rec = u[name];
+      if(!rec || !rec.pw || rec.cloudSynced) continue;
+      list.push({username:name, pwHash:rec.pw, pwAlg:rec.alg||'sha256', nickname:rec.nick||name});
+    }
+    if(!list.length) return out;
+    const r = await Cloud.accountMigrate(list);
+    if(r && r.synced && r.synced.length){
+      const u2 = users();
+      for(const nm of r.synced){ if(has(u2,nm)) u2[nm].cloudSynced = true; }
+      try{ saveUsers(u2); }catch(e){}
+    }
+    out.ok = r ? r.ok : 0; out.skip = r ? r.skip : 0; out.fail = r ? r.fail : 0;
+    if(out.ok) console.info('[账号] 已把 ' + out.ok + ' 个本机账号同步到云端');
+    return out;
+  }
+  return {register,login,logout,current,nick,setNick,setSession,checkName,hasLocal,migrateToCloud};
 })();
 
 /* ============ 当前登录态 ============ */
@@ -2710,7 +2963,7 @@ function switchLoginTab(mode){
   document.getElementById('tabLogin').classList.toggle('on', mode==='login');
   document.getElementById('tabReg').classList.toggle('on', mode==='reg');
   document.getElementById('loginTitle').textContent = mode==='login' ? '欢迎回来' : '加入解忧签';
-  document.getElementById('loginTip').textContent = mode==='login' ? '登录后即可摇签，签匣与动态随账号保存' : '用户名 + 密码注册，签匣与记录随账号保存';
+  document.getElementById('loginTip').textContent = mode==='login' ? '登录后即可摇签，账号与签匣都保存在云端' : '用户名 + 密码注册，账号与签匣云端保存，换设备可登录';
   document.getElementById('loginSubmit').textContent = mode==='login' ? '登录' : '注册并登录';
   document.getElementById('loginErr').textContent = '';
 }
@@ -2733,6 +2986,7 @@ async function submitLogin(){
     }else{
       r = await Account.login(name, pw);
     }
+    /* 云端优先：r.nickname（云端真实昵称）/ r.offline（仅本机注册成功）透传给 onLogin */
     if(!r.ok){ err.textContent = r.msg; return; }
     pwEl.value = '';
     closeLogin();
@@ -2741,7 +2995,7 @@ async function submitLogin(){
        浏览器禁用站点数据），btn.disabled 就永远停在 true，
        而登录弹窗按设计不可关闭 → 按钮永久灰死，整站再也进不去。
        现在先关弹窗再异步收尾，登录反馈不被云端往返拖住。 */
-    Promise.resolve(onLogin(name, {registered: isReg}))
+    Promise.resolve(onLogin(name, {registered: isReg, offline: !!r.offline, nickname: r.nickname || ''}))
            .catch(e=>console.warn('[登录] 登录后初始化异常：', e));
   }catch(e){
     console.warn('[登录] 提交异常：', e);
@@ -2754,13 +3008,17 @@ async function onLogin(name, opts){
   const isReg = !!(opts && opts.registered);
   save();                 /* 先把当前游客/上一账号的数据落盘 */
   CUR_USER = name;
-  MY_NICK = Account.nick(name) || name;
+  MY_NICK = (opts && opts.nickname) || Account.nick(name) || name;
   MY_ID = 'u_' + name;
-  load();                 /* 载入该账号自己的签匣与次数 */
+  load();                 /* 本机缓存秒开（换设备时为空），紧接着用云端数据覆盖 */
   resetIdle();
   refreshUserUI();
   renderAll();
-  toast(isReg ? `注册成功，欢迎「${MY_NICK}」，轻摇签筒开始` : `欢迎回来，「${MY_NICK}」，轻摇签筒开始`);
+  toast(isReg
+    ? (opts && opts.offline
+        ? `已在本机注册「${MY_NICK}」，联网后会自动同步到云端`
+        : `注册成功，欢迎「${MY_NICK}」，账号与签匣已存云端`)
+    : `欢迎回来，「${MY_NICK}」，签匣正从云端同步`);
   Cloud.syncAccount(name, MY_NICK);   /* 让本账号可被他人搜索到 */
   SOCIAL.afterAuthChange();
 
@@ -2771,13 +3029,20 @@ async function onLogin(name, opts){
      刷新一下页面数字又突然变多。顺手摇一签还会把不完整的数据 save() 回本地。 */
   if(Cloud.isOn()){
     try{
+      /* 先把离线期间攒下的签匣记录补传，再去拉云端全量，避免拉完又被本地旧值盖住 */
+      await Cloud.flushPending();
       const [colRes, cntRes] = await Promise.allSettled([
         Cloud.fetchCollection(), Cloud.fetchMyDrawCount()
       ]);
       if(CUR_USER !== name) return;              /* 期间已切号/退出，丢弃这次结果 */
-      if(colRes.status==='fulfilled' && Array.isArray(colRes.value)
-         && (colRes.value.length || state.collected.size===0)){
-        state.collected = new Set(colRes.value); save(); renderAll();
+      if(colRes.status==='fulfilled' && Array.isArray(colRes.value)){
+        /* 云端为权威：换设备登录后签匣就是靠这一步回来的。
+           云端为空而本地有数据时不覆盖（修复⑫：[] 也是 truthy 的老坑）。 */
+        if(colRes.value.length || state.collected.size===0){
+          state.collected = new Set(colRes.value); save(); renderAll();
+        }
+      }else{
+        toast('云端签匣暂时读不到，当前显示的是本机记录');
       }
       if(cntRes.status==='fulfilled' && typeof cntRes.value==='number'
          && (cntRes.value>0 || state.drawCount===0)){
@@ -3747,6 +4012,18 @@ async function boot(){
   setCloudStatus(false);
   const ok = await Cloud.init();
   setCloudStatus(ok);
+  /* ===== 云端账号迁移（新增）=====
+     把本机 localStorage 里已注册、但还没上云的账号静默搬进 accounts 表，
+     并把离线期间没写进云端的签匣记录补传。两者都幂等、失败静默重试，
+     不阻塞首屏 —— 老用户不需要重新注册，升级后自动就「换设备也能登录」了。 */
+  if(ok){
+    Promise.resolve(Account.migrateToCloud())
+      .then(r=>{ if(r && r.ok) toast('已把本机 ' + r.ok + ' 个账号同步到云端，换设备可直接登录'); })
+      .catch(e=>console.warn('[账号] 上云迁移未完成，稍后自动重试：', e));
+    Promise.resolve(Cloud.flushPending())
+      .then(n=>{ if(n) toast('已补传 ' + n + ' 支离线签匣记录'); })
+      .catch(e=>console.warn('[Supabase] 签匣补传未完成：', e));
+  }
   if(!ok){
     refreshUserUI();
     return;
