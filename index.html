@@ -1,4 +1,4 @@
-
+﻿
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -727,6 +727,15 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
   line-height:1.6;outline:none;transition:.25s;}
 .soc-input textarea:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.12);}
 .soc-tip{font-size:11px;color:var(--ink-light);letter-spacing:1px;margin-top:9px;line-height:1.8;}
+/* ===== 大厅（茶话会）样式 ===== */
+.hall-pop{max-width:620px;height:65vh;display:flex;flex-direction:column;}
+.hall-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:rgba(0,0,0,.03);border-radius:8px;border:1px solid rgba(0,0,0,.05);}
+.hall-msgs::-webkit-scrollbar{width:3px;}
+.hall-msgs::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);}
+.hall-msg{font-size:13px;line-height:1.6;word-break:break-word;animation:fadeIn .3s;}
+.hall-msg .nick{color:var(--red);font-weight:600;margin-right:6px;}
+.hall-msg .nick.me{color:#2e7d5b;}
+.hall-msg .tm{font-size:10px;color:var(--ink-light);margin-left:6px;}
 @media(max-width:760px){
   .soc-body{grid-template-columns:1fr;height:auto;max-height:72vh;}
   .soc-side{border-right:0;border-bottom:1px dashed rgba(0,0,0,.12);padding-right:0;padding-bottom:8px;}
@@ -796,6 +805,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
     <button class="btn" onclick="openFeed()">求签动态</button>
     <button class="btn" onclick="openRank()">签运榜</button>
     <button class="btn primary" onclick="openMyBox()">我的签匣</button>
+    <button class="btn" id="hallBtn" onclick="openHall()" title="无需加好友，全站公共聊天">茶话会<span class="nav-badge" id="hallBadge" hidden>0</span></button>
     <button class="btn" id="friendBtn" onclick="openSocial()" title="搜索账号、加好友、私聊">签友<span class="nav-badge" id="friendBadge" hidden>0</span></button>
     <button class="btn" id="nickBtn" onclick="navAccount()" title="账号">登录/注册</button>
     <button class="btn" onclick="openSettings()" title="设置">⚙ 设置</button>
@@ -1058,6 +1068,22 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
     <div class="login-err" id="loginErr"></div>
     <button class="btn primary wide" id="loginSubmit" onclick="submitLogin()">登录</button>
     <div class="login-guest">只想随便看看？关闭本窗口即可继续游客浏览<br>摇签、收入签匣等功能需登录后使用</div>
+  </div>
+</div>
+
+<!-- ===== 大厅（茶话会）弹窗 ===== -->
+<div class="mask" id="hallMask">
+  <div class="pop hall-pop">
+    <button class="close" onclick="closeHall()">&times;</button>
+    <h3>解忧茶话会</h3>
+    <div class="tip">全站公共大厅 · 无需加好友即可畅聊</div>
+    <div class="hall-msgs" id="hallMsgs">
+      <div class="empty">连接中…</div>
+    </div>
+    <div class="soc-input" style="margin-top:10px;">
+      <textarea id="hallMsgInput" rows="1" maxlength="200" placeholder="对大家说点什么…（Enter 发送）"></textarea>
+      <button class="btn primary mini" onclick="sendHallMsg()">发送</button>
+    </div>
   </div>
 </div>
 
@@ -1476,9 +1502,9 @@ const Cloud = (()=>{
       await ensureIdentity();
       const {error} = await sb.from('users').upsert({id:MY_ID, nickname:MY_NICK}, {onConflict:'id'});
       if(error) throw error;
+      available = true;
       /* 新增：把用户名一并写入 users 表，供「搜索账号 / 加好友」使用（失败不影响主流程） */
       try{ await syncAccount(CUR_USER, MY_NICK); }catch(e){ /* 忽略 */ }
-      available = true;
       return true;
     }catch(err){
       console.warn('[解忧签] 云端初始化失败，已自动回退本地模式：', err);
@@ -1682,6 +1708,17 @@ const Cloud = (()=>{
     if(error){ console.warn('[Supabase] 读取聊天记录失败：', error.message); return []; }
     return (data||[]).reverse();
   }
+  /* ===== 大厅聊天（新增） ===== */
+  async function sendHallMessage(text) {
+    return await sendMessage('public_hall', text);
+  }
+  async function fetchHallMessages(limit = 50) {
+    if(!available) return [];
+    const {data, error} = await sb.from('messages').select('*')
+      .eq('to_id', 'public_hall')
+      .order('created_at', {ascending: false}).limit(limit);
+    return error ? [] : (data||[]).reverse();
+  }
   /* 发给我、且晚于某时刻的消息（用于未读红点轮询兜底） */
   async function fetchIncomingSince(ms){
     if(!available) return [];
@@ -1693,7 +1730,10 @@ const Cloud = (()=>{
   function subscribeSocial(onEvent){
     if(!available) return null;
     return sb.channel('jieyou-social')
-      .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p=>onEvent({kind:'msg', row:p.new}))
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p=>{
+        if(p.new.to_id === 'public_hall') onEvent({kind:'hall', row:p.new});
+        else onEvent({kind:'msg', row:p.new});
+      })
       .on('postgres_changes', {event:'INSERT', schema:'public', table:'friends'},  p=>onEvent({kind:'friend', row:p.new}))
       .on('postgres_changes', {event:'UPDATE', schema:'public', table:'friends'},  p=>onEvent({kind:'friend', row:p.new}))
       .subscribe(status=>{ if(status==='ERROR') console.warn('[Supabase] 好友/聊天实时通道异常，可刷新页面重试'); });
@@ -1705,6 +1745,7 @@ const Cloud = (()=>{
     /* 好友与聊天（新增） */
     syncAccount, searchUsers, sendFriendRequest, fetchRequests, fetchSentRequests,
     fetchFriends, respondRequest, sendMessage, fetchMessages, fetchIncomingSince, subscribeSocial,
+    sendHallMessage, fetchHallMessages,
     isOn: ()=>available,
     reason: ()=> configured() ? (window.supabase ? '连接失败（看控制台 warn）' : 'SDK 加载失败') : '未填写 URL / Key'
   };
@@ -3090,6 +3131,17 @@ const SOCIAL = (()=>{
     if(!cloudOn() || socChannel) return;
     socChannel = Cloud.subscribeSocial(ev=>{
       const r = ev && ev.row; if(!r) return;
+      if(ev.kind==='hall'){
+        const maskEl = document.getElementById('hallMask');
+        if(maskEl && maskEl.classList.contains('on')){
+          renderHallMsg(r);
+        }else if(r.from_id !== MY_ID){
+          unreadHallCount++;
+          const badge = document.getElementById('hallBadge');
+          if(badge){ badge.textContent = unreadHallCount; badge.hidden = false; }
+        }
+        return;
+      }
       if(ev.kind==='msg'){
         if(r.to_id!==meId()) return;
         if(maskOn() && currentPeer && r.from_id===currentPeer.id){
@@ -3274,6 +3326,57 @@ async function boot(){
   setInterval(refreshStats, 30000);
 }
 boot();
+
+/* ================= 大厅前端逻辑 ================= */
+let unreadHallCount = 0, lastHallMsgTime = 0;
+
+async function openHall() {
+  unreadHallCount = 0;
+  document.getElementById('hallBadge').hidden = true;
+  document.getElementById('hallMask').classList.add('on');
+  const list = document.getElementById('hallMsgs');
+  list.innerHTML = '<div class="empty">加载中…</div>';
+
+  if(!Cloud.isOn()) return list.innerHTML = '<div class="empty">未连接云端，无法进入大厅</div>';
+
+  const msgs = await Cloud.fetchHallMessages(50);
+  list.innerHTML = msgs.length ? '' : '<div class="empty">这里静悄悄的，说句话吧~</div>';
+  msgs.forEach(renderHallMsg);
+  list.scrollTop = list.scrollHeight;
+}
+
+function closeHall() { document.getElementById('hallMask').classList.remove('on'); }
+
+function renderHallMsg(m) {
+  const list = document.getElementById('hallMsgs');
+  const empty = list.querySelector('.empty');
+  if(empty) empty.remove();
+  const isMe = m.from_id === MY_ID;
+  const time = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  const div = document.createElement('div');
+  div.className = 'hall-msg';
+  div.innerHTML = `<span class="nick ${isMe?'me':''}">${escapeHtml(m.from_nick || '神秘人')}</span> <span>${escapeHtml(m.content)}</span> <span class="tm">${time}</span>`;
+  list.appendChild(div);
+  list.scrollTop = list.scrollHeight;
+}
+
+async function sendHallMsg() {
+  if(!Cloud.isOn()) return toast('大厅未连接云端');
+  const input = document.getElementById('hallMsgInput');
+  const txt = input.value.trim();
+  if(!txt) return;
+  const now = Date.now();
+  if(now - lastHallMsgTime < 3000) return toast('请稍等几秒再发送，不要刷屏哦');
+
+  input.value = '';
+  const ok = await Cloud.sendHallMessage(txt);
+  if(!ok) toast('发送失败，请检查网络或权限');
+  else lastHallMsgTime = now;
+}
+
+document.getElementById('hallMsgInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendHallMsg(); }
+});
 </script>
 </body>
 </html>
