@@ -1,6 +1,4 @@
 
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -101,7 +99,6 @@ main{display:grid;grid-template-columns:minmax(320px,42%) 1fr;gap:24px;margin-to
       rgba(255,242,208,.12) 4px 5px,transparent 5px 9px);
   backface-visibility:hidden;
 }
-/* 筒口（水平圆面，俯视呈椭圆） */
 .tube3d-top{
   position:absolute;top:0;left:50%;width:190px;height:190px;
   margin-left:-95px;margin-top:-95px;border-radius:50%;
@@ -113,14 +110,12 @@ main{display:grid;grid-template-columns:minmax(320px,42%) 1fr;gap:24px;margin-to
   content:'';position:absolute;inset:22px;border-radius:50%;
   background:radial-gradient(circle at 50% 55%,rgba(0,0,0,.9),rgba(0,0,0,.55) 60%,transparent 78%);
 }
-/* 筒底 */
 .tube3d-bottom{
   position:absolute;top:212px;left:50%;width:190px;height:190px;
   margin-left:-95px;margin-top:-95px;border-radius:50%;
   transform:rotateX(90deg);
   background:radial-gradient(circle at 50% 50%,#4a3418,#2e2010 70%,#1c1206);
 }
-/* 筒身刻字（贴在正面） */
 .tube3d-label{
   position:absolute;top:34px;left:50%;width:70px;margin-left:-35px;
   transform:rotateY(0deg) translateZ(96px);
@@ -129,7 +124,6 @@ main{display:grid;grid-template-columns:minmax(320px,42%) 1fr;gap:24px;margin-to
   color:rgba(64,40,12,.62);pointer-events:none;
   text-shadow:0 1px 0 rgba(255,236,192,.4),0 -1px 1px rgba(0,0,0,.35);
 }
-/* 筒底投影 */
 .tube-shadow{
   position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
   width:250px;height:34px;border-radius:50%;z-index:1;
@@ -160,7 +154,6 @@ main{display:grid;grid-template-columns:minmax(320px,42%) 1fr;gap:24px;margin-to
 }
 
 /* ============ 动画状态 ============ */
-/* 1. 晃动（真 3D：绕 Y 轴摆 + 绕 X 轴俯仰） */
 .stage-box.shaking .tube3d{animation:tubeShake3d .72s cubic-bezier(.36,.07,.19,.97);}
 @keyframes tubeShake3d{
   0%,100%{transform:translateX(-50%) rotateX(7deg) rotateY(0deg);}
@@ -171,7 +164,6 @@ main{display:grid;grid-template-columns:minmax(320px,42%) 1fr;gap:24px;margin-to
   74%{transform:translateX(calc(-50% - 5px))  rotateX(10deg) rotateY(-8deg);}
   88%{transform:translateX(calc(-50% + 3px))  rotateX(6deg)  rotateY(4deg);}
 }
-/* 筒内竹签乱颤 */
 .stage-box.shaking .stick3d{animation:stickRattle3d .15s infinite alternate;}
 .stage-box.shaking .stick3d:nth-child(2){animation-delay:.05s;}
 .stage-box.shaking .stick3d:nth-child(3){animation-delay:.09s;}
@@ -186,7 +178,7 @@ main{display:grid;grid-template-columns:minmax(320px,42%) 1fr;gap:24px;margin-to
 .glow{
   position:absolute;bottom:150px;left:50%;transform:translate(-50%,50%) scale(0);
   width:620px;height:620px;border-radius:50%;pointer-events:none;z-index:6;
-  background:radial-gradient(circle,rgba(255,252,230,1) 0%,rgba(255,236,170,.9) 22%,rgba(232,200,122,.55) 45%,rgba(232,200,122,0) 70%);
+  background:radial-gradient(circle,var(--g0,rgba(255,252,230,1)) 0%,var(--g1,rgba(255,236,170,.9)) 22%,var(--g2,rgba(232,200,122,.55)) 45%,var(--g3,rgba(232,200,122,0)) 70%);
   opacity:0;filter:blur(2px);
 }
 .stage-box.glowing .glow{animation:goldBurst 1.5s ease-out forwards;}
@@ -196,10 +188,9 @@ main{display:grid;grid-template-columns:minmax(320px,42%) 1fr;gap:24px;margin-to
   60%{transform:translate(-50%,50%) scale(2.4);opacity:.9;}
   100%{transform:translate(-50%,50%) scale(3.2);opacity:0;}
 }
-/* 放射光线 */
 .ray{
   position:absolute;bottom:200px;left:50%;width:4px;height:0;
-  background:linear-gradient(180deg,rgba(255,240,190,0),rgba(255,246,205,.98));
+  background:linear-gradient(180deg,transparent,var(--br,#fff6cd));
   transform-origin:bottom center;opacity:0;z-index:6;pointer-events:none;
   box-shadow:0 0 10px rgba(255,225,140,.9);
 }
@@ -215,12 +206,12 @@ main{display:grid;grid-template-columns:minmax(320px,42%) 1fr;gap:24px;margin-to
   position:fixed;inset:0;z-index:60;pointer-events:none;opacity:0;
   transform-origin:var(--gx,50%) var(--gy,62%);
   background:radial-gradient(circle at var(--gx,50%) var(--gy,62%),
-    #fffef8 0%,#fff6cf 14%,#ffe9a0 30%,#f4c95c 48%,
-    rgba(232,180,70,.6) 66%,rgba(232,180,70,.2) 84%,rgba(232,180,70,0) 100%);
+    var(--b0,#fffef8) 0%,var(--b1,#fff6cf) 14%,var(--b2,#ffe9a0) 30%,var(--b3,#f4c95c) 48%,
+    var(--b4,rgba(232,180,70,.6)) 66%,var(--b5,rgba(232,180,70,.2)) 84%,var(--b6,rgba(232,180,70,0)) 100%);
 }
 .gold-screen::after{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at var(--gx,50%) var(--gy,62%),rgba(255,255,255,.9) 0%,transparent 38%);
+  background:radial-gradient(circle at var(--gx,50%) var(--gy,62%),var(--bcore,rgba(255,255,255,.9)) 0%,transparent 38%);
 }
 body.gold-burst .gold-screen{animation:goldScreen 1.7s cubic-bezier(.2,.7,.3,1) forwards;}
 @keyframes goldScreen{
@@ -233,8 +224,8 @@ body.gold-burst .gold-screen{animation:goldScreen 1.7s cubic-bezier(.2,.7,.3,1) 
 /* 全屏金色光环 */
 .gold-ring{
   position:fixed;left:var(--gx,50%);top:var(--gy,62%);width:40px;height:40px;margin:-20px 0 0 -20px;
-  border-radius:50%;border:6px solid rgba(255,248,214,.95);z-index:61;
-  pointer-events:none;opacity:0;box-shadow:0 0 40px rgba(255,220,130,.9),inset 0 0 30px rgba(255,220,130,.7);
+  border-radius:50%;border:6px solid var(--br,rgba(255,248,214,.95));z-index:61;
+  pointer-events:none;opacity:0;box-shadow:0 0 40px var(--br,rgba(255,220,130,.9)),inset 0 0 30px var(--br,rgba(255,220,130,.7));
 }
 body.gold-burst .gold-ring{animation:goldRing 1.5s ease-out forwards;}
 @keyframes goldRing{
@@ -263,7 +254,6 @@ body.gold-burst .gold-ring{animation:goldRing 1.5s ease-out forwards;}
   box-shadow:inset 0 -8px 14px rgba(0,0,0,.28),0 8px 26px rgba(0,0,0,.35);
   backface-visibility:hidden;
 }
-/* 签上刻字（贴在正面片） */
 .fly-text{
   position:absolute;bottom:52px;left:50%;width:24px;margin-left:-12px;
   transform:rotateY(0deg) translateZ(13px);
@@ -341,17 +331,47 @@ aside{display:flex;flex-direction:column;gap:20px;}
 @keyframes fadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
 .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;}
 .cell{
-  aspect-ratio:3/4;border-radius:3px;display:grid;place-items:center;font-size:10px;
+  aspect-ratio:3/4;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-size:10px;padding:2px;
   background:rgba(0,0,0,.05);color:var(--ink-light);border:1px solid rgba(0,0,0,.06);
+  transition:.2s;
 }
-.cell.on{background:#fffdf7;border-color:rgba(192,57,43,.3);color:var(--red);}
+.cell.on{background:#fffdf7;border-color:rgba(192,57,43,.3);color:var(--red);cursor:pointer;}
+.cell.on:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(192,57,43,.22);border-color:var(--red);}
+.cell .clv{font-size:9px;line-height:1.25;white-space:nowrap;}
+.cell .cno{font-size:11px;font-weight:600;}
+.cell.t-ji .clv{color:#2e7d5b;}
+.cell.t-zhong .clv{color:#2c6fb0;}
+.cell.t-xiong .clv{color:#5a5a5a;}
+.cell.t-hidden .clv{color:#8e44ad;}
+.cell.t-hidden{background:linear-gradient(160deg,#fff7fb,#f4ebff);border-color:rgba(142,68,173,.4);}
+/* ===== 签匣详情：点击签 → 旋转放大到屏幕中央显示签文 ===== */
+.sv-pop{max-width:360px;text-align:center;}
+.sv-card{
+  background:#fffdf7;border:1px solid rgba(192,57,43,.25);border-radius:6px;
+  padding:30px 24px 24px;position:relative;margin-top:6px;
+  box-shadow:0 14px 44px rgba(0,0,0,.18);
+}
+.sv-card::before{content:'';position:absolute;inset:7px;border:1px solid rgba(192,57,43,.16);pointer-events:none;border-radius:3px;}
+.sv-card .level{margin-bottom:16px;}
+.sv-card p{font-family:'Ma Shan Zheng',cursive;font-size:26px;line-height:1.8;color:var(--ink);}
+.sv-card .no{margin-top:18px;font-size:11px;color:var(--ink-light);letter-spacing:2px;}
+.sv-card .sv-cond{margin-top:10px;font-size:11px;color:#8e44ad;letter-spacing:1px;min-height:0;}
+.sv-card .sv-hint{margin-top:14px;font-size:10.5px;color:var(--ink-light);letter-spacing:1px;}
+.sv-card.spin{animation:svSpinIn .8s cubic-bezier(.2,.85,.3,1) both;}
+@keyframes svSpinIn{
+  0%{opacity:0;transform:perspective(1000px) rotateY(105deg) rotateZ(6deg) scale(.25);}
+  55%{opacity:1;transform:perspective(1000px) rotateY(-12deg) rotateZ(-1deg) scale(1.04);}
+  78%{transform:perspective(1000px) rotateY(6deg) rotateZ(0deg) scale(.99);}
+  100%{opacity:1;transform:perspective(1000px) rotateY(0deg) rotateZ(0deg) scale(1);}
+}
 .progress{font-size:11px;color:var(--ink-light);margin-top:10px;text-align:right;}
 
 footer{text-align:center;margin-top:26px;padding:14px;font-size:12px;color:var(--ink-light);letter-spacing:2px;}
 .toast{
   position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-80px);
   background:var(--ink);color:var(--paper);padding:10px 22px;border-radius:20px;
-  font-size:13px;letter-spacing:1px;transition:.4s;z-index:99;opacity:0;
+  font-size:13px;letter-spacing:1px;transition:.4s;z-index:260;opacity:0;
 }
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 
@@ -460,6 +480,258 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 .acct-wrap{display:flex;align-items:center;gap:8px;}
 .acct-wrap b{font-size:13px;color:var(--red);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .btn.mini{padding:4px 12px;font-size:12px;border-radius:14px;}
+
+/* ============ 祈愿主界面（仿祈愿抽卡） ============ */
+#wishScreen{
+  position:fixed;inset:0;z-index:150;overflow:hidden;color:#efe9ff;
+  background:radial-gradient(125% 95% at 78% 8%,#332a5e 0%,#1e1c40 32%,#141330 60%,#090917 100%);
+  opacity:0;visibility:hidden;transition:opacity .55s ease,visibility .55s;
+}
+#wishScreen.on{opacity:1;visibility:visible;}
+#wishScreen.quake{animation:wishQuake .5s cubic-bezier(.36,.07,.19,.97);}
+@keyframes wishQuake{
+  0%,100%{transform:translate(0,0);}
+  15%{transform:translate(-9px,5px);}
+  32%{transform:translate(8px,-6px);}
+  50%{transform:translate(-6px,-4px);}
+  70%{transform:translate(5px,4px);}
+  86%{transform:translate(-3px,2px);}
+}
+#wishStars{position:absolute;inset:0;width:100%;height:100%;}
+.wish-nebula{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none;mix-blend-mode:screen;}
+.wish-nebula.n1{width:62vw;height:62vw;left:-14vw;top:-20vw;background:radial-gradient(circle,rgba(126,92,232,.55),transparent 66%);animation:nebDrift 26s ease-in-out infinite alternate;}
+.wish-nebula.n2{width:54vw;height:54vw;right:-12vw;bottom:-18vw;background:radial-gradient(circle,rgba(58,140,224,.42),transparent 66%);animation:nebDrift 33s ease-in-out infinite alternate-reverse;}
+.wish-nebula.n3{width:34vw;height:34vw;left:44%;top:32%;background:radial-gradient(circle,rgba(232,200,122,.2),transparent 68%);animation:nebDrift 21s ease-in-out infinite alternate;}
+@keyframes nebDrift{from{transform:translate(0,0) scale(1);}to{transform:translate(6vw,4vw) scale(1.18);}}
+.wish-vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.6) 100%);}
+.wish-inner{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:18px 30px 20px;overflow-y:auto;}
+
+.wish-topbar{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap;}
+.wish-back{
+  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#e7e0ff;
+  padding:7px 16px;border-radius:18px;font-family:inherit;font-size:13px;letter-spacing:2px;cursor:pointer;transition:.25s;
+}
+.wish-back:hover{background:rgba(232,200,122,.2);border-color:rgba(232,200,122,.6);color:#fff3d4;}
+.wish-pool{flex:1;min-width:180px;}
+.wish-pool-name{font-family:'Ma Shan Zheng',cursive;font-size:25px;letter-spacing:5px;color:#f7e9c5;text-shadow:0 0 22px rgba(232,200,122,.55);}
+.wish-pool-sub{font-size:11px;letter-spacing:2px;color:rgba(233,225,255,.62);margin-top:2px;}
+.wish-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.wish-timer{font-size:12px;letter-spacing:1px;color:#ffe9a0;border:1px solid rgba(232,200,122,.32);background:rgba(232,200,122,.09);padding:6px 13px;border-radius:16px;}
+.wish-link{border:0;background:none;color:rgba(233,225,255,.8);font-family:inherit;font-size:12px;letter-spacing:2px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;padding:6px 2px;}
+.wish-link:hover{color:#ffe9a0;}
+
+.wish-body{flex:1;display:grid;grid-template-columns:1.15fr .85fr;gap:26px;align-items:center;min-height:0;padding:10px 0;}
+@media(max-width:820px){.wish-body{grid-template-columns:1fr;gap:14px;}}
+.wish-art{position:relative;display:flex;align-items:center;justify-content:center;min-height:230px;}
+.wish-orbit{position:absolute;width:min(44vh,78vw,360px);height:min(44vh,78vw,360px);border-radius:50%;border:1px solid rgba(232,200,122,.18);animation:orbitSpin 34s linear infinite;}
+.wish-orbit i{position:absolute;width:9px;height:9px;border-radius:50%;background:#ffe9a0;box-shadow:0 0 16px 4px rgba(255,225,140,.75);}
+.wish-orbit i:nth-child(1){top:-5px;left:50%;margin-left:-4px;}
+.wish-orbit i:nth-child(2){bottom:12%;right:6%;background:#b48cff;box-shadow:0 0 16px 4px rgba(180,140,255,.7);}
+.wish-orbit i:nth-child(3){top:38%;left:-3px;background:#7fc4ff;box-shadow:0 0 16px 4px rgba(127,196,255,.7);}
+.wish-orbit.o2{width:min(58vh,84vw,470px);height:min(58vh,84vw,470px);border-style:dashed;border-color:rgba(255,255,255,.1);animation-duration:52s;animation-direction:reverse;}
+@keyframes orbitSpin{to{transform:rotate(360deg);}}
+.wish-char{
+  position:relative;font-family:'Ma Shan Zheng',cursive;font-size:min(28vh,215px);line-height:1;
+  color:#fff6dd;text-shadow:0 0 34px rgba(232,200,122,.75),0 0 90px rgba(180,140,255,.45);
+  animation:wishBreathe 4.6s ease-in-out infinite;user-select:none;
+}
+@keyframes wishBreathe{0%,100%{transform:translateY(0) scale(1);opacity:.94;}50%{transform:translateY(-14px) scale(1.045);opacity:1;}}
+.wish-up-card{
+  position:absolute;right:0;bottom:0;max-width:250px;padding:13px 16px;border-radius:8px;
+  background:linear-gradient(160deg,rgba(60,44,110,.74),rgba(20,18,44,.8));
+  border:1px solid rgba(232,200,122,.38);backdrop-filter:blur(6px);box-shadow:0 12px 34px rgba(0,0,0,.4);
+}
+.wish-up-tag{font-size:10px;letter-spacing:3px;color:#0f0d22;background:linear-gradient(90deg,#f3d98b,#e0b45c);display:inline-block;padding:2px 9px;border-radius:9px;}
+.wish-up-name{font-family:'Ma Shan Zheng',cursive;font-size:26px;color:#fff3d4;margin:7px 0 3px;letter-spacing:4px;}
+.wish-up-desc{font-size:11px;line-height:1.75;color:rgba(236,230,255,.7);}
+.wish-info{
+  border:1px solid rgba(255,255,255,.13);border-radius:10px;padding:16px 18px;
+  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025));backdrop-filter:blur(6px);
+}
+.wish-info h3{font-size:14px;letter-spacing:4px;color:#f7e9c5;margin-bottom:10px;}
+.wish-info .row{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.1);color:rgba(236,230,255,.72);}
+.wish-info .row:last-of-type{border-bottom:0;}
+.wish-info .note{font-size:10.5px;line-height:1.85;color:rgba(236,230,255,.45);margin-top:10px;}
+.p-grey{color:#a8b2c4;} .p-blue{color:#8ec5ff;} .p-purple{color:#c3a3ff;} .p-gold{color:#f3d98b;} .p-hidden{color:#ff9ad5;}
+
+.wish-actions{display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:6px;}
+.wish-cost{font-size:12px;letter-spacing:2px;color:rgba(236,230,255,.78);display:flex;align-items:center;gap:6px;}
+.wish-cost .coin{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff6d6,#e8c87a 62%,#a8823c);color:#4a3410;font-size:10px;}
+.wish-cost b{color:#ffe9a0;font-size:14px;}
+.wish-btns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.wish-btn{
+  position:relative;overflow:hidden;min-width:152px;padding:13px 26px;border-radius:26px;
+  border:1px solid rgba(232,200,122,.6);cursor:pointer;font-family:inherit;color:#fdf3d8;
+  background:linear-gradient(180deg,rgba(232,200,122,.26),rgba(232,200,122,.06));
+  display:flex;align-items:center;justify-content:center;gap:12px;transition:.25s;
+}
+.wish-btn .wb-label{font-size:15px;letter-spacing:4px;}
+.wish-btn .wb-cost{font-size:12px;letter-spacing:1px;color:#ffe9a0;opacity:.9;}
+.wish-btn::after{
+  content:'';position:absolute;top:0;bottom:0;left:-65%;width:42%;transform:skewX(-22deg);
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);
+  animation:wbSweep 3.4s ease-in-out infinite;
+}
+@keyframes wbSweep{0%{left:-65%}52%{left:135%}100%{left:135%}}
+.wish-btn:hover{background:linear-gradient(180deg,rgba(243,217,139,.44),rgba(232,200,122,.14));transform:translateY(-2px);}
+.wish-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.wish-btn:disabled::after{display:none;}
+.wish-note{font-size:10.5px;letter-spacing:1px;color:rgba(236,230,255,.45);}
+
+/* 祈愿结算 */
+.wish-result-mask{position:fixed;inset:0;z-index:170;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(6,6,18,.82);backdrop-filter:blur(4px);}
+.wish-result-mask.on{display:flex;}
+.wr-box{width:100%;max-width:720px;max-height:88vh;overflow:auto;border-radius:12px;padding:20px 22px;
+  background:linear-gradient(180deg,rgba(44,38,84,.94),rgba(14,13,32,.96));
+  border:1px solid rgba(232,200,122,.3);box-shadow:0 26px 70px rgba(0,0,0,.6);position:relative;}
+.wr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.wr-head span{font-family:'Ma Shan Zheng',cursive;font-size:20px;letter-spacing:4px;color:#f7e9c5;}
+.wr-head button{border:0;background:none;color:rgba(255,255,255,.55);font-size:22px;cursor:pointer;line-height:1;}
+.wr-head button:hover{color:#ffe9a0;}
+.wish-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+@media(max-width:700px){.wish-grid{grid-template-columns:repeat(3,1fr);}}
+.wish-grid.one{grid-template-columns:1fr;max-width:230px;margin:0 auto;}
+.rcard{
+  position:relative;overflow:hidden;aspect-ratio:3/4.4;border-radius:7px;padding:11px 7px;text-align:center;
+  border:1px solid var(--rc,rgba(255,255,255,.2));
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.03));
+  opacity:0;transform:rotateY(88deg) scale(.9);
+  animation:rcFlip .5s cubic-bezier(.2,.9,.3,1) forwards;
+}
+@keyframes rcFlip{to{opacity:1;transform:rotateY(0) scale(1);}}
+.rcard .rc-star{font-size:9px;letter-spacing:1px;color:var(--rc);opacity:.95;}
+.rcard .rc-lv{font-family:'Ma Shan Zheng',cursive;font-size:19px;margin-top:9px;color:#fff8e8;text-shadow:0 0 14px var(--rc);}
+.rcard .rc-tx{font-size:9.5px;line-height:1.65;margin-top:8px;color:rgba(255,255,255,.6);}
+.rcard .rc-no{position:absolute;left:0;right:0;bottom:6px;font-size:8.5px;letter-spacing:1px;color:rgba(255,255,255,.32);}
+.rcard.r-grey{--rc:#93a0b4;}
+.rcard.r-blue{--rc:#7fb4ff;}
+.rcard.r-purple{--rc:#bb92ff;box-shadow:0 0 16px rgba(160,110,240,.3),inset 0 0 20px rgba(160,110,240,.12);}
+.rcard.r-gold{--rc:#f2cd72;box-shadow:0 0 22px rgba(240,200,110,.45),inset 0 0 26px rgba(240,200,110,.16);}
+.rcard.r-gold::before{content:'';position:absolute;inset:-40% -10%;background:linear-gradient(115deg,transparent 42%,rgba(255,244,205,.55) 50%,transparent 58%);animation:rcShine 2.4s linear infinite;}
+.rcard.r-hidden{--rc:#ff9ad5;border-width:2px;box-shadow:0 0 26px rgba(255,140,215,.5),inset 0 0 30px rgba(180,110,255,.24);background:linear-gradient(160deg,rgba(255,150,215,.22),rgba(140,90,240,.2));}
+.rcard.r-hidden::before{content:'';position:absolute;inset:-40% -10%;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.6) 50%,transparent 62%);animation:rcShine 1.6s linear infinite;}
+@keyframes rcShine{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+.wr-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;flex-wrap:wrap;}
+.wr-foot .sum{font-size:11.5px;color:rgba(236,230,255,.62);letter-spacing:1px;}
+.wr-foot .sum b{color:#ffe9a0;}
+.wr-btn{border:1px solid rgba(232,200,122,.5);background:rgba(232,200,122,.14);color:#fdf3d8;padding:8px 18px;border-radius:18px;font-family:inherit;font-size:12.5px;letter-spacing:2px;cursor:pointer;transition:.25s;}
+.wr-btn:hover{background:rgba(243,217,139,.3);}
+
+/* 流星层 */
+.meteor-layer{position:fixed;inset:0;z-index:160;pointer-events:none;opacity:0;transition:opacity .3s ease;}
+.meteor-layer.on{opacity:1;}
+.meteor-layer .sky{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 4%,rgba(28,22,64,.9),rgba(3,3,10,.97));}
+.meteor{
+  position:absolute;left:0;top:0;width:min(38vw,420px);height:3px;border-radius:3px;opacity:0;
+  background:linear-gradient(90deg,transparent 0%,var(--mc,#fff) 62%,#ffffff 100%);
+  box-shadow:0 0 22px 5px var(--mg,#ffe9a0);
+  animation:meteorFly var(--dur,1.2s) cubic-bezier(.36,.1,.6,1) forwards;
+}
+.meteor::after{content:'';position:absolute;right:-7px;top:50%;width:15px;height:15px;margin-top:-7.5px;border-radius:50%;
+  background:radial-gradient(circle,#fff 12%,var(--mc,#fff) 46%,transparent 74%);box-shadow:0 0 26px 10px var(--mg,#ffe9a0);}
+@keyframes meteorFly{
+  0%{opacity:0;transform:translate(92vw,-14vh) rotate(-33deg) scaleX(.25);}
+  10%{opacity:1;}
+  72%{opacity:1;}
+  100%{opacity:0;transform:translate(20vw,46vh) rotate(-33deg) scaleX(1.2);}
+}
+.meteor.trail2{width:min(24vw,260px);height:2px;animation-name:meteorFly2;}
+@keyframes meteorFly2{
+  0%{opacity:0;transform:translate(78vw,-20vh) rotate(-30deg) scaleX(.3);}
+  16%{opacity:.75;}
+  70%{opacity:.7;}
+  100%{opacity:0;transform:translate(12vw,38vh) rotate(-30deg) scaleX(1);}
+}
+.meteor-flash{position:absolute;left:26vw;top:48vh;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,var(--mc,#fff) 32%,transparent 70%);animation:meteorFlash .85s ease-out forwards;}
+@keyframes meteorFlash{0%{opacity:0;transform:scale(.4);}12%{opacity:1;transform:scale(6);}100%{opacity:0;transform:scale(34);}}
+.meteor-ring{position:absolute;left:26vw;top:48vh;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;
+  border:3px solid var(--mc,#fff);box-shadow:0 0 30px 8px var(--mg,#ffe9a0);animation:meteorRing 1.1s ease-out forwards;}
+@keyframes meteorRing{0%{opacity:0;transform:scale(.2);}16%{opacity:.95;}100%{opacity:0;transform:scale(26);}}
+.meteor-spark{position:absolute;left:26vw;top:48vh;width:5px;height:5px;border-radius:50%;background:var(--mc,#fff);
+  box-shadow:0 0 12px 3px var(--mg,#ffe9a0);animation:meteorSpark .95s ease-out forwards;}
+@keyframes meteorSpark{0%{opacity:1;transform:translate(0,0) scale(1);}100%{opacity:0;transform:translate(var(--sx,60px),var(--sy,-70px)) scale(.2);}}
+
+/* 祈愿相关弹窗（盖在祈愿界面之上） */
+.mask.wish-pop{z-index:180;background:rgba(6,6,18,.7);}
+.mask.wish-pop .pop{background:linear-gradient(180deg,#2a2450,#14122c);border-color:rgba(232,200,122,.3);color:#efe9ff;}
+.mask.wish-pop .pop h3{color:#f7e9c5;}
+.mask.wish-pop .pop .tip{color:rgba(236,230,255,.5);}
+.mask.wish-pop .pop .close{color:rgba(255,255,255,.5);}
+.mask.wish-pop .pop .close:hover{color:#ffe9a0;}
+.mask.wish-pop .rate-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed rgba(255,255,255,.12);font-size:13px;}
+.mask.wish-pop .rate-row:last-of-type{border-bottom:0;}
+.mask.wish-pop .pop .set-tip{color:rgba(236,230,255,.45);}
+.mask.wish-pop .feedlog li{border-bottom-color:rgba(255,255,255,.1);color:rgba(236,230,255,.6);}
+.mask.wish-pop .feedlog li b{color:#efe9ff;}
+.mask.wish-pop .feedlog li em{color:#ffe9a0;}
+.mask.wish-pop .feedlog li.me b{color:#ff9ad5;}
+.mask.wish-pop .empty{color:rgba(236,230,255,.42);}
+
+/* 导航：祈愿入口 */
+.btn.wish-nav{background:linear-gradient(135deg,#3a2f6e,#7a5cc4);color:#fdf3d8;border-color:rgba(232,200,122,.55);box-shadow:0 2px 12px rgba(122,92,196,.35);}
+.btn.wish-nav:hover{background:linear-gradient(135deg,#4a3b8a,#9375db);color:#fff8e2;border-color:#f3d98b;}
+
+/* ============================================================
+   ===== 好友与聊天（搜索账号 / 加好友 / 私聊）=====
+   ============================================================ */
+.nav-badge{
+  display:inline-block;min-width:16px;height:16px;line-height:16px;padding:0 4px;margin-left:6px;
+  border-radius:9px;background:var(--gold);color:#4a3410;font-size:10px;text-align:center;vertical-align:1px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.5) inset;
+}
+.mask.social-pop .pop{max-width:920px;width:100%;overflow:hidden;}
+.soc-body{display:grid;grid-template-columns:292px 1fr;gap:16px;height:min(64vh,580px);margin-top:8px;}
+.soc-side{display:flex;flex-direction:column;gap:4px;overflow-y:auto;padding-right:12px;
+  border-right:1px dashed rgba(0,0,0,.12);}
+.soc-side::-webkit-scrollbar,.soc-msgs::-webkit-scrollbar{width:3px;}
+.soc-side::-webkit-scrollbar-thumb,.soc-msgs::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);}
+.soc-search{display:flex;gap:6px;}
+.soc-search input{flex:1;min-width:0;padding:8px 10px;border:1px solid rgba(44,44,44,.18);border-radius:6px;
+  background:#fffdf7;font-family:inherit;font-size:13px;letter-spacing:1px;outline:none;transition:.25s;}
+.soc-search input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.1);}
+.soc-sec{font-size:11px;letter-spacing:2px;color:var(--ink-light);margin-top:10px;display:flex;align-items:center;gap:6px;}
+.soc-sec::before{content:'';width:2px;height:10px;background:var(--red);}
+.soc-sec .cnt{color:var(--red);}
+.soc-list{list-style:none;font-size:12.5px;max-height:158px;overflow-y:auto;}
+.soc-list li{display:flex;align-items:center;gap:7px;padding:7px 1px;border-bottom:1px dashed rgba(0,0,0,.08);}
+.soc-list li:last-child{border-bottom:0;}
+.soc-ava{width:26px;height:26px;flex:0 0 auto;border-radius:50%;background:rgba(192,57,43,.12);color:var(--red);
+  display:grid;place-items:center;font-size:13px;font-family:'Ma Shan Zheng',cursive;}
+.soc-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.soc-nm small{display:block;font-size:10px;color:var(--ink-light);letter-spacing:.5px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.soc-list .soc-hint{display:block;color:var(--ink-light);font-size:11.5px;text-align:center;padding:12px 4px;
+  letter-spacing:1px;line-height:1.9;}
+.soc-list .btn.mini{padding:3px 11px;font-size:11px;flex:0 0 auto;}
+.soc-unread{background:var(--red);color:#fff;border-radius:9px;font-size:10px;
+  padding:1px 7px;flex:0 0 auto;letter-spacing:0;}
+.soc-list .done{font-size:11px;color:#2e7d5b;letter-spacing:1px;flex:0 0 auto;}
+.soc-main{display:flex;flex-direction:column;min-width:0;}
+.soc-chat-head{font-size:13px;letter-spacing:1px;padding-bottom:9px;border-bottom:1px dashed rgba(0,0,0,.12);
+  display:flex;align-items:center;gap:8px;color:var(--ink-light);min-height:34px;}
+.soc-chat-head b{color:var(--red);font-size:14px;letter-spacing:2px;}
+.soc-chat-head .who{font-size:10.5px;letter-spacing:1px;opacity:.75;}
+.soc-msgs{flex:1;overflow-y:auto;padding:12px 2px;display:flex;flex-direction:column;gap:10px;}
+.msg{max-width:78%;display:flex;flex-direction:column;gap:3px;animation:fadeIn .3s;}
+.msg .bubble{padding:8px 12px;border-radius:10px;font-size:13px;line-height:1.75;word-break:break-word;
+  white-space:pre-wrap;background:#fffdf7;border:1px solid rgba(44,44,44,.1);}
+.msg .when{font-size:10px;color:var(--ink-light);letter-spacing:.5px;}
+.msg.me{align-self:flex-end;align-items:flex-end;}
+.msg.me .bubble{background:var(--red);color:var(--paper);border-color:var(--red);border-bottom-right-radius:3px;}
+.msg.other{align-self:flex-start;align-items:flex-start;}
+.msg.other .bubble{border-bottom-left-radius:3px;}
+.soc-input{display:flex;gap:8px;align-items:flex-end;padding-top:10px;border-top:1px dashed rgba(0,0,0,.12);}
+.soc-input textarea{flex:1;min-height:38px;max-height:96px;resize:none;padding:9px 11px;
+  border:1px solid rgba(44,44,44,.18);border-radius:8px;background:#fffdf7;font-family:inherit;font-size:13px;
+  line-height:1.6;outline:none;transition:.25s;}
+.soc-input textarea:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.12);}
+.soc-tip{font-size:11px;color:var(--ink-light);letter-spacing:1px;margin-top:9px;line-height:1.8;}
+@media(max-width:760px){
+  .soc-body{grid-template-columns:1fr;height:auto;max-height:72vh;}
+  .soc-side{border-right:0;border-bottom:1px dashed rgba(0,0,0,.12);padding-right:0;padding-bottom:8px;}
+  .soc-main{min-height:300px;}
+}
 </style>
 </head>
 <body>
@@ -520,9 +792,11 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
     </div>
   </div>
   <nav class="nav">
+    <button class="btn wish-nav" onclick="openWish()" title="进入祈愿界面">祈愿</button>
     <button class="btn" onclick="openFeed()">求签动态</button>
     <button class="btn" onclick="openRank()">签运榜</button>
     <button class="btn primary" onclick="openMyBox()">我的签匣</button>
+    <button class="btn" id="friendBtn" onclick="openSocial()" title="搜索账号、加好友、私聊">签友<span class="nav-badge" id="friendBadge" hidden>0</span></button>
     <button class="btn" id="nickBtn" onclick="navAccount()" title="账号">登录/注册</button>
     <button class="btn" onclick="openSettings()" title="设置">⚙ 设置</button>
   </nav>
@@ -583,6 +857,104 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
     <div class="fseg" style="--sa:180deg"></div>
     <div class="fseg" style="--sa:270deg"></div>
     <span class="fly-text" id="flyText">上上签</span>
+  </div>
+</div>
+
+
+<!-- ===== 祈愿主界面（仿祈愿抽卡） ===== -->
+<div id="wishScreen" aria-hidden="true">
+  <canvas id="wishStars"></canvas>
+  <div class="wish-nebula n1"></div>
+  <div class="wish-nebula n2"></div>
+  <div class="wish-nebula n3"></div>
+  <div class="wish-vignette"></div>
+  <div class="wish-inner">
+    <div class="wish-topbar">
+      <button class="wish-back" onclick="closeWish()">&#8249; 返回</button>
+      <div class="wish-pool">
+        <div class="wish-pool-name">解忧祈愿 · 上上签</div>
+        <div class="wish-pool-sub">UP 隐藏签「天选」概率提升中</div>
+      </div>
+      <div class="wish-right">
+        <span class="wish-timer" id="wishTimer">剩余 --:--:--</span>
+        <button class="wish-link" onclick="openWishHistory()">祈愿记录</button>
+        <button class="wish-link" onclick="openWishDetail()">详情</button>
+      </div>
+    </div>
+
+    <div class="wish-body">
+      <div class="wish-art">
+        <div class="wish-orbit o2"></div>
+        <div class="wish-orbit"><i></i><i></i><i></i></div>
+        <div class="wish-char">签</div>
+        <div class="wish-up-card">
+          <span class="wish-up-tag">UP · 隐藏签</span>
+          <div class="wish-up-name">天选</div>
+          <div class="wish-up-desc">今日不宜摇签，你已被命运选中。</div>
+        </div>
+      </div>
+      <div class="wish-info">
+        <h3>祈愿说明</h3>
+        <div class="row"><span>命定 · 隐藏签</span><b class="p-hidden">★★★★★★ 2.0%</b></div>
+        <div class="row"><span>天签 · 上上签</span><b class="p-gold">★★★★★ 10.0%</b></div>
+        <div class="row"><span>上吉 · 上签 / 中吉</span><b class="p-purple">★★★★ 33.0%</b></div>
+        <div class="row"><span>吉签 · 中签 / 中平</span><b class="p-blue">★★★ 35.0%</b></div>
+        <div class="row"><span>凡签 · 下签 / 下下签</span><b class="p-grey">★★ 20.0%</b></div>
+        <div class="note">每次祈愿消耗 1 枚签缘，每日 04:00 恢复至 30 枚。<br>累计 40 抽内必出天签及以上；十连必含上吉及以上。<br>祈愿所得与摇签共用同一签匣、同一动态流。</div>
+      </div>
+    </div>
+
+    <div class="wish-actions">
+      <div class="wish-cost"><span class="coin">&#10022;</span>签缘 <b id="wishFate">30</b> / 30</div>
+      <div class="wish-btns">
+        <button class="wish-btn" id="wishBtnSingle" onclick="doWish(1)"><span class="wb-label">祈愿</span><span class="wb-cost">&#10022; 1</span></button>
+        <button class="wish-btn" id="wishBtnMulti" onclick="doWish(10)"><span class="wb-label">祈愿 ×10</span><span class="wb-cost">&#10022; 10</span></button>
+      </div>
+      <div class="wish-note" id="wishPity">距必出天签还需 40 抽</div>
+    </div>
+  </div>
+</div>
+
+<!-- 流星层：抽卡瞬间的过场动画 -->
+<div class="meteor-layer" id="meteorLayer"></div>
+
+<!-- 祈愿结算 -->
+<div class="wish-result-mask" id="wishResultMask">
+  <div class="wr-box">
+    <div class="wr-head"><span id="wrTitle">祈愿结果</span><button onclick="closeWishResult()">&times;</button></div>
+    <div class="wish-grid" id="wishGrid"></div>
+    <div class="wr-foot">
+      <span class="sum" id="wrFoot"></span>
+      <span>
+        <button class="wr-btn" onclick="collectAllWish()">全部收入签匣</button>
+        <button class="wr-btn" onclick="closeWishResult()">关闭</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- 祈愿详情（概率公示） -->
+<div class="mask wish-pop" id="wishDetailMask">
+  <div class="pop">
+    <button class="close" onclick="closeWishDetail()">&times;</button>
+    <h3>祈愿详情</h3>
+    <div class="tip">概率公示 · 与摇签共用同一签库</div>
+    <div class="rate-row"><span>命定 · 隐藏签（天选 / 摆烂 / 摸鱼 / 无为 / 碎筒 / 圆满）</span><b class="p-hidden">2.0%</b></div>
+    <div class="rate-row"><span>天签 · 上上签</span><b class="p-gold">10.0%</b></div>
+    <div class="rate-row"><span>上吉 · 上签 / 中吉</span><b class="p-purple">33.0%</b></div>
+    <div class="rate-row"><span>吉签 · 中签 / 中平</span><b class="p-blue">35.0%</b></div>
+    <div class="rate-row"><span>凡签 · 下签 / 下下签</span><b class="p-grey">20.0%</b></div>
+    <div class="set-tip">保底：累计 40 抽内必出天签及以上，出了即重置；十连内必含上吉及以上。稀有度同时决定流星颜色、撞击特效与音效：凡签灰蓝、吉签蓝、上吉紫、天签金、命定虹彩。</div>
+  </div>
+</div>
+
+<!-- 祈愿记录 -->
+<div class="mask wish-pop" id="wishHistoryMask">
+  <div class="pop">
+    <button class="close" onclick="closeWishHistory()">&times;</button>
+    <h3>祈愿记录</h3>
+    <div class="tip">最近 100 条祈愿与求签记录</div>
+    <ul class="feedlog" id="wishHistoryList"></ul>
   </div>
 </div>
 
@@ -652,6 +1024,20 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
   </div>
 </div>
 
+<!-- 签匣详情弹窗：点击签后旋转放大到屏幕中央显示签文 -->
+<div class="mask" id="signViewMask">
+  <div class="pop sv-pop">
+    <button class="close" onclick="closeSignView()">×</button>
+    <div class="sv-card" id="svCard">
+      <span class="level" id="svLevel">上上签</span>
+      <p id="svText">签文内容</p>
+      <div class="no" id="svNo">第 001 签</div>
+      <div class="sv-cond" id="svCond"></div>
+      <div class="sv-hint">—— 点击空白处或按 Esc 关闭 ——</div>
+    </div>
+  </div>
+</div>
+
 <!-- 登录 / 注册弹窗 -->
 <div class="mask" id="loginMask">
   <div class="pop login-pop">
@@ -672,6 +1058,38 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
     <div class="login-err" id="loginErr"></div>
     <button class="btn primary wide" id="loginSubmit" onclick="submitLogin()">登录</button>
     <div class="login-guest">只想随便看看？关闭本窗口即可继续游客浏览<br>摇签、收入签匣等功能需登录后使用</div>
+  </div>
+</div>
+
+<!-- ===== 好友与聊天弹窗：搜索账号 / 好友申请 / 好友列表 / 私聊 ===== -->
+<div class="mask social-pop" id="socialMask">
+  <div class="pop">
+    <button class="close" onclick="closeSocial()">&times;</button>
+    <h3>签友 · 传话</h3>
+    <div class="tip">按用户名搜索其他账号，加好友后即可私聊</div>
+    <div class="soc-body">
+      <div class="soc-side">
+        <div class="soc-search">
+          <input id="socSearchInput" maxlength="20" placeholder="搜索用户名 / 昵称" autocomplete="off">
+          <button class="btn mini" onclick="searchUsers()">搜索</button>
+        </div>
+        <div class="soc-sec">搜索结果</div>
+        <ul class="soc-list" id="socSearchList"><li class="soc-hint">输入用户名后点「搜索」</li></ul>
+        <div class="soc-sec">好友申请 <span class="cnt" id="reqCount"></span></div>
+        <ul class="soc-list" id="socReqList"><li class="soc-hint">暂无新申请</li></ul>
+        <div class="soc-sec">我的好友</div>
+        <ul class="soc-list" id="socFriendList"><li class="soc-hint">加载中…</li></ul>
+      </div>
+      <div class="soc-main">
+        <div class="soc-chat-head" id="socChatHead">选择左侧好友开始聊天</div>
+        <div class="soc-msgs" id="socMsgs"><div class="empty">还没有选择聊天对象</div></div>
+        <div class="soc-input">
+          <textarea id="socMsgInput" rows="1" maxlength="500" placeholder="说点什么…（Enter 发送，Shift+Enter 换行）"></textarea>
+          <button class="btn primary mini" onclick="sendMsg()">发送</button>
+        </div>
+        <div class="soc-tip" id="socTip">已连接云数据库：好友关系与聊天记录存于云端，多设备同步、实时推送。</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -818,6 +1236,108 @@ const Sound = (()=>{
     src.connect(hp); hp.connect(ng2); ng2.connect(master);
     src.start(t); src.stop(t+0.14);
   }
+  /* ===== 祈愿新增音效 ===== */
+  /* 流星划过：带通噪声上下扫频（嗖——）+ 低频铺垫，稀有度越高铺垫越厚 */
+  function meteor(tier){
+    const c = ensure(); if(!c || !enabled) return;
+    const t = c.currentTime, dur = (tier==='gold'||tier==='hidden') ? 1.35 : 1.0;
+    const src = c.createBufferSource(); src.buffer = noiseBuf(dur);
+    const bp = c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=2.4;
+    bp.frequency.setValueAtTime(300, t);
+    bp.frequency.exponentialRampToValueAtTime(2800, t+dur*0.7);
+    bp.frequency.exponentialRampToValueAtTime(620, t+dur);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(tier==='grey'?0.16:0.28, t+0.16);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(t); src.stop(t+dur+0.05);
+    const base = tier==='hidden'?52 : tier==='gold'?62 : tier==='purple'?76 : tier==='blue'?90 : 108;
+    const osc = c.createOscillator(); osc.type='sawtooth';
+    osc.frequency.setValueAtTime(base, t);
+    osc.frequency.exponentialRampToValueAtTime(base*2.6, t+dur);
+    const lp = c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=430;
+    const og = c.createGain();
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(tier==='grey'?0.05:0.14, t+0.22);
+    og.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    osc.connect(lp); lp.connect(og); og.connect(master);
+    osc.start(t); osc.stop(t+dur+0.05);
+  }
+  /* 分级铃音：稀有度越高，琶音越长、泛音越亮，命定另加低频轰鸣 */
+  function chime(tier){
+    const c = ensure(); if(!c || !enabled) return;
+    const t0 = c.currentTime;
+    const sets = {
+      grey  :[392.00, 466.16],
+      blue  :[523.25, 659.25],
+      purple:[523.25, 659.25, 783.99],
+      gold  :[523.25, 659.25, 783.99, 1046.50, 1318.51],
+      hidden:[523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00]
+    };
+    const notes = sets[tier] || sets.blue;
+    const bright = (tier==='gold' || tier==='hidden');
+    const step = bright ? 0.078 : 0.062;
+    notes.forEach((f,i)=>{
+      const t = t0 + i*step;
+      const osc = c.createOscillator(); osc.type = bright ? 'triangle' : 'sine';
+      osc.frequency.value = f;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.3, t+0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (bright?1.15:0.5));
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t+1.25);
+      if(bright){
+        const o2 = c.createOscillator(); o2.type='sine'; o2.frequency.value = f*2.01;
+        const g2 = c.createGain();
+        g2.gain.setValueAtTime(0.0001, t);
+        g2.gain.exponentialRampToValueAtTime(0.11, t+0.01);
+        g2.gain.exponentialRampToValueAtTime(0.0001, t+0.85);
+        o2.connect(g2); g2.connect(master); o2.start(t); o2.stop(t+0.9);
+      }
+    });
+    if(tier==='hidden'){
+      const t = t0;
+      const o = c.createOscillator(); o.type='sine';
+      o.frequency.setValueAtTime(46, t);
+      o.frequency.exponentialRampToValueAtTime(23, t+1.5);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.4, t+0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+1.55);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t+1.6);
+    }
+  }
+  /* 结算卡片逐张翻扣的「哒」，音高随序号递增 */
+  function tick(i){
+    const c = ensure(); if(!c || !enabled) return;
+    const t = c.currentTime;
+    const osc = c.createOscillator(); osc.type='square';
+    osc.frequency.value = 400 * Math.pow(2, (i%12)/12);
+    const lp = c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2600;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.09, t+0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+0.1);
+    osc.connect(lp); lp.connect(g); g.connect(master);
+    osc.start(t); osc.stop(t+0.12);
+  }
+  /* 打开祈愿界面：一层缓缓拉开的天幕声 */
+  function wishOpen(){
+    const c = ensure(); if(!c || !enabled) return;
+    const t = c.currentTime;
+    const src = c.createBufferSource(); src.buffer = noiseBuf(0.9);
+    const bp = c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.2;
+    bp.frequency.setValueAtTime(170, t);
+    bp.frequency.exponentialRampToValueAtTime(1500, t+0.7);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.13, t+0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+0.9);
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(t); src.stop(t+0.95);
+  }
   function setEnabled(v){
     enabled = v;
     localStorage.setItem('jieyou_sound', v ? '1' : '0');
@@ -832,7 +1352,7 @@ const Sound = (()=>{
   function getVolume(){ return volume; }
   /* 首次用户手势解锁 AudioContext（浏览器自动播放策略） */
   window.addEventListener('pointerdown', ()=>ensure(), {once:true});
-  return {knock, startRattle, stopRattle, pop, setEnabled, isEnabled, setVolume, getVolume};
+  return {knock, startRattle, stopRattle, pop, meteor, chime, tick, wishOpen, setEnabled, isEnabled, setVolume, getVolume};
 })();
 
 
@@ -956,6 +1476,8 @@ const Cloud = (()=>{
       await ensureIdentity();
       const {error} = await sb.from('users').upsert({id:MY_ID, nickname:MY_NICK}, {onConflict:'id'});
       if(error) throw error;
+      /* 新增：把用户名一并写入 users 表，供「搜索账号 / 加好友」使用（失败不影响主流程） */
+      try{ await syncAccount(CUR_USER, MY_NICK); }catch(e){ /* 忽略 */ }
       available = true;
       return true;
     }catch(err){
@@ -1051,9 +1573,138 @@ const Cloud = (()=>{
     return !error;
   }
 
+  /* ===== 好友与聊天（新增云端接口） =====
+     依赖两张表：friends（好友关系/申请）、messages（私聊消息）
+     建表与实时 publication 语句见随附的「解忧签-聊天功能.sql」；
+     表不存在或未开 RLS 策略时，这些方法只会 console.warn，不会打断页面。 */
+
+  /* 把用户名一并写进 users 表，供全站「搜索账号」使用。
+     老库没有 username 列时自动降级为只写 nickname。 */
+  async function syncAccount(username, nickname){
+    if(!available || !username) return false;
+    const id = 'u_' + String(username).trim();
+    const base = {id:id, nickname:nickname || username};
+    try{
+      const {error} = await sb.from('users').upsert(Object.assign({username:String(username).trim()}, base), {onConflict:'id'});
+      if(!error) return true;
+    }catch(e){ /* 无 username 列：换下一种写法 */ }
+    try{
+      const {error} = await sb.from('users').upsert(base, {onConflict:'id'});
+      return !error;
+    }catch(e){ console.warn('[Supabase] 账号信息同步失败：', e); return false; }
+  }
+
+  /* 搜索账号：取一批 users 后在前端按用户名 / 昵称模糊匹配
+     （用 select('*') 而非指定列，避免表结构差异导致整条查询报错） */
+  async function searchUsers(kw){
+    if(!available) return [];
+    const {data, error} = await sb.from('users').select('*').limit(500);
+    if(error){ console.warn('[Supabase] 搜索账号失败：', error.message); return []; }
+    const k = String(kw||'').trim().toLowerCase();
+    if(!k) return [];
+    return (data||[]).filter(u=>{
+      const name = String(u.username||'').toLowerCase();
+      const nick = String(u.nickname||'').toLowerCase();
+      const id   = String(u.id||'').toLowerCase();
+      return name.includes(k) || nick.includes(k) || id.includes(k);
+    }).slice(0, 20);
+  }
+
+  /* 发出好友申请（重复发送视为幂等更新） */
+  async function sendFriendRequest(toId, toNick){
+    if(!available) return false;
+    const row = {user_id:MY_ID, friend_id:toId, status:'pending', nickname:MY_NICK, friend_nickname:toNick||''};
+    try{
+      const {error} = await sb.from('friends').upsert(row, {onConflict:'user_id,friend_id'});
+      if(!error) return true;
+    }catch(e){ /* 不支持 upsert 时退回 insert */ }
+    try{
+      const {error} = await sb.from('friends').insert(row);
+      if(!error) return true;
+      console.warn('[Supabase] 发送好友申请失败：', error && error.message);
+      return false;
+    }catch(e){ console.warn('[Supabase] 发送好友申请异常：', e); return false; }
+  }
+
+  /* 别人发给我的待通过申请 */
+  async function fetchRequests(){
+    if(!available) return [];
+    const {data, error} = await sb.from('friends').select('*').eq('friend_id', MY_ID).eq('status','pending');
+    if(error){ console.warn('[Supabase] 读取好友申请失败：', error.message); return []; }
+    return data||[];
+  }
+  /* 我发出的、尚未被通过的申请 */
+  async function fetchSentRequests(){
+    if(!available) return [];
+    const {data, error} = await sb.from('friends').select('*').eq('user_id', MY_ID).eq('status','pending');
+    return error ? [] : (data||[]);
+  }
+  /* 已通过的好友关系（双向都算） */
+  async function fetchFriends(){
+    if(!available) return [];
+    const {data, error} = await sb.from('friends').select('*')
+      .or('user_id.eq.'+MY_ID+',friend_id.eq.'+MY_ID).eq('status','accepted').limit(500);
+    if(error){ console.warn('[Supabase] 读取好友列表失败：', error.message); return []; }
+    return data||[];
+  }
+  /* 处理申请：接受=改状态，拒绝=删行 */
+  async function respondRequest(fromId, accept){
+    if(!available) return false;
+    if(accept){
+      const {error} = await sb.from('friends').update({status:'accepted'}).eq('user_id', fromId).eq('friend_id', MY_ID);
+      return !error;
+    }
+    const {error} = await sb.from('friends').delete().eq('user_id', fromId).eq('friend_id', MY_ID);
+    return !error;
+  }
+
+  /* 发一条私聊消息（messages 表无 from_nick 列时自动降级） */
+  async function sendMessage(toId, text){
+    if(!available) return false;
+    try{
+      const {error} = await sb.from('messages').insert({from_id:MY_ID, to_id:toId, content:text, from_nick:MY_NICK});
+      if(!error) return true;
+    }catch(e){ /* 换不带昵称的写法 */ }
+    try{
+      const {error} = await sb.from('messages').insert({from_id:MY_ID, to_id:toId, content:text});
+      if(!error) return true;
+      console.warn('[Supabase] 发送消息失败：', error && error.message);
+      return false;
+    }catch(e){ console.warn('[Supabase] 发送消息异常：', e); return false; }
+  }
+  /* 与某人的最近聊天记录（倒序取再翻转，保证 limit 截断的是最新一批） */
+  async function fetchMessages(peerId, limit){
+    if(!available) return [];
+    const lim = limit || 200;
+    const {data, error} = await sb.from('messages').select('*')
+      .or('and(from_id.eq.'+MY_ID+',to_id.eq.'+peerId+'),and(from_id.eq.'+peerId+',to_id.eq.'+MY_ID+')')
+      .order('created_at', {ascending:false}).limit(lim);
+    if(error){ console.warn('[Supabase] 读取聊天记录失败：', error.message); return []; }
+    return (data||[]).reverse();
+  }
+  /* 发给我、且晚于某时刻的消息（用于未读红点轮询兜底） */
+  async function fetchIncomingSince(ms){
+    if(!available) return [];
+    const since = new Date(ms || 0).toISOString();
+    const {data, error} = await sb.from('messages').select('*').eq('to_id', MY_ID).gt('created_at', since).limit(200);
+    return error ? [] : (data||[]);
+  }
+  /* 实时订阅：新消息 + 新好友申请，共用一条 channel */
+  function subscribeSocial(onEvent){
+    if(!available) return null;
+    return sb.channel('jieyou-social')
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p=>onEvent({kind:'msg', row:p.new}))
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'friends'},  p=>onEvent({kind:'friend', row:p.new}))
+      .on('postgres_changes', {event:'UPDATE', schema:'public', table:'friends'},  p=>onEvent({kind:'friend', row:p.new}))
+      .subscribe(status=>{ if(status==='ERROR') console.warn('[Supabase] 好友/聊天实时通道异常，可刷新页面重试'); });
+  }
+
   return {
     init, recordDraw, fetchFeed, subscribeFeed, fetchCollection, collect,
     fetchStats, fetchMyDrawCount, fetchRank, rename,
+    /* 好友与聊天（新增） */
+    syncAccount, searchUsers, sendFriendRequest, fetchRequests, fetchSentRequests,
+    fetchFriends, respondRequest, sendMessage, fetchMessages, fetchIncomingSince, subscribeSocial,
     isOn: ()=>available,
     reason: ()=> configured() ? (window.supabase ? '连接失败（看控制台 warn）' : 'SDK 加载失败') : '未填写 URL / Key'
   };
@@ -1154,6 +1805,7 @@ function drawSign(forceHidden){
 /* 无动画模式：跳过全部动画直接落定结果 */
 function instantDraw(){
   clearTimers();
+  clearMeteor();
   box.classList.remove('shaking','glowing','flying');
   document.body.classList.remove('gold-burst','flying');
   Sound.pop();
@@ -1166,6 +1818,7 @@ function instantDraw(){
 function runAnimation(sign){
   state.animating = true;
   clearTimers();
+  clearMeteor();
   document.getElementById('result').classList.remove('show');
   hint.classList.add('dim');
   skipBtn.classList.add('on');
@@ -1175,27 +1828,32 @@ function runAnimation(sign){
   document.body.classList.remove('gold-burst','flying');
   void box.offsetWidth;
 
+  const tier = rarityOf(sign);   // 稀有度决定流星颜色、撞击特效与音效
+
   // ① 晃动（3D 摆动）+ 竹签碰撞声
   box.classList.add('shaking');
   Sound.startRattle();
-  // ② 金光爆发：筒口光球 + 全屏金光笼罩
+
+  // ② 摇定 → 天幕变暗，按稀有度划过一颗流星
   timers.push(setTimeout(()=>{
     box.classList.remove('shaking');
     Sound.stopRattle();
-    box.classList.add('glowing');
-    updateGoldOrigin();
-    document.body.classList.add('gold-burst');
+    playMeteor(tier, ()=>{
+      // ③ 流星撞击：全屏光爆按稀有度染色 + 竹签飞出
+      setBurstTheme(tier);
+      box.classList.add('glowing');
+      updateGoldOrigin();
+      document.body.classList.add('gold-burst');
+      flyText.textContent = sign.level.replace('隐藏签·','');
+      positionFlyStick();
+      box.classList.add('flying');
+      document.body.classList.add('flying');
+      Sound.pop();
+    });
   }, 720));
-  // ③ 竹签从金光中飞出（3D 翻转 + 前冲）
-  timers.push(setTimeout(()=>{
-    flyText.textContent = sign.level.replace('隐藏签·','');
-    positionFlyStick();
-    box.classList.add('flying');
-    document.body.classList.add('flying');
-    Sound.pop();
-  }, 1560));
-  // ④ 显示签文卡片
-  timers.push(setTimeout(()=>{ finishDraw(); }, 3050));
+
+  // ④ 落定签文（流星撞击后再留一段余韵）
+  timers.push(setTimeout(()=>{ finishDraw(); }, 720 + meteorHitMs(tier) + 1400));
 }
 
 /* 跳过：直接跳到最终结果 */
@@ -1206,9 +1864,11 @@ function skipAnim(e){
     return;
   }
   clearTimers();
+  clearMeteor();
   Sound.stopRattle();
   box.classList.remove('shaking','glowing');
   document.body.classList.remove('gold-burst');
+  if(pendingSign) setBurstTheme(rarityOf(pendingSign));
   flyText.textContent = (pendingSign?pendingSign.level:'').replace('隐藏签·','');
   positionFlyStick();
   box.classList.add('flying');
@@ -1363,12 +2023,45 @@ function renderAll(){
   ALL.forEach(s=>{
     const div = document.createElement('div');
     const on = state.collected.has(s.id);
-    div.className = 'cell' + (on?' on':'');
-    div.textContent = on ? (s.id>100?'✦':s.id) : '?';
-    div.title = on ? s.level : '未解锁';
+    if(on){
+      const t = s.type==='hidden-sig' ? 'hidden' : s.type;
+      div.className = 'cell on t-' + t;
+      div.dataset.id = s.id;
+      div.innerHTML = '<span class="clv">' + escapeHtml(s.level) + '</span>'
+                    + '<span class="cno">' + (s.id>100 ? '✦' : String(s.id).padStart(3,'0')) + '</span>';
+      div.title = s.level + ' · 点击查看签文';
+    }else{
+      div.className = 'cell';
+      div.textContent = '?';
+      div.title = '未解锁';
+    }
     grid.appendChild(div);
   });
 }
+
+/* ===== 签匣详情：左键点击已收集的签 → 旋转放大到屏幕中央，显示具体签文 ===== */
+function openSignView(id){
+  const s = ALL.find(x=>x.id===id);
+  if(!s) return;
+  const lv = document.getElementById('svLevel');
+  lv.textContent = s.level;
+  lv.className = 'level ' + (s.type==='ji'?'ji':s.type==='xiong'?'xiong':s.type==='hidden-sig'?'hidden-sig':'');
+  document.getElementById('svText').textContent = s.text;
+  document.getElementById('svNo').textContent = s.id>100 ? '【隐藏签】' : '第 ' + String(s.id).padStart(3,'0') + ' 签';
+  document.getElementById('svCond').textContent = s.cond ? '解锁条件：' + s.cond : '';
+  const card = document.getElementById('svCard');
+  card.classList.remove('spin'); void card.offsetWidth; card.classList.add('spin');
+  document.getElementById('signViewMask').classList.add('on');
+  Sound.pop();
+}
+function closeSignView(){ document.getElementById('signViewMask').classList.remove('on'); }
+/* 事件委托：仅左键、仅已收集的格子响应 */
+document.getElementById('myGrid').addEventListener('click', e=>{
+  if(e.button!==0) return;
+  const c = e.target.closest('.cell.on');
+  if(!c || !c.dataset.id) return;
+  openSignView(Number(c.dataset.id));
+});
 
 /* ============ 交互绑定 ============ */
 box.addEventListener('click', (e)=>{
@@ -1383,10 +2076,10 @@ box.addEventListener('mousedown', ()=>{
 });
 ['mouseup','mouseleave'].forEach(ev=>box.addEventListener(ev, ()=>clearTimeout(state.pressTimer)));
 
-/* ===== 「无为」隐藏签：大“无为”难得 =====
+/* ===== 「无为」隐藏签：大"无为"难得 =====
    旧条件（静置10秒即出）太容易，现改为四条件同时满足才触发：
    1. 连续 60 秒对页面零操作（点击/按键/滚轮/触摸任一项都重新计时）；
-   2. 当日已摇签满 12 次——先“有为”，才有资格“无为”；
+   2. 当日已摇签满 12 次——先"有为"，才有资格"无为"；
    3. 页面全程保持前台可见（切走挂后台不算静置）；
    4. 同一账号每日限得一次。 */
 const WUWEI_IDLE_MS = 60000;
@@ -1412,7 +2105,7 @@ function resetIdle(){
     drawSign(HIDDEN.find(s=>s.id===104));
   }, WUWEI_IDLE_MS);
 }
-/* 任何真实交互都打断“静置”计数 */
+/* 任何真实交互都打断"静置"计数 */
 ['pointerdown','keydown','wheel','touchstart'].forEach(ev=>document.addEventListener(ev, ()=>resetIdle(), {passive:true}));
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') resetIdle(); });
 
@@ -1444,12 +2137,12 @@ function openMyBox(){
 function closeMyBox(){ document.getElementById('boxMask').classList.remove('on'); }
 
 /* 弹窗统一关闭：点遮罩 / 按 Esc */
-[['settingsMask', closeSettings], ['feedMask', closeFeed], ['boxMask', closeMyBox], ['rankMask', closeRank], ['loginMask', closeLogin]]
+[['settingsMask', closeSettings], ['feedMask', closeFeed], ['boxMask', closeMyBox], ['rankMask', closeRank], ['loginMask', closeLogin], ['signViewMask', closeSignView]]
   .forEach(([id, fn])=>{
     document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) fn(); });
   });
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ closeSettings(); closeFeed(); closeMyBox(); closeRank(); closeLogin(); }
+  if(e.key==='Escape'){ closeSettings(); closeFeed(); closeMyBox(); closeRank(); closeLogin(); closeSignView(); }
 });
 
 let toastTimer;
@@ -1611,6 +2304,8 @@ function onLogin(name){
   refreshUserUI();
   renderAll();
   toast(`欢迎回来，「${MY_NICK}」，轻摇签筒开始`);
+  Cloud.syncAccount(name, MY_NICK);   /* 让本账号可被他人搜索到 */
+  SOCIAL.afterAuthChange();
 }
 function acctAction(){
   if(CUR_USER){
@@ -1624,6 +2319,7 @@ function acctAction(){
     refreshUserUI();
     renderAll();
     toast('已退出登录，回到游客模式');
+    SOCIAL.afterAuthChange();
   }else{
     openLogin();
   }
@@ -1638,6 +2334,867 @@ function refreshUserUI(){
 }
 document.getElementById('loginPw').addEventListener('keydown', e=>{ if(e.key==='Enter') submitLogin(); });
 
+
+/* ============================================================
+   ============ 祈愿系统：稀有度 / 流星过场 / 结算 ============
+   稀有度分五档：grey 凡签 → blue 吉签 → purple 上吉 → gold 天签 → hidden 命定
+   档位决定：流星颜色、撞击环数与火星数量、全屏爆光配色、铃音长度
+   ============================================================ */
+const TIER_ORDER = ['grey','blue','purple','gold','hidden'];
+const TIER_META = {
+  grey  :{star:'★★',     name:'凡签'},
+  blue  :{star:'★★★',    name:'吉签'},
+  purple:{star:'★★★★',   name:'上吉'},
+  gold  :{star:'★★★★★',  name:'天签'},
+  hidden:{star:'★★★★★★', name:'命定'}
+};
+/* 签 → 稀有度 */
+function rarityOf(sign){
+  if(sign.type==='hidden-sig') return 'hidden';
+  if(sign.level==='上上签')     return 'gold';
+  if(sign.type==='ji')          return 'purple';
+  if(sign.type==='zhong')       return 'blue';
+  return 'grey';
+}
+/* 稀有度 → 从对应签池里抽一支 */
+function signByTier(tier){
+  let pool;
+  if(tier==='hidden')            pool = HIDDEN;
+  else if(tier==='gold')         pool = SIGNS.filter(s=>s.level==='上上签');
+  else if(tier==='purple')       pool = SIGNS.filter(s=>s.type==='ji' && s.level!=='上上签');
+  else if(tier==='blue')         pool = SIGNS.filter(s=>s.type==='zhong');
+  else                           pool = SIGNS.filter(s=>s.type==='xiong');
+  if(!pool.length) pool = SIGNS;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+/* 流星配色：[亮色, 光晕色] */
+const METEOR_COLORS = {
+  grey  :['#cdd8e6','#6c7b92'],
+  blue  :['#a8d4ff','#3a7fd0'],
+  purple:['#d3b0ff','#7a45d6'],
+  gold  :['#fff2c4','#e8b53a'],
+  hidden:['#ffd9f4','#c264f0']
+};
+/* 全屏爆光配色：核心→外缘 7 段 + 光环色 */
+const BURST = {
+  grey  :['#f4f7fa','#e3eaf2','#c3cfdd','#9aa8bc','rgba(120,140,165,.55)','rgba(120,140,165,.2)','rgba(120,140,165,0)','#e0e8f2'],
+  blue  :['#f2fbff','#dcf1ff','#a9d7ff','#6fa8ff','rgba(70,145,225,.55)','rgba(70,145,225,.2)','rgba(70,145,225,0)','#c3e4ff'],
+  purple:['#fbf5ff','#eddcff','#d3b0ff','#a86fe8','rgba(150,95,225,.55)','rgba(150,95,225,.2)','rgba(150,95,225,0)','#dfc4ff'],
+  gold  :['#fffef8','#fff6cf','#ffe9a0','#f4c95c','rgba(232,180,70,.6)','rgba(232,180,70,.2)','rgba(232,180,70,0)','#fff6d8'],
+  hidden:['#fff6fd','#ffdff8','#f0b4ff','#c07cf0','rgba(138,92,240,.6)','rgba(138,92,240,.22)','rgba(138,92,240,0)','#ffd9f6']
+};
+/* 把稀有度写进 CSS 变量，金光层 / 筒口光 / 光环 / 放射线一起换色 */
+function setBurstTheme(tier){
+  const c = BURST[tier] || BURST.gold, s = document.documentElement.style;
+  s.setProperty('--b0',c[0]); s.setProperty('--b1',c[1]); s.setProperty('--b2',c[2]);
+  s.setProperty('--b3',c[3]); s.setProperty('--b4',c[4]); s.setProperty('--b5',c[5]);
+  s.setProperty('--b6',c[6]); s.setProperty('--br',c[7]);
+  s.setProperty('--g0',c[0]); s.setProperty('--g1',c[1]);
+  s.setProperty('--g2',c[4]); s.setProperty('--g3',c[6]);
+  s.setProperty('--bcore', tier==='grey' ? 'rgba(255,255,255,.72)' : 'rgba(255,255,255,.92)');
+}
+
+/* ===== 流星过场 ===== */
+let meteorTimers = [];
+function clearMeteor(){
+  meteorTimers.forEach(clearTimeout); meteorTimers = [];
+  const layer = document.getElementById('meteorLayer');
+  if(layer){ layer.classList.remove('on'); layer.innerHTML = ''; }
+}
+function meteorDur(tier){ return (tier==='gold'||tier==='hidden') ? 1550 : 1150; }
+function meteorHitMs(tier){ return Math.round(meteorDur(tier)*0.72); }
+
+function playMeteor(tier, onImpact, onDone){
+  clearMeteor();
+  const layer = document.getElementById('meteorLayer');
+  if(!layer){ onImpact && onImpact(); onDone && onDone(); return; }
+  const col = METEOR_COLORS[tier] || METEOR_COLORS.blue;
+  const dur = meteorDur(tier);
+  layer.innerHTML = '<div class="sky"></div>';
+
+  const m = document.createElement('div');
+  m.className = 'meteor';
+  m.style.setProperty('--mc', col[0]); m.style.setProperty('--mg', col[1]);
+  m.style.setProperty('--dur', dur+'ms');
+  layer.appendChild(m);
+
+  const m2 = document.createElement('div');      // 第二颗细尾迹，增加层次
+  m2.className = 'meteor trail2';
+  m2.style.setProperty('--mc', col[0]); m2.style.setProperty('--mg', col[1]);
+  m2.style.setProperty('--dur', Math.round(dur*1.15)+'ms');
+  layer.appendChild(m2);
+
+  void layer.offsetWidth;
+  layer.classList.add('on');
+  Sound.meteor(tier);
+
+  const hit = meteorHitMs(tier);
+  meteorTimers.push(setTimeout(()=>{
+    const f = document.createElement('div');
+    f.className = 'meteor-flash';
+    f.style.setProperty('--mc', col[0]); f.style.setProperty('--mg', col[1]);
+    layer.appendChild(f);
+
+    const rings = (tier==='hidden') ? 4 : (tier==='gold' ? 3 : (tier==='purple' ? 2 : 1));
+    for(let i=0;i<rings;i++){
+      const r = document.createElement('div');
+      r.className = 'meteor-ring';
+      r.style.setProperty('--mc', i%2 ? '#ffffff' : col[0]);
+      r.style.setProperty('--mg', col[1]);
+      r.style.animationDelay = (i*130)+'ms';
+      layer.appendChild(r);
+    }
+    const sparks = tier==='grey' ? 5 : tier==='blue' ? 8 : tier==='purple' ? 12 : 18;
+    for(let i=0;i<sparks;i++){
+      const s = document.createElement('div');
+      s.className = 'meteor-spark';
+      const ang = Math.random()*Math.PI*2, dist = 70 + Math.random()*190;
+      s.style.setProperty('--sx', (Math.cos(ang)*dist).toFixed(1)+'px');
+      s.style.setProperty('--sy', (Math.sin(ang)*dist).toFixed(1)+'px');
+      s.style.setProperty('--mc', col[0]); s.style.setProperty('--mg', col[1]);
+      s.style.animationDelay = (Math.random()*170)+'ms';
+      layer.appendChild(s);
+    }
+    Sound.chime(tier);
+    if(tier==='gold' || tier==='hidden'){
+      const w = document.getElementById('wishScreen');
+      if(w){ w.classList.add('quake'); setTimeout(()=>w.classList.remove('quake'), 520); }
+    }
+    onImpact && onImpact();
+  }, hit));
+
+  meteorTimers.push(setTimeout(()=>{
+    layer.classList.remove('on');
+    meteorTimers.push(setTimeout(()=>{ layer.innerHTML=''; }, 340));
+    onDone && onDone();
+  }, hit + (tier==='hidden' ? 1300 : 1000)));
+}
+
+/* ===== 签缘（每日次数）与保底 ===== */
+const FATE_MAX = 30, PITY_GOLD = 40;
+function fateInfo(){
+  let o = null;
+  try{ o = JSON.parse(localStorage.getItem('jieyou_fate')); }catch(e){ o = null; }
+  if(!o || o.d !== todayStr()) o = {d:todayStr(), n:FATE_MAX};
+  return o;
+}
+function fateSpend(k){
+  const o = fateInfo();
+  if(o.n < k) return false;
+  o.n -= k;
+  localStorage.setItem('jieyou_fate', JSON.stringify(o));
+  renderWishCost();
+  return true;
+}
+function pityKey(){ return 'jieyou_pity_' + (CUR_USER || 'guest'); }
+function pityGet(){
+  try{
+    const p = JSON.parse(localStorage.getItem(pityKey()));
+    if(p && typeof p==='object') return {g:p.g||0, p:p.p||0};
+  }catch(e){}
+  return {g:0, p:0};
+}
+function pitySet(p){ localStorage.setItem(pityKey(), JSON.stringify(p)); }
+
+function renderWishCost(){
+  const f = fateInfo();
+  const a = document.getElementById('wishFate');
+  if(a) a.textContent = f.n;
+  const p = pityGet(), el = document.getElementById('wishPity');
+  if(el) el.textContent = '距必出天签还需 ' + Math.max(0, PITY_GOLD - p.g) + ' 抽 · 距十连保底还需 ' + Math.max(0, 9 - p.p) + ' 抽';
+  const s = document.getElementById('wishBtnSingle'), m = document.getElementById('wishBtnMulti');
+  if(s) s.disabled = state.animating || f.n < 1;
+  if(m) m.disabled = state.animating || f.n < 10;
+}
+
+/* 单抽：先走保底，再按概率表掷骰 */
+function rollOne(p){
+  p.g++; p.p++;
+  let tier;
+  if(p.g >= PITY_GOLD){ tier = 'gold'; p.g = 0; }
+  else{
+    const r = Math.random();
+    if(r < 0.02)      tier = 'hidden';
+    else if(r < 0.12) tier = 'gold';
+    else if(r < 0.45) tier = 'purple';
+    else if(r < 0.80) tier = 'blue';
+    else              tier = 'grey';
+    if(tier==='gold') p.g = 0;
+  }
+  if(tier==='purple' || tier==='gold' || tier==='hidden') p.p = 0;
+  return signByTier(tier);
+}
+
+/* ===== 星空背景 ===== */
+let wishStarsRAF = null, wishTimerId = null;
+function startStars(){
+  const cv = document.getElementById('wishStars');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  if(!ctx) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  let W = 0, H = 0;
+  function size(){
+    W = cv.width  = Math.max(1, Math.floor(cv.offsetWidth  * dpr));
+    H = cv.height = Math.max(1, Math.floor(cv.offsetHeight * dpr));
+  }
+  size();
+  window.addEventListener('resize', size);
+  const N = Math.max(60, Math.min(190, Math.floor(window.innerWidth/7)));
+  const stars = [];
+  for(let i=0;i<N;i++) stars.push({
+    x:Math.random(), y:Math.random(), r:.3+Math.random()*1.5,
+    p:Math.random()*Math.PI*2, s:.25+Math.random()*.85,
+    vy:.00003+Math.random()*.00011
+  });
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    for(const st of stars){
+      st.p += .02*st.s; st.y -= st.vy;
+      if(st.y < -.02) st.y = 1.02;
+      const a = .2 + .8*Math.abs(Math.sin(st.p));
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(' + (215+Math.floor(40*a)) + ',228,255,' + (a*.85).toFixed(3) + ')';
+      ctx.arc(st.x*W, st.y*H, st.r*dpr, 0, 6.2832);
+      ctx.fill();
+    }
+    wishStarsRAF = requestAnimationFrame(frame);
+  }
+  frame();
+}
+function stopStars(){
+  if(wishStarsRAF){ cancelAnimationFrame(wishStarsRAF); wishStarsRAF = null; }
+}
+/* 倒计时到每日 04:00（签缘恢复点） */
+function wishCountdown(){
+  const now = new Date(), end = new Date(now);
+  end.setHours(4,0,0,0);
+  if(end <= now) end.setDate(end.getDate()+1);
+  let s = Math.floor((end - now)/1000);
+  const d = Math.floor(s/86400); s %= 86400;
+  const h = Math.floor(s/3600);  s %= 3600;
+  const m = Math.floor(s/60);    s %= 60;
+  const pad = n => String(n).padStart(2,'0');
+  return (d>0 ? d+' 天 ' : '') + pad(h)+':'+pad(m)+':'+pad(s);
+}
+
+/* ===== 祈愿界面开合 ===== */
+function openWish(){
+  if(!CUR_USER){ openLogin('祈愿需要先登录，请登录或注册一个账号'); return; }
+  const w = document.getElementById('wishScreen');
+  w.classList.add('on'); w.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden';
+  startStars(); renderWishCost();
+  const t = document.getElementById('wishTimer');
+  const tick = ()=>{ t.textContent = '剩余 ' + wishCountdown(); };
+  tick();
+  clearInterval(wishTimerId);
+  wishTimerId = setInterval(tick, 1000);
+  Sound.wishOpen();
+}
+function closeWish(){
+  const w = document.getElementById('wishScreen');
+  w.classList.remove('on'); w.setAttribute('aria-hidden','true');
+  document.body.style.overflow = '';
+  stopStars();
+  clearInterval(wishTimerId); wishTimerId = null;
+}
+
+/* ===== 祈愿主流程 ===== */
+let wishResults = [], wishBest = null, wishResultTimers = [];
+function doWish(n){
+  if(!CUR_USER){ openLogin('祈愿需要先登录'); return; }
+  if(state.animating) return;
+  if(fateInfo().n < n){ toast('签缘不足，明日 04:00 恢复'); return; }
+  fateSpend(n);
+
+  const p = pityGet(), results = [];
+  for(let i=0;i<n;i++){
+    const s = rollOne(p);
+    results.push(s);
+    state.drawCount++;
+    bumpTodayDraws();
+    Cloud.recordDraw(s);
+    TOTAL_DRAWS++;
+  }
+  /* 十连保底：整组没有上吉及以上，就把最后一张换成上吉 */
+  if(n>=10 && !results.some(s=>TIER_ORDER.indexOf(rarityOf(s))>=2)){
+    results[results.length-1] = signByTier('purple');
+  }
+  pitySet(p);
+  save(); renderAll(); renderWishCost();
+
+  wishResults = results;
+  wishBest = results.reduce((a,s)=>
+    TIER_ORDER.indexOf(rarityOf(s)) > TIER_ORDER.indexOf(rarityOf(a)) ? s : a, results[0]);
+
+  state.animating = true;
+  if(noAnimChk.checked){ finishWish(); return; }
+  playMeteor(rarityOf(wishBest), ()=>{ Sound.pop(); }, ()=>{ finishWish(); });
+}
+function finishWish(){
+  state.animating = false;
+  showSign(wishBest);                 // 主页卡片展示本次最好的一支
+  wishResults.forEach(s=>pushFeed(s, MY_NICK, true));
+  save(); renderAll(); renderWishCost();
+  openWishResult(wishResults);
+}
+function openWishResult(results){
+  const grid = document.getElementById('wishGrid');
+  grid.innerHTML = '';
+  grid.className = 'wish-grid' + (results.length===1 ? ' one' : '');
+  document.getElementById('wrTitle').textContent =
+    results.length===1 ? '祈愿结果' : '祈愿 ×' + results.length;
+  wishResultTimers.forEach(clearTimeout); wishResultTimers = [];
+
+  results.forEach((s,i)=>{
+    const tier = rarityOf(s), meta = TIER_META[tier];
+    const card = document.createElement('div');
+    card.className = 'rcard r-' + tier;
+    card.style.animationDelay = (i*95) + 'ms';
+    card.innerHTML =
+        '<div class="rc-star">' + meta.star + ' ' + meta.name + '</div>'
+      + '<div class="rc-lv">' + escapeHtml(s.level) + '</div>'
+      + '<div class="rc-tx">' + escapeHtml(s.text) + '</div>'
+      + '<div class="rc-no">' + (s.id>100 ? '隐藏签' : '第 ' + String(s.id).padStart(3,'0') + ' 签') + '</div>';
+    grid.appendChild(card);
+    wishResultTimers.push(setTimeout(()=>{
+      Sound.tick(i);
+      if(tier==='gold' || tier==='hidden') Sound.chime(tier);
+    }, i*95 + 250));
+  });
+
+  const cnt = {};
+  results.forEach(s=>{ const t=rarityOf(s); cnt[t]=(cnt[t]||0)+1; });
+  const parts = TIER_ORDER.filter(t=>cnt[t]).map(t=>TIER_META[t].name+' ×'+cnt[t]);
+  document.getElementById('wrFoot').innerHTML = '本次祈愿：' + parts.join(' · ');
+  document.getElementById('wishResultMask').classList.add('on');
+}
+function closeWishResult(){
+  wishResultTimers.forEach(clearTimeout); wishResultTimers = [];
+  document.getElementById('wishResultMask').classList.remove('on');
+}
+function collectAllWish(){
+  if(!wishResults.length){ toast('没有可收纳的签'); return; }
+  let added = 0;
+  wishResults.forEach(s=>{
+    if(!state.collected.has(s.id)){ state.collected.add(s.id); added++; Cloud.collect(s); }
+  });
+  save(); renderAll();
+  toast(added ? ('已收入 ' + added + ' 支新签') : '这些签都已经在签匣里了');
+}
+
+/* ===== 祈愿详情 / 祈愿记录 ===== */
+function openWishDetail(){ document.getElementById('wishDetailMask').classList.add('on'); }
+function closeWishDetail(){ document.getElementById('wishDetailMask').classList.remove('on'); }
+function openWishHistory(){
+  const list = document.getElementById('wishHistoryList');
+  list.innerHTML = '';
+  if(!FEED_LOG.length){
+    list.innerHTML = '<div class="empty">还没有祈愿记录<br>去祈一签，你就是第一条</div>';
+  }else{
+    FEED_LOG.slice(0,100).forEach(rec=>{
+      const li = document.createElement('li');
+      if(isMeRec(rec)) li.className = 'me';
+      li.innerHTML = '<b>' + escapeHtml(rec.me ? '我' : rec.n) + '</b> 祈出了 <em>'
+                   + escapeHtml(rec.l) + '</em><span class="tm">' + timeAgo(rec.t) + '</span>';
+      list.appendChild(li);
+    });
+  }
+  document.getElementById('wishHistoryMask').classList.add('on');
+}
+function closeWishHistory(){ document.getElementById('wishHistoryMask').classList.remove('on'); }
+
+[['wishDetailMask', closeWishDetail], ['wishHistoryMask', closeWishHistory]].forEach(([id, fn])=>{
+  document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) fn(); });
+});
+document.getElementById('wishResultMask').addEventListener('click', e=>{
+  if(e.target.id==='wishResultMask') closeWishResult();
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape') return;
+  closeWishDetail(); closeWishHistory();
+  if(document.getElementById('wishResultMask').classList.contains('on')) closeWishResult();
+  if(document.getElementById('wishScreen').classList.contains('on')) closeWish();
+});
+
+/* 登录态变化后刷新签缘/保底显示（保底按账号分别计） */
+const _prevRefreshUserUI = refreshUserUI;
+refreshUserUI = function(){ _prevRefreshUserUI(); renderWishCost(); };
+renderWishCost();
+
+/* ============================================================
+   ============ 好友与聊天：搜索账号 / 加好友 / 私聊 ============
+   与全站「云端优先、本地兜底」策略保持一致，两条数据通路：
+   ① 云端（Supabase）：users 搜索账号、friends 好友关系、
+      messages 私聊消息，并走 postgres_changes 实时推送；
+   ② 本地演示模式（未配置 / 连不上云）：好友关系、申请与聊天记录
+      全部落 localStorage；同一浏览器多开标签页（登录不同账号）
+      可凭 storage 事件实时互聊，并内置 3 位「演示签友」自动回话。
+   入口：顶部导航「签友」按钮 → openSocial()
+   ============================================================ */
+const SOCIAL = (()=>{
+  let currentPeer = null;      // 当前会话对象 {id, nickname}
+  let SEARCH_CACHE = [];       // 最近一次搜索结果，用于刷新按钮态
+  let socChannel = null;
+  let demoTimer = null;
+  let unread = {};
+
+  /* 本地演示模式下的内置签友（仅离线兜底时出现，云端模式不掺入） */
+  const DEMO_USERS = [
+    {id:'u_demo_yun', nickname:'云游签友',
+     reply:['幸会。你今日摇到什么签？','签文只指方向，路还得自己走。','我也是摇完一签才肯走的。']},
+    {id:'u_demo_shu', nickname:'树下小舟',
+     reply:['你好呀，久仰签名。','我攒到「圆满」了，你集了几支？','别连着摇，越摇越糊。']},
+    {id:'u_demo_qing', nickname:'青衫客',
+     reply:['深夜摇签的人，多半有心事。','说与我听也无妨。','签好就笑一笑，签差就睡一觉。']}
+  ];
+
+  const cloudOn = ()=> Cloud.isOn();
+  /* 本地存储统一主键：登录后 MY_ID = 'u_' + 用户名；未登录兜底为 u_guest。
+     好友表 / 会话记录 / 申请箱全部用它，避免 CUR_USER 与 MY_ID 两套主键读写错位。 */
+  const meId = ()=> MY_ID || ('u_' + (CUR_USER || 'guest'));
+  const esc = s => escapeHtml(s);
+  function avatarText(nick){
+    const s = String(nick||'签').trim();
+    return s.charAt(0) || '签';
+  }
+  function fmtTime(ts){
+    if(!ts) return '';
+    const d = new Date(ts), now = new Date(), pad = n=>String(n).padStart(2,'0');
+    const hm = pad(d.getHours())+':'+pad(d.getMinutes());
+    return (d.toDateString()===now.toDateString()) ? hm : (d.getMonth()+1)+'月'+d.getDate()+'日 '+hm;
+  }
+  const maskOn = ()=>{ const m=document.getElementById('socialMask'); return !!m && m.classList.contains('on'); };
+
+  /* ---------- 未读红点 ---------- */
+  const unreadKey = ()=> 'jieyou_unread_' + (CUR_USER || 'guest');
+  function loadUnread(){
+    try{ const o=JSON.parse(localStorage.getItem(unreadKey())); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; }
+  }
+  function saveUnread(){ localStorage.setItem(unreadKey(), JSON.stringify(unread)); renderBadge(); }
+  function renderBadge(){
+    const el = document.getElementById('friendBadge'); if(!el) return;
+    const n = Object.keys(unread).reduce((a,k)=>a+(unread[k]||0), 0);
+    el.textContent = n>99 ? '99+' : n;
+    el.hidden = n===0;
+  }
+  function bumpUnread(peerId){ if(!peerId) return; unread[peerId]=(unread[peerId]||0)+1; saveUnread(); }
+  function clearUnread(peerId){ if(unread[peerId]!==undefined){ delete unread[peerId]; saveUnread(); } }
+
+  /* ---------- 本地存储（演示模式） ---------- */
+  const fkey = u=> 'jieyou_friends_' + u;
+  function lFriends(){
+    try{ const o=JSON.parse(localStorage.getItem(fkey(meId()))); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; }
+  }
+  function lFriendAdd(aId, aNick, bId, bNick){
+    const A = JSON.parse(localStorage.getItem(fkey(aId))||'{}');
+    const B = JSON.parse(localStorage.getItem(fkey(bId))||'{}');
+    A[bId] = {nickname:bNick||bId, at:Date.now()};
+    B[aId] = {nickname:aNick||aId, at:Date.now()};
+    localStorage.setItem(fkey(aId), JSON.stringify(A));
+    localStorage.setItem(fkey(bId), JSON.stringify(B));
+  }
+  const REQ_KEY = 'jieyou_reqs';
+  function lReqs(){
+    try{ const o=JSON.parse(localStorage.getItem(REQ_KEY)); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; }
+  }
+  function lSetReqs(o){ localStorage.setItem(REQ_KEY, JSON.stringify(o)); }
+  function lIncoming(){ return (lReqs()[meId()]||[]).filter(r=>r.status==='pending'); }
+  function lOutgoing(){
+    const R=lReqs(), out=[];
+    Object.keys(R).forEach(to=>{ (R[to]||[]).forEach(r=>{ if(r.from===meId() && r.status==='pending') out.push({id:to}); }); });
+    return out;
+  }
+  /* 会话键按 id 排序，保证双方读写同一份记录 */
+  function chatKey(a,b){ const p=[a,b].sort(); return 'jieyou_chat_'+p[0]+'__'+p[1]; }
+  function lMsgs(a,b){
+    try{ const o=JSON.parse(localStorage.getItem(chatKey(a,b))); return Array.isArray(o)?o:[]; }catch(e){ return []; }
+  }
+  function lPushMsg(a,b,rec){
+    const arr=lMsgs(a,b); arr.push(rec);
+    while(arr.length>500) arr.shift();
+    localStorage.setItem(chatKey(a,b), JSON.stringify(arr));
+  }
+  /* 本地账号目录：本机已注册账号 + 演示签友 */
+  function localDirectory(){
+    let u={}; try{ u = JSON.parse(localStorage.getItem('jieyou_users'))||{}; }catch(e){ u={}; }
+    const rows = Object.keys(u).map(n=>({id:'u_'+n, nickname:u[n].nick||n}));
+    return rows.concat(DEMO_USERS.map(d=>({id:d.id, nickname:d.nickname})));
+  }
+  const isDemo = id=> DEMO_USERS.some(d=>d.id===id);
+
+  /* ---------- 好友 / 申请（云端 + 本地合并） ---------- */
+  async function myFriends(){
+    const map = {};
+    const lf = lFriends();
+    Object.keys(lf).forEach(id=>{ map[id] = {id:id, nickname:lf[id].nickname||id}; });
+    if(cloudOn()){
+      const rows = await Cloud.fetchFriends();
+      (rows||[]).forEach(r=>{
+        const pid = r.user_id===meId() ? r.friend_id : r.user_id;
+        const pn  = r.user_id===meId() ? (r.friend_nickname||pid) : (r.nickname||pid);
+        if(pid && pid!==meId()) map[pid] = {id:pid, nickname:pn||pid};
+      });
+    }
+    return Object.keys(map).map(k=>map[k]);
+  }
+  async function myRequests(){
+    const out=[], seen={};
+    lIncoming().forEach(r=>{ if(!seen[r.from]){ seen[r.from]=1; out.push({id:r.from, nickname:r.fromNick||r.from}); } });
+    if(cloudOn()){
+      const rows = await Cloud.fetchRequests();
+      (rows||[]).forEach(r=>{ if(!seen[r.user_id]){ seen[r.user_id]=1; out.push({id:r.user_id, nickname:r.nickname||r.user_id}); } });
+    }
+    return out;
+  }
+  async function mySent(){
+    const out=[], seen={};
+    lOutgoing().forEach(r=>{ if(!seen[r.id]){ seen[r.id]=1; out.push(r.id); } });
+    if(cloudOn()){
+      const rows = await Cloud.fetchSentRequests();
+      (rows||[]).forEach(r=>{ if(!seen[r.friend_id]){ seen[r.friend_id]=1; out.push(r.friend_id); } });
+    }
+    return out;
+  }
+
+  /* ---------- 渲染：搜索结果 ---------- */
+  async function renderSearch(){
+    const ul = document.getElementById('socSearchList');
+    if(!ul) return;
+    if(!SEARCH_CACHE.length) return;
+    const fr = await myFriends(), reqs = await myRequests(), sent = await mySent();
+    ul.innerHTML = '';
+    SEARCH_CACHE.forEach(u=>{
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="soc-ava">'+esc(avatarText(u.nickname))+'</span>'
+                   + '<span class="soc-nm">'+esc(u.nickname)+'<small>@'+esc(String(u.id).replace(/^u_/,''))+'</small></span>';
+      if(fr.some(f=>f.id===u.id)){
+        const b=document.createElement('button'); b.className='btn mini primary'; b.textContent='发消息';
+        b.onclick=()=>openChat(u); li.appendChild(b);
+      }else if(sent.indexOf(u.id)>=0){
+        const s=document.createElement('span'); s.className='done'; s.textContent='待通过'; li.appendChild(s);
+      }else if(reqs.some(r=>r.id===u.id)){
+        const s=document.createElement('span'); s.className='done'; s.textContent='对方申请中'; li.appendChild(s);
+      }else{
+        const b=document.createElement('button'); b.className='btn mini'; b.textContent='加好友';
+        b.onclick=()=>addFriend(u.id, u.nickname); li.appendChild(b);
+      }
+      ul.appendChild(li);
+    });
+  }
+
+  async function search(kw){
+    const ul = document.getElementById('socSearchList');
+    if(!ul) return;
+    kw = String(kw||'').trim();
+    if(!kw){ SEARCH_CACHE=[]; ul.innerHTML='<li class="soc-hint">输入用户名后点「搜索」</li>'; return; }
+    ul.innerHTML = '<li class="soc-hint">搜索中…</li>';
+    let rows = [];
+    if(cloudOn()){
+      rows = (await Cloud.searchUsers(kw)).map(u=>({id:u.id, nickname:u.nickname||u.username||'签友'}));
+    }else{
+      const k = kw.toLowerCase();
+      rows = localDirectory().filter(u=>u.nickname.toLowerCase().includes(k) || String(u.id).toLowerCase().includes(k));
+    }
+    const seen = {};
+    rows = rows.filter(u=> u.id && u.id!==meId() && (seen[u.id]?false:(seen[u.id]=1)));
+    SEARCH_CACHE = rows;
+    if(!rows.length){
+      ul.innerHTML = '<li class="soc-hint">没有找到与「'+esc(kw)+'」匹配的账号<br>'
+                   + (cloudOn() ? '对方需已登录过本站（账号会同步到云端目录）' : '本地演示模式只能搜到本机已注册的账号与演示签友')
+                   + '</li>';
+      return;
+    }
+    await renderSearch();
+  }
+
+  /* ---------- 渲染：好友申请 ---------- */
+  async function renderRequests(){
+    const ul = document.getElementById('socReqList'), cnt = document.getElementById('reqCount');
+    if(!ul) return;
+    const rows = await myRequests();
+    if(cnt) cnt.textContent = rows.length ? '('+rows.length+')' : '';
+    if(!rows.length){ ul.innerHTML = '<li class="soc-hint">暂无新申请</li>'; return; }
+    ul.innerHTML = '';
+    rows.forEach(r=>{
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="soc-ava">'+esc(avatarText(r.nickname))+'</span>'
+                   + '<span class="soc-nm">'+esc(r.nickname)+'</span>';
+      const ok=document.createElement('button'); ok.className='btn mini primary'; ok.textContent='接受';
+      ok.onclick=()=>respond(r.id, true, r.nickname);
+      const no=document.createElement('button'); no.className='btn mini'; no.textContent='拒绝';
+      no.onclick=()=>respond(r.id, false, r.nickname);
+      li.appendChild(ok); li.appendChild(no); ul.appendChild(li);
+    });
+  }
+
+  /* ---------- 渲染：好友列表 ---------- */
+  async function renderFriends(){
+    const ul = document.getElementById('socFriendList');
+    if(!ul) return;
+    const rows = await myFriends();
+    if(!rows.length){ ul.innerHTML = '<li class="soc-hint">还没有好友<br>上方搜索用户名添加一位</li>'; return; }
+    ul.innerHTML = '';
+    rows.forEach(f=>{
+      const li = document.createElement('li');
+      const active = currentPeer && currentPeer.id===f.id;
+      const n = unread[f.id]||0;
+      li.innerHTML = '<span class="soc-ava">'+esc(avatarText(f.nickname))+'</span>'
+                   + '<span class="soc-nm">'+esc(f.nickname)+'</span>'
+                   + (n ? '<span class="soc-unread">'+(n>99?'99+':n)+'</span>' : '');
+      const b=document.createElement('button');
+      b.className='btn mini'+(active?' primary':''); b.textContent='发消息';
+      b.onclick=()=>openChat(f);
+      li.appendChild(b); ul.appendChild(li);
+    });
+  }
+
+  /* ---------- 加好友 / 处理申请 ---------- */
+  async function addFriend(id, nickname){
+    if(!CUR_USER){ openLogin('加好友需要先登录'); return; }
+    if(id===meId()){ toast('不能加自己为好友'); return; }
+    const fr = await myFriends();
+    if(fr.some(f=>f.id===id)){ openChat({id:id, nickname:nickname}); return; }
+    /* 本地申请箱：写在「对方」名下，对方在同一浏览器登录即可看到 */
+    const R = lReqs(), arr = R[id] || (R[id]=[]);
+    if(!arr.some(x=>x.from===meId() && x.status==='pending')){
+      arr.push({from:meId(), fromNick:MY_NICK, at:Date.now(), status:'pending'});
+    }
+    lSetReqs(R);
+    let cloudOk = false;
+    if(cloudOn()) cloudOk = await Cloud.sendFriendRequest(id, nickname);
+
+    if(!cloudOn() && isDemo(id)){
+      /* 演示签友：稍后自动通过，方便单机体验完整链路 */
+      toast('已向「'+nickname+'」发出好友申请');
+      clearTimeout(demoTimer);
+      demoTimer = setTimeout(()=>{
+        lFriendAdd(meId(), MY_NICK, id, nickname);
+        const R2 = lReqs();
+        if(R2[id]) R2[id] = R2[id].filter(x=>x.from!==meId());
+        lSetReqs(R2);
+        toast('「'+nickname+'」通过了你的好友申请');
+        renderFriends(); renderSearch();
+      }, 1200);
+    }else{
+      toast(cloudOn() ? (cloudOk ? '好友申请已发出，等待对方通过' : '申请发送失败，请检查云端好友表是否已建')
+                      : '申请已记在本机（本地演示模式：对方在本浏览器登录后即可看到）');
+    }
+    renderSearch();
+  }
+
+  async function respond(fromId, accept, nickname){
+    if(accept) lFriendAdd(meId(), MY_NICK, fromId, nickname||fromId);
+    const R = lReqs(), arr = R[meId()] || [];
+    R[meId()] = arr.filter(x=>x.from!==fromId);
+    lSetReqs(R);
+    if(cloudOn()) await Cloud.respondRequest(fromId, accept);
+    toast(accept ? '已与「'+(nickname||'对方')+'」成为好友，可以聊天了' : '已拒绝该好友申请');
+    renderRequests(); renderFriends(); renderSearch();
+  }
+
+  /* ---------- 私聊 ---------- */
+  function buildMsg(rec){
+    const me = rec.from===meId();
+    const d = document.createElement('div');
+    d.className = 'msg ' + (me?'me':'other');
+    const b = document.createElement('div'); b.className='bubble'; b.textContent = rec.text;
+    const w = document.createElement('div'); w.className='when';
+    w.textContent = (me?'我':(rec.fromNick||'签友')) + ' · ' + fmtTime(rec.at);
+    d.appendChild(b); d.appendChild(w);
+    return d;
+  }
+  function appendMsg(rec){
+    const box = document.getElementById('socMsgs');
+    if(!box) return;
+    const empty = box.querySelector('.empty'); if(empty) empty.remove();
+    box.appendChild(buildMsg(rec));
+    box.scrollTop = box.scrollHeight;
+  }
+  async function loadMsgs(){
+    if(!currentPeer) return;
+    const box = document.getElementById('socMsgs');
+    box.innerHTML = '<div class="empty">加载中…</div>';
+    let rows = [];
+    if(cloudOn()){
+      rows = ((await Cloud.fetchMessages(currentPeer.id, 200))||[]).map(r=>({
+        from:r.from_id,
+        fromNick:(r.from_id===meId() ? MY_NICK : (r.from_nick||currentPeer.nickname)),
+        text:r.content,
+        at:Date.parse(r.created_at)||Date.now()
+      }));
+    }else{
+      rows = lMsgs(meId(), currentPeer.id);
+    }
+    rows.sort((a,b)=>a.at-b.at);
+    box.innerHTML = '';
+    if(!rows.length){
+      box.innerHTML = '<div class="empty">还没有对话<br>说第一句话吧</div>';
+      return;
+    }
+    rows.forEach(r=>box.appendChild(buildMsg(r)));
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function openChat(peer){
+    if(!CUR_USER){ openLogin('聊天需要先登录'); return; }
+    currentPeer = {id:peer.id, nickname:peer.nickname||peer.id};
+    clearUnread(currentPeer.id);
+    const head = document.getElementById('socChatHead');
+    head.innerHTML = '<span class="soc-ava">'+esc(avatarText(currentPeer.nickname))+'</span>'
+                   + '<b>'+esc(currentPeer.nickname)+'</b>'
+                   + '<span class="who">@'+esc(String(currentPeer.id).replace(/^u_/,''))+' · 私聊，仅你们两人可见</span>';
+    loadMsgs();
+    renderFriends();
+    const ta = document.getElementById('socMsgInput'); if(ta) ta.focus();
+  }
+
+  async function sendMsg(){
+    if(!CUR_USER){ openLogin('聊天需要先登录'); return; }
+    if(!currentPeer){ toast('先在左侧选择一位好友'); return; }
+    const ta = document.getElementById('socMsgInput');
+    const text = String(ta.value||'').trim();
+    if(!text){ return; }
+    if(text.length>500){ toast('一条消息最多 500 字'); return; }
+    ta.value = '';
+    const rec = {from:meId(), fromNick:MY_NICK, text:text, at:Date.now()};
+    appendMsg(rec);                              /* 先本地即时上屏 */
+    if(cloudOn()){
+      const ok = await Cloud.sendMessage(currentPeer.id, text);
+      if(!ok) toast('消息未送达云端，请检查 messages 表与权限策略');
+    }else{
+      lPushMsg(meId(), currentPeer.id, rec);      /* 本地演示模式落盘 */
+      demoReply(currentPeer.id);
+    }
+  }
+
+  /* 演示签友自动回话（仅本地演示模式） */
+  function demoReply(peerId){
+    const d = DEMO_USERS.find(x=>x.id===peerId);
+    if(!d) return;
+    setTimeout(()=>{
+      const pool = d.reply, reply = {
+        from:d.id, fromNick:d.nickname,
+        text:pool[Math.floor(Math.random()*pool.length)], at:Date.now()
+      };
+      lPushMsg(meId(), d.id, reply);
+      if(maskOn() && currentPeer && currentPeer.id===d.id) appendMsg(reply);
+      else { bumpUnread(d.id); if(maskOn()) renderFriends(); }
+    }, 900 + Math.random()*1100);
+  }
+
+  /* ---------- 云端实时订阅与未读轮询 ---------- */
+  function subscribeCloud(){
+    if(!cloudOn() || socChannel) return;
+    socChannel = Cloud.subscribeSocial(ev=>{
+      const r = ev && ev.row; if(!r) return;
+      if(ev.kind==='msg'){
+        if(r.to_id!==meId()) return;
+        if(maskOn() && currentPeer && r.from_id===currentPeer.id){
+          appendMsg({from:r.from_id, fromNick:currentPeer.nickname, text:r.content, at:Date.parse(r.created_at)||Date.now()});
+          clearUnread(r.from_id);
+        }else{
+          bumpUnread(r.from_id);
+          if(maskOn()) renderFriends();
+          toast('「'+(r.from_nick||'有新的签友')+'」给你发来一条消息');
+        }
+      }else if(ev.kind==='friend'){
+        if(r.friend_id===meId() && r.status==='pending'){
+          toast('「'+(r.nickname||'有人')+'」想加你为好友');
+          renderRequests();
+        }else if(r.user_id===meId() && r.status==='accepted'){
+          toast('「'+(r.friend_nickname||'对方')+'」通过了你的好友申请');
+          renderFriends(); renderSearch();
+        }
+      }
+    });
+  }
+
+  /* 实时通道之外的一层兜底：定时补算未读（断线、切后台时不漏消息） */
+  async function pollUnread(){
+    if(!cloudOn() || !CUR_USER) return;
+    const key = 'jieyou_seen_' + (CUR_USER||'guest');
+    const last = Number(localStorage.getItem(key))||0;
+    if(!last){ localStorage.setItem(key, String(Date.now())); return; }
+    const rows = await Cloud.fetchIncomingSince(last);
+    if(rows && rows.length){
+      rows.forEach(r=>{
+        if(maskOn() && currentPeer && r.from_id===currentPeer.id) return;
+        bumpUnread(r.from_id);
+      });
+      saveUnread();
+    }
+    localStorage.setItem(key, String(Date.now()));
+  }
+
+  /* ---------- 开关面板 ---------- */
+  function openSocial(){
+    if(!CUR_USER){ openLogin('搜索账号、加好友与聊天都需要先登录'); return; }
+    document.getElementById('socialMask').classList.add('on');
+    const tip = document.getElementById('socTip');
+    if(tip){
+      tip.textContent = cloudOn()
+        ? '已连接云数据库：好友关系与聊天记录存于云端，多设备同步、实时推送。'
+        : '本地演示模式：好友与聊天记录只存在本机浏览器；再开一个标签页注册另一个账号即可互聊（或搜索「签友」找演示账号）。';
+    }
+    renderRequests(); renderFriends();
+    /* 面板打开且已有会话对象：视为已读该会话 */
+    if(currentPeer){ clearUnread(currentPeer.id); loadMsgs(); }
+  }
+  function closeSocial(){ document.getElementById('socialMask').classList.remove('on'); }
+
+  /* 登录 / 退出后重置会话与红点 */
+  function afterAuthChange(){
+    currentPeer = null;
+    SEARCH_CACHE = [];
+    unread = loadUnread(); renderBadge();
+    const head = document.getElementById('socChatHead');
+    if(head) head.textContent = '选择左侧好友开始聊天';
+    const box = document.getElementById('socMsgs');
+    if(box) box.innerHTML = '<div class="empty">还没有选择聊天对象</div>';
+    const sl = document.getElementById('socSearchList');
+    if(sl) sl.innerHTML = '<li class="soc-hint">输入用户名后点「搜索」</li>';
+    if(CUR_USER){ renderRequests(); renderFriends(); }
+  }
+
+  /* ---------- 初始化 ---------- */
+  function init(){
+    unread = loadUnread(); renderBadge();
+    const si = document.getElementById('socSearchInput');
+    if(si) si.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); search(si.value); } });
+    const ta = document.getElementById('socMsgInput');
+    if(ta){
+      ta.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMsg(); } });
+      ta.addEventListener('input', ()=>{                    /* 自动增高 */
+        ta.style.height='auto';
+        ta.style.height = Math.min(96, Math.max(38, ta.scrollHeight)) + 'px';
+      });
+    }
+    const mask = document.getElementById('socialMask');
+    if(mask) mask.addEventListener('click', e=>{ if(e.target.id==='socialMask') closeSocial(); });
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSocial(); });
+    /* 本地演示模式：另一标签页（另一账号）的操作实时同步过来 */
+    window.addEventListener('storage', e=>{
+      if(!e.key) return;
+      if(e.key===REQ_KEY) renderRequests();
+      else if(/^jieyou_friends_/.test(e.key)) renderFriends();
+      else if(/^jieyou_chat_/.test(e.key)){ if(maskOn() && currentPeer) loadMsgs(); }
+    });
+    if(CUR_USER){ renderRequests(); renderFriends(); }
+  }
+
+  return {init, open:openSocial, close:closeSocial, search, sendMsg,
+          subscribeCloud, pollUnread, afterAuthChange, renderBadge};
+})();
+
+/* 供 HTML 内联 onclick 调用的全局入口 */
+function openSocial(){ SOCIAL.open(); }
+function closeSocial(){ SOCIAL.close(); }
+function searchUsers(){ SOCIAL.search(document.getElementById('socSearchInput').value); }
+function sendMsg(){ SOCIAL.sendMsg(); }
+
 /* ============ 启动 ============ */
 async function boot(){
   if(CUR_USER){ MY_NICK = Account.nick(CUR_USER) || CUR_USER; MY_ID = 'u_' + CUR_USER; }
@@ -1646,6 +3203,7 @@ async function boot(){
   refreshUserUI();
   resetIdle();
   updateGoldOrigin();
+  SOCIAL.init();
 
   noAnimChk.checked = localStorage.getItem('jieyou_noanim')==='1';
   noAnimChk.addEventListener('change', ()=>{
@@ -1706,6 +3264,11 @@ async function boot(){
     TOTAL_DRAWS++;
     renderAll();
   });
+  // 4.5) 好友与聊天：实时订阅 + 未读兜底轮询
+  SOCIAL.subscribeCloud();
+  SOCIAL.pollUnread();
+  setInterval(()=>{ SOCIAL.pollUnread(); }, 20000);
+
   // 5) 全站统计 + 每 30 秒刷新在线人数
   await refreshStats();
   setInterval(refreshStats, 30000);
