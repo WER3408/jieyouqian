@@ -1,11 +1,20 @@
-﻿
+
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>解忧签 · 摇一签，解千愁</title>
-<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600;900&display=swap" rel="stylesheet">
+<!-- 字体非阻塞加载：原来这条 <link rel=stylesheet> 是「渲染阻塞资源」，
+     国内访问 fonts.googleapis.com 不通时会白屏等它超时（数秒~30s）。
+     改成 media=print + onload 切回 all，字体到了再换，首屏不再等它。 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600;900&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600;900&display=swap"></noscript>
 <style>
 :root{
   --paper:#f5f0e6;
@@ -1002,6 +1011,10 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
       <label class="switch"><input type="checkbox" id="setBroadcastChk"><span class="knob"></span></label>
     </div>
     <div class="set-row">
+      <span class="lab">氛围动态</span>
+      <label class="switch"><input type="checkbox" id="setVibeChk"><span class="knob"></span></label>
+    </div>
+    <div class="set-row">
       <span class="lab">账号</span>
       <div class="acct-wrap">
         <b id="acctName">未登录</b>
@@ -1009,7 +1022,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
         <button class="btn mini" id="acctBtn" onclick="acctAction()">登录</button>
       </div>
     </div>
-    <div class="set-tip">勾选求签播报后，当有人抽出隐藏签时屏幕上方会滑出提示；不勾选则不会提示。账号与签匣保存在本机浏览器，换设备需重新注册。</div>
+    <div class="set-tip">勾选求签播报后，当有人抽出隐藏签时屏幕上方会滑出提示；不勾选则不会提示。勾选「氛围动态」后，站内长时间无人摇签时会补上占位动态让动态流保持流动（仅本机展示，不写入云端、不计入真实统计）；关掉则只显示真实求签。账号与签匣保存在本机浏览器，换设备需重新注册。</div>
   </div>
 </div>
 
@@ -1122,7 +1135,10 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 <div class="broadcast" id="broadcastBar"><span class="star">✦</span><span id="broadcastText"></span></div>
 
 <!-- Supabase JS SDK（UMD 版，提供全局 window.supabase）；加载失败时会自动尝试备用 CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- 原来这里是不带 defer 的同步脚本 + 未压缩版 supabase.js（约 700KB），
+     会阻塞后面的 HTML 解析。改成 min 版 + defer：不阻塞解析，且保证在
+     DOMContentLoaded 之前执行完（boot 已挂到 DOMContentLoaded 上）。 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
 
 <script>
 /* ============ 签文库 ============ */
@@ -1469,10 +1485,19 @@ const Cloud = (()=>{
     /* 已登录本地账号：身份以账号为准，不走匿名/访客逻辑 */
     if(CUR_USER){ MY_ID = 'u_' + CUR_USER; MY_NICK = Account.nick(CUR_USER) || CUR_USER; return; }
     let uid = null;
+    /* 性能：先读本地 session（纯内存/本地存储，零网络请求）。
+       原来的 getUser() 每次都会向服务端发一次校验请求，
+       跨境 RTT 下白白的多花 200~400ms。本地拿到就直接用。 */
     try{
-      const {data} = await sb.auth.getUser();
-      if(data && data.user) uid = data.user.id;
-    }catch(e){ /* 忽略 */ }
+      const {data} = await sb.auth.getSession();
+      if(data && data.session && data.session.user) uid = data.session.user.id;
+    }catch(e){ /* 忽略，继续试服务端 */ }
+    if(!uid){
+      try{
+        const {data} = await sb.auth.getUser();
+        if(data && data.user) uid = data.user.id;
+      }catch(e){ /* 忽略 */ }
+    }
     if(!uid){
       try{
         const r = await sb.auth.signInAnonymously();
@@ -1497,13 +1522,32 @@ const Cloud = (()=>{
     if(!configured()){ console.info('[解忧签] 未配置 Supabase，运行在本地演示模式'); return false; }
     if(!(await loadSdk())){ console.warn('[解忧签] Supabase SDK 加载失败，转本地模式'); return false; }
     try{
-      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      /* 性能：给所有 REST 请求加 9 秒超时熔断。
+         原来 Supabase 不可达时（网络抖动 / 区域被墙）每个请求都会挂到
+         浏览器默认超时（30~75s），把整个 boot 链卡死，页面长时间无响应。
+         注意：realtime 走 WebSocket，不受这个 fetch 影响。 */
+      const FETCH_TIMEOUT = Number(localStorage.getItem('jieyou_fetch_timeout')) || 9000;
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: {
+          fetch: (input, init) => {
+            const ctrl = new AbortController();
+            const timer = setTimeout(()=>ctrl.abort(), FETCH_TIMEOUT);
+            return fetch(input, Object.assign({}, init || {}, { signal: ctrl.signal }))
+              .finally(()=>clearTimeout(timer));
+          }
+        },
+        /* 让 realtime 心跳更激进一点，代理环境下更容易保活 */
+        realtime: { params: { eventsPerSecond: 20, heartbeatIntervalMs: 15000 } }
+      });
       await ensureIdentity();
-      const {error} = await sb.from('users').upsert({id:MY_ID, nickname:MY_NICK}, {onConflict:'id'});
-      if(error) throw error;
+      /* 性能：available 先置位，让首屏立刻开始并行拉数据；
+         下面两个「写」操作（写 users 表 / 同步账号名）不返回页面渲染所需的数据，
+         原来是 await 串在主链上，白白多等 1~2 个 RTT。改成后台执行。 */
       available = true;
-      /* 新增：把用户名一并写入 users 表，供「搜索账号 / 加好友」使用（失败不影响主流程） */
-      try{ await syncAccount(CUR_USER, MY_NICK); }catch(e){ /* 忽略 */ }
+      sb.from('users').upsert({id:MY_ID, nickname:MY_NICK}, {onConflict:'id'})
+        .then(({error})=>{ if(error) console.warn('[Supabase] 写入 users 失败：', error.message); });
+      /* 把用户名一并写入 users 表，供「搜索账号 / 加好友」使用（失败不影响主流程） */
+      try{ syncAccount(CUR_USER, MY_NICK); }catch(e){ /* 忽略 */ }
       return true;
     }catch(err){
       console.warn('[解忧签] 云端初始化失败，已自动回退本地模式：', err);
@@ -1523,27 +1567,89 @@ const Cloud = (()=>{
     return true;
   }
 
-  /* 动态流历史（最近 n 条） */
-  async function fetchFeed(limit=20){
+  const FEED_COLS = 'user_id,nickname,sign_level,is_hidden,created_at';
+
+  /* 动态流历史（最近 n 条）。
+     首屏默认只取 40 条：原来取 200 条，在跨境链路上要多传好几倍字节，
+     而弹窗一次也就显示几十条，本地还有 FEED_LOG 缓存兜着。 */
+  async function fetchFeed(limit=40){
     if(!available) return [];
-    const {data, error} = await sb.from('draws').select('user_id,nickname,sign_level,is_hidden,created_at')
+    const {data, error} = await sb.from('draws').select(FEED_COLS)
       .order('created_at', {ascending:false}).limit(limit);
     if(error){ console.warn('[Supabase] 读取动态失败：', error.message); return []; }
     return (data||[]).reverse();
   }
 
-  /* 实时订阅：别人摇签时自动推给你 */
+  /* 增量拉取：只取比 sinceIso 更新的动态。
+     这是 realtime 断线时的兜底通道 —— 每次只传几条，代价极低，
+     所以可以放心地每 10 秒轮询一次。 */
+  async function fetchFeedSince(sinceIso, limit=30){
+    if(!available) return [];
+    let q = sb.from('draws').select(FEED_COLS).order('created_at', {ascending:false}).limit(limit);
+    if(sinceIso) q = q.gt('created_at', sinceIso);
+    const {data, error} = await q;
+    if(error){ console.warn('[Supabase] 增量读取动态失败：', error.message); return []; }
+    return (data||[]).reverse();
+  }
+
+  /* 实时订阅：别人摇签时自动推给你。
+     加了断线自愈：realtime 的 WebSocket 在代理/切后台/网络抖动下会被掐断，
+     原来掐断后只 console.warn 一句就永久静止了 —— 这正是「动态不更新」的主因。
+     现在按指数退避自动重建通道，并在回前台时立刻重连。 */
+  let feedChan = null, feedRetry = 0, feedClosed = false;
   function subscribeFeed(onInsert){
     if(!available) return null;
-    const ch = sb.channel('jieyou-feed')
-      .on('postgres_changes',
-         {event:'INSERT', schema:'public', table:'draws'},
-         payload=>{
-           const r = payload.new;
-           if(r && r.user_id !== MY_ID) onInsert(r);   // 自己那条已本地展示，跳过避免重复
-         })
-      .subscribe(status=>{ if(status==='ERROR') console.warn('[Supabase] 实时通道异常，可刷新页面重试'); });
-    return ch;
+    feedClosed = false;
+    const open = ()=>{
+      if(feedClosed) return;
+      if(feedChan){ try{ sb.removeChannel(feedChan); }catch(e){} feedChan = null; }
+      feedChan = sb.channel('jieyou-feed-' + Date.now())
+        .on('postgres_changes',
+           {event:'INSERT', schema:'public', table:'draws'},
+           payload=>{
+             const r = payload.new;
+             feedRetry = 0;                          // 收到消息说明通道健康，退避归零
+             if(r && r.user_id !== MY_ID) onInsert(r);   // 自己那条已本地展示，跳过避免重复
+           })
+        .subscribe(status=>{
+          if(status==='SUBSCRIBED'){ feedRetry = 0; console.info('[Supabase] 动态实时通道已连接'); }
+          else if(status==='CHANNEL_ERROR' || status==='TIMED_OUT'){
+            feedRetry = Math.min(feedRetry + 1, 6);
+            const wait = Math.min(30000, 1000 * Math.pow(2, feedRetry));
+            console.warn('[Supabase] 实时通道异常，' + (wait/1000) + 's 后自动重连（第 ' + feedRetry + ' 次）');
+            setTimeout(open, wait);
+          }
+        });
+      return feedChan;
+    };
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.visibilityState==='visible' && !feedClosed){ feedRetry = 0; open(); }
+    });
+    return open();
+  }
+
+  /* 签运榜要能自己变，就得盯住 collection 表：有人集签 → 通知上层重拉榜单 */
+  let colChan = null, colRetry = 0, colClosed = false;
+  function subscribeCollection(onChange){
+    if(!available) return null;
+    colClosed = false;
+    const open = ()=>{
+      if(colClosed) return;
+      if(colChan){ try{ sb.removeChannel(colChan); }catch(e){} colChan = null; }
+      colChan = sb.channel('jieyou-collection-' + Date.now())
+        .on('postgres_changes', {event:'*', schema:'public', table:'collection'}, ()=>{
+          colRetry = 0; onChange();
+        })
+        .subscribe(status=>{
+          if(status==='SUBSCRIBED'){ colRetry = 0; }
+          else if(status==='CHANNEL_ERROR' || status==='TIMED_OUT'){
+            colRetry = Math.min(colRetry + 1, 6);
+            setTimeout(open, Math.min(30000, 1000 * Math.pow(2, colRetry)));
+          }
+        });
+      return colChan;
+    };
+    return open();
   }
 
   /* 我的签匣 */
@@ -1561,17 +1667,26 @@ const Cloud = (()=>{
     return true;
   }
 
-  /* 全站统计：累计次数 + 近 5 分钟在线人数 */
+  /* 全站统计：累计次数 + 近 5 分钟在线人数。
+     原实现在浏览器里算在线人数：把近 5 分钟最多 2000 行 user_id 全量拉下来
+     再 new Set 去重 —— 单次上百 KB，还每 30 秒跑一次，是延迟和流量的大头。
+     现在优先走数据库端聚合函数 site_stats()，只回两个数字（几百字节）；
+     函数没建时自动降级为「head 计数 + 200 行抽样」，也不再拉 2000 行。 */
   async function fetchStats(){
     if(!available) return null;
+    const {data, error} = await sb.rpc('site_stats', {window_minutes: 5});
+    if(!error && data && data.length){
+      const r = data[0];
+      return { total: Number(r.total) || 0, online: Number(r.online) || 1 };
+    }
     const since = new Date(Date.now() - 5*60*1000).toISOString();
     const [cnt, recent] = await Promise.all([
       sb.from('draws').select('id', {count:'exact', head:true}),
-      sb.from('draws').select('user_id').gte('created_at', since).limit(2000)
+      sb.from('draws').select('user_id').gte('created_at', since).limit(200)
     ]);
-    if(cnt.error) console.warn('[Supabase] 统计失败：', cnt.error.message);
-    const online = cnt.error ? null : new Set((recent.data||[]).map(r=>r.user_id)).size;
-    return { total: cnt.count || 0, online: (online || 0) + 1 };
+    if(cnt.error){ console.warn('[Supabase] 统计失败：', cnt.error.message); return null; }
+    const online = new Set((recent.data||[]).map(r=>r.user_id)).size;
+    return { total: cnt.count || 0, online: online + 1 };
   }
 
   /* 我自己的累计摇签次数（隐藏签「天选」按它判定） */
@@ -1739,7 +1854,8 @@ const Cloud = (()=>{
   }
 
   return {
-    init, recordDraw, fetchFeed, subscribeFeed, fetchCollection, collect,
+    init, recordDraw, fetchFeed, fetchFeedSince, subscribeFeed, subscribeCollection,
+    fetchCollection, collect,
     fetchStats, fetchMyDrawCount, fetchRank, rename,
     /* 好友与聊天（新增） */
     syncAccount, searchUsers, sendFriendRequest, fetchRequests, fetchSentRequests,
@@ -2018,6 +2134,13 @@ function buildFeedLi(rec){
                + `<span class="tm">${timeAgo(rec.t)}</span>`;
   return li;
 }
+/* 相对时间（刚刚 / 3 分钟前）是渲染那一刻算出来的，弹窗开着不会自己变。
+   这里加一个每分钟的重绘，让时间标签跟着走，动态流看起来才是"活的"。 */
+setInterval(()=>{
+  const mask = document.getElementById('feedMask');
+  if(mask && mask.classList.contains('on')) renderFeedLog();
+}, 60000);
+
 function renderFeedLog(){
   const list = document.getElementById('feedLogList');
   list.innerHTML = '';
@@ -2171,6 +2294,7 @@ function openFeed(){
   if(!requireLogin()) return;
   renderFeedLog();
   document.getElementById('feedMask').classList.add('on');
+  Live.pollFeed();        // 打开瞬间先补一次增量，不等下一个轮询周期
 }
 function closeFeed(){ document.getElementById('feedMask').classList.remove('on'); }
 
@@ -2197,11 +2321,166 @@ function toast(msg){
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
 }
 
+/* ============ 实时活力引擎 Live ============
+   解决「求签动态 / 签运榜不自动更新、更新延迟高」。三层保障：
+     ① Supabase Realtime 推送（毫秒级，需后台开 publication + RLS，见 supabase_patch.sql）
+     ② 增量轮询兜底（realtime 被代理掐断 / 切后台时，每 10s 只拉新增的几条）
+     ③ 氛围注入（站内长时间无人摇签时，本地生成占位动态，让流始终在动；
+        只进本地展示，不写云端、不计入真实统计，可在「设置」里关闭）
+   另外：页面切回前台（visibilitychange）立刻补拉一次，避免后台期间静止。
+   ============================================ */
+const Live = (()=>{
+  const FEED_POLL_MS = 10000;    // 增量轮询周期（realtime 的兜底）
+  const RANK_POLL_MS = 15000;    // 签运榜自动刷新周期（弹窗打开期间）
+  const VIBE_IDLE_MS = 45000;    // 静默超过 45s 才开始注入氛围动态
+  const VIBE_GAP_MIN = 9000;     // 两条氛围动态的最小间隔
+  const VIBE_GAP_MAX = 22000;    // 最大间隔（随机，看起来更自然）
+  const SEEN_MAX     = 400;
+
+  let feedTimer=null, vibeTimer=null, rankTimer=null, colUnsub=null;
+  let lastFeedTs=0, lastRealAt=Date.now(), syncing=false, rankSyncing=false;
+  const seen = new Set();
+  let vibeOn = localStorage.getItem('jieyou_vibe') !== '0';
+
+  function key(r){ return (r.created_at||'') + '|' + (r.user_id||'') + '|' + (r.sign_level||''); }
+
+  function markReal(ts){
+    const t = ts ? Date.parse(ts) : Date.now();
+    if(!isNaN(t) && t > lastFeedTs) lastFeedTs = t;
+    lastRealAt = Date.now();
+  }
+
+  /* 把一批云端行合并进本地动态流：按 (时间+用户+签级) 去重，
+     保证 realtime 推送与轮询兜底同时到达时不会插两条重复。 */
+  function absorb(r){                                  // 登记去重键与时间水位
+    const k = key(r);
+    if(seen.has(k)) return false;
+    seen.add(k);
+    while(seen.size > SEEN_MAX) seen.delete(seen.values().next().value);
+    markReal(r.created_at);
+    return true;
+  }
+
+  function mergeRows(rows){
+    if(!rows || !rows.length) return 0;
+    let added = 0;
+    rows.slice().reverse().forEach(r=>{           // 由旧到新 unshift，最终顺序正确
+      if(!absorb(r)) return;
+      pushFeedFromRow(r, r.user_id === MY_ID);
+      added++;
+    });
+    return added;
+  }
+
+  /* 首屏历史预热：只登记去重键与时间水位，不再往 FEED_LOG 里插一遍
+     （FEED_LOG 在 boot 里已经用同一批数据整体赋值过了） */
+  function warm(rows){
+    if(!rows || !rows.length) return;
+    rows.forEach(absorb);
+  }
+
+  /* realtime 推来一条 */
+  function onRealtimeRow(r){
+    if(!absorb(r)) return;
+    pushFeedFromRow(r, r.user_id === MY_ID);
+    TOTAL_DRAWS++;
+    renderCounters();
+  }
+
+  /* ② 增量轮询兜底 */
+  async function pollFeed(){
+    if(!Cloud.isOn() || syncing) return;
+    if(document.visibilityState !== 'visible') return;   // 挂后台不打扰
+    syncing = true;
+    try{
+      const since = lastFeedTs ? new Date(lastFeedTs).toISOString() : null;
+      const rows = await Cloud.fetchFeedSince(since, 30);
+      const n = mergeRows(rows);
+      if(n > 0){ TOTAL_DRAWS += n; renderCounters(); }   // 兜底补到的也计入累计
+    }finally{ syncing = false; }
+  }
+
+  /* ③ 氛围注入：站内长时间没人摇签时，本地造一条占位动态，
+     让「求签动态」永远在流动。注意：
+       · 不写 Supabase，不产生真实数据，不影响别人的榜单
+       · 不改动 TOTAL_DRAWS（下一次 refreshStats 会用服务端真值校正）
+       · 不触发隐藏签播报，避免误报 */
+  function scheduleVibe(){
+    clearTimeout(vibeTimer);
+    const wait = VIBE_GAP_MIN + Math.random() * (VIBE_GAP_MAX - VIBE_GAP_MIN);
+    vibeTimer = setTimeout(()=>{
+      try{
+        if(vibeOn && Cloud.isOn() && document.visibilityState === 'visible'
+           && (Date.now() - lastRealAt) > VIBE_IDLE_MS){
+          const name = NAMES[Math.floor(Math.random()*NAMES.length)] + '·'
+                     + Math.random().toString(36).slice(2,6).toUpperCase();
+          const pool = (typeof ALL !== 'undefined' && ALL.length) ? ALL : SIGNS;
+          const sign = pool[Math.floor(Math.random()*pool.length)];
+          addFeedLine(name, sign.level, false, new Date().toISOString(), false);
+        }
+      }catch(e){ /* 氛围注入失败不影响主流程 */ }
+      scheduleVibe();
+    }, wait);
+  }
+
+  /* 签运榜：弹窗打开期间自动刷新（原来只在打开那一刻拉一次，之后永远不动） */
+  async function refreshRankSilently(){
+    if(rankSyncing || !Cloud.isOn()) return;
+    const mask = document.getElementById('rankMask');
+    if(!mask || !mask.classList.contains('on')) return;
+    rankSyncing = true;
+    try{ await renderRank(); }
+    finally{ rankSyncing = false; }
+  }
+
+  function start(){
+    if(!Cloud.isOn()) return;
+    clearInterval(feedTimer);
+    feedTimer = setInterval(pollFeed, FEED_POLL_MS);
+    scheduleVibe();
+    /* 回前台立刻补一次，不等下一个轮询周期 */
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.visibilityState === 'visible'){ lastRealAt = Date.now(); pollFeed(); }
+    });
+    /* 盯住 collection 表：有人集签 → 1.5s 防抖后重拉榜单（榜单正开着才拉） */
+    let deb = null;
+    colUnsub = Cloud.subscribeCollection(()=>{
+      clearTimeout(deb);
+      deb = setTimeout(refreshRankSilently, 1500);
+    });
+  }
+
+  function openRankModal(){
+    clearInterval(rankTimer);
+    rankTimer = setInterval(refreshRankSilently, RANK_POLL_MS);
+    pollFeed();
+  }
+  function closeRankModal(){ clearInterval(rankTimer); rankTimer = null; }
+
+  function setVibe(on){
+    vibeOn = !!on;
+    localStorage.setItem('jieyou_vibe', on ? '1' : '0');
+  }
+  function isVibe(){ return vibeOn; }
+
+  return { start, onRealtimeRow, pollFeed, mergeRows, warm, openRankModal, closeRankModal,
+           refreshRankSilently, setVibe, isVibe };
+})();
+
 /* ============ 云状态徽标 ============ */
 function setCloudStatus(on){
   const b = document.getElementById('cloudBadge'), t = document.getElementById('cloudText');
   b.className = 'badge ' + (on ? 'cloud' : 'local');
   t.textContent = on ? '已连接云数据库 · 动态实时推送中' : '本地演示模式（' + Cloud.reason() + '）';
+}
+
+/* 只刷新头部 4 个数字。
+   原来 refreshStats 每 30 秒调一次 renderAll()，而 renderAll 会把整个签匣
+   网格（100+ 个 DOM 节点）innerHTML='' 后全部重建 —— 实时推送一来还要再来一次，
+   这是页面上明显的卡顿来源。数字更新走这个轻量函数即可。 */
+function renderCounters(){
+  document.getElementById('totalCount').textContent = TOTAL_DRAWS.toLocaleString();
+  document.getElementById('onlineCount').textContent = ONLINE;
 }
 
 /* 刷新全站统计：累计求签次数 + 近 5 分钟在线人数 */
@@ -2210,7 +2489,7 @@ async function refreshStats(){
   if(!s) return;
   TOTAL_DRAWS = s.total;
   ONLINE = s.online;
-  renderAll();
+  renderCounters();
 }
 
 /* 我的签匣（云端） */
@@ -2219,7 +2498,22 @@ async function refreshMyCollection(){
   if(ids){ state.collected = new Set(ids); save(); renderAll(); }
 }
 
-/* 签运榜 */
+/* 签运榜：渲染一次（自动刷新与手动打开共用） */
+async function renderRank(){
+  const list = document.getElementById('rankList');
+  if(!list) return;
+  const rows = await Cloud.fetchRank(10);
+  if(!rows || !rows.length){
+    list.innerHTML = '<div class="empty">还没有人集签，快去摇一签占榜一</div>';
+    return;
+  }
+  const html = rows.map((r,i)=>{
+    const me = r.user_id === MY_ID;
+    return `<li><span class="rk">${i+1}</span><span class="nm">${escapeHtml(me?'我':r.nickname)}</span><span class="ct">${r.cnt} 签</span></li>`;
+  }).join('');
+  list.innerHTML = html;      // 一次性写入，避免逐条 appendChild 造成的重排闪烁
+}
+
 async function openRank(){
   if(!requireLogin()) return;
   const mask = document.getElementById('rankMask');
@@ -2230,20 +2524,15 @@ async function openRank(){
     return;
   }
   list.innerHTML = '<li>加载中…</li>';
-  const rows = await Cloud.fetchRank(10);
-  if(!rows || !rows.length){
-    list.innerHTML = '<div class="empty">还没有人集签，快去摇一签占榜一</div>';
-    return;
-  }
-  list.innerHTML = '';
-  rows.forEach((r,i)=>{
-    const li = document.createElement('li');
-    const me = r.user_id === MY_ID;
-    li.innerHTML = `<span class="rk">${i+1}</span><span class="nm">${escapeHtml(me?'我':r.nickname)}</span><span class="ct">${r.cnt} 签</span>`;
-    list.appendChild(li);
-  });
+  await renderRank();
+  /* 关键修复：榜单原来只在弹窗打开的那一刻拉一次，之后 collection 表怎么变
+     它都不会动。现在打开期间每 15 秒自动重拉，并叠加 collection 表的实时订阅。 */
+  Live.openRankModal();
 }
-function closeRank(){ document.getElementById('rankMask').classList.remove('on'); }
+function closeRank(){
+  document.getElementById('rankMask').classList.remove('on');
+  Live.closeRankModal();
+}
 
 /* 改昵称（同步到 users 表） */
 async function editNick(e){
@@ -3319,6 +3608,12 @@ async function boot(){
     document.getElementById('volVal').textContent = v+'%';
     Sound.setVolume(v/100);
   });
+  const vibeChk = document.getElementById('setVibeChk');
+  vibeChk.checked = Live.isVibe();
+  vibeChk.addEventListener('change', ()=>{
+    Live.setVibe(vibeChk.checked);
+    toast(vibeChk.checked ? '氛围动态已开启：站内安静时会补上占位动态' : '氛围动态已关闭：动态流只显示真实求签');
+  });
   const bcChk = document.getElementById('setBroadcastChk');
   bcChk.checked = broadcastOn;
   bcChk.addEventListener('change', ()=>{
@@ -3337,33 +3632,52 @@ async function boot(){
 
   refreshUserUI();
 
+  /* ===== 首屏：4 个互不依赖的查询并行发出 =====
+     原来这里是 4 个串行的 await（签匣 → 我的次数 → 动态 200 条 → 全站统计），
+     在跨境链路上每一个都要付 200~400ms 的 RTT，累加起来就是好几秒白屏。
+     并行之后总耗时 ≈ 最慢的那一个。 */
+  const [colRes, mineRes, feedRes] = await Promise.allSettled([
+    Cloud.fetchCollection(),
+    Cloud.fetchMyDrawCount(),
+    Cloud.fetchFeed(40)
+  ]);
+
   // 1) 我的签匣
-  await refreshMyCollection();
-  // 2) 我自己的历史摇签次数（隐藏签「天选」按真实次数判定）
-  const mine = await Cloud.fetchMyDrawCount();
-  if(mine !== null){ state.drawCount = mine; save(); }
-  // 3) 动态流历史（最多 200 条写入本地历史日志，供弹窗滚动查看）
-  const feed = await Cloud.fetchFeed(200);
-  if(feed.length){
-    FEED_LOG = feed.map(r=>({n:r.nickname, l:r.sign_level, me:r.user_id===MY_ID?1:0, t:r.created_at, h:r.is_hidden?1:0}));
-    saveFeedLog();
+  if(colRes.status === 'fulfilled' && colRes.value){
+    state.collected = new Set(colRes.value); save(); renderAll();
   }
-  // 4) 实时订阅：别人摇签，我这里自动冒出来
-  Cloud.subscribeFeed(r=>{
-    pushFeedFromRow(r, false);
-    TOTAL_DRAWS++;
-    renderAll();
-  });
+  // 2) 我自己的历史摇签次数（隐藏签「天选」按真实次数判定）
+  if(mineRes.status === 'fulfilled' && mineRes.value !== null){
+    state.drawCount = mineRes.value; save();
+  }
+  // 3) 动态流历史（写入本地历史日志，供弹窗滚动查看）
+  if(feedRes.status === 'fulfilled' && feedRes.value && feedRes.value.length){
+    FEED_LOG = feedRes.value.map(r=>({n:r.nickname, l:r.sign_level, me:r.user_id===MY_ID?1:0, t:r.created_at, h:r.is_hidden?1:0}));
+    saveFeedLog();
+    Live.warm(feedRes.value);                        // 预热去重表与时间水位（不重复插入）
+  }
+  if(document.getElementById('feedMask').classList.contains('on')) renderFeedLog();
+
+  // 4) 实时订阅：别人摇签，我这里自动冒出来（带去重 + 断线自愈）
+  Cloud.subscribeFeed(r=>Live.onRealtimeRow(r));
+
   // 4.5) 好友与聊天：实时订阅 + 未读兜底轮询
   SOCIAL.subscribeCloud();
   SOCIAL.pollUnread();
   setInterval(()=>{ SOCIAL.pollUnread(); }, 20000);
 
-  // 5) 全站统计 + 每 30 秒刷新在线人数
+  // 5) 全站统计 + 每 30 秒刷新在线人数（轻量：只改两个数字，不重建网格）
   await refreshStats();
   setInterval(refreshStats, 30000);
+
+  // 6) 启动活力引擎：动态增量轮询兜底 + 氛围注入 + 榜单联动
+  Live.start();
 }
-boot();
+
+/* SDK 是 defer 加载的，必须等 DOMContentLoaded 之后再 boot，
+   否则 window.supabase 还没注入，会白跑一次备用 CDN 重试。 */
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
 
 /* ================= 大厅前端逻辑 ================= */
 let unreadHallCount = 0, lastHallMsgTime = 0;
