@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -6,403 +7,3273 @@
 <title>解忧签 · 摇一签，解千愁</title>
 <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600;900&display=swap" rel="stylesheet">
 <style>
-/* ===== 基础与原站样式保留 ===== */
-:root{--paper:#f5f0e6;--paper-dark:#ece5d8;--red:#c0392b;--red-dark:#96281b;--ink:#2c2c2c;--ink-light:#8a8378;--bamboo:#c9a86a;--gold:#e8c87a;}
+:root{
+  --paper:#f5f0e6;
+  --paper-dark:#ece5d8;
+  --red:#c0392b;
+  --red-dark:#96281b;
+  --ink:#2c2c2c;
+  --ink-light:#8a8378;
+  --bamboo:#c9a86a;
+  --gold:#e8c87a;
+}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Noto Serif SC',serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden;position:relative;}
-.watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Ma Shan Zheng',cursive;font-size:60vmin;color:rgba(192,57,43,.04);pointer-events:none;user-select:none;z-index:0;}
+body{
+  font-family:'Noto Serif SC',serif;
+  background:var(--paper);
+  color:var(--ink);
+  min-height:100vh;
+  overflow-x:hidden;
+  position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;opacity:.4;
+  background-image:radial-gradient(circle at 25% 30%,rgba(0,0,0,.02) 0,transparent 40%),
+                   radial-gradient(circle at 75% 70%,rgba(0,0,0,.02) 0,transparent 40%);
+}
+.watermark{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Ma Shan Zheng',cursive;font-size:60vmin;color:rgba(192,57,43,.04);
+  pointer-events:none;user-select:none;z-index:0;
+}
 .wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:24px;}
+
+/* ===== 顶部 ===== */
 header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;}
 .brand{display:flex;gap:14px;align-items:center;}
-.seal{width:56px;height:56px;background:var(--red);color:var(--paper);display:grid;place-items:center;font-family:'Ma Shan Zheng',cursive;font-size:30px;border-radius:6px;box-shadow:2px 2px 0 rgba(0,0,0,.12);}
+.seal{
+  width:56px;height:56px;background:var(--red);color:var(--paper);
+  display:grid;place-items:center;font-family:'Ma Shan Zheng',cursive;
+  font-size:30px;border-radius:6px;box-shadow:2px 2px 0 rgba(0,0,0,.12);
+}
 .brand h1{font-size:26px;letter-spacing:6px;font-weight:600;}
 .brand .sub{font-size:11px;letter-spacing:3px;color:var(--ink-light);margin-top:2px;}
 .meta{font-size:13px;color:var(--ink-light);margin-top:8px;}
 .meta b{color:var(--red);font-size:15px;}
 .dot{display:inline-block;width:6px;height:6px;background:var(--red);border-radius:50%;margin-right:5px;animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
 .nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-.btn{padding:9px 18px;border:1px solid rgba(44,44,44,.15);background:rgba(255,255,255,.5);border-radius:20px;font-size:13px;cursor:pointer;color:var(--ink);font-family:inherit;transition:.25s;letter-spacing:1px;}
+.btn{
+  padding:9px 18px;border:1px solid rgba(44,44,44,.15);background:rgba(255,255,255,.5);
+  border-radius:20px;font-size:13px;cursor:pointer;color:var(--ink);
+  font-family:inherit;transition:.25s;letter-spacing:1px;
+}
 .btn:hover{background:var(--red);color:var(--paper);border-color:var(--red);transform:translateY(-1px);}
 .btn.primary{background:var(--red);color:var(--paper);border-color:var(--red);}
 .btn.primary:hover{background:var(--red-dark);}
+
+/* ===== 主体 ===== */
 main{display:grid;grid-template-columns:minmax(320px,42%) 1fr;gap:24px;margin-top:26px;align-items:center;justify-items:center;min-height:calc(100vh - 340px);}
 .side{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:430px;}
+@media(max-width:860px){main{grid-template-columns:1fr;min-height:0;}}
+
 .stage{display:flex;flex-direction:column;align-items:center;padding:20px 0;position:relative;}
-.result{margin-top:0;width:100%;max-width:340px;opacity:0;transform:translateY(24px) scale(.96);transition:.55s cubic-bezier(.2,.9,.3,1);pointer-events:none;}
+
+/* ============ 3D 签筒舞台 ============ */
+.stage-box{
+  position:relative;width:300px;height:380px;user-select:none;
+  perspective:1200px;perspective-origin:50% 42%;
+  display:flex;align-items:flex-end;justify-content:center;
+}
+
+/* --- 3D 竹筒（由 JS 生成 18 片圆柱面） --- */
+.tube3d{
+  position:absolute;bottom:26px;left:50%;
+  width:190px;height:212px;margin-left:-95px;
+  transform-style:preserve-3d;
+  transform:translateX(-50%) rotateX(7deg);
+  z-index:3;cursor:pointer;
+}
+.tube3d .seg{
+  position:absolute;top:0;left:50%;
+  width:var(--w);height:212px;margin-left:calc(var(--w) / -2);
+  transform:rotateY(var(--a)) translateZ(var(--r));
+  background-color:var(--c);
+  background-image:
+    linear-gradient(180deg,rgba(255,240,200,.22) 0 6%,transparent 10% 24%,
+      rgba(66,42,14,.42) 25.5%,rgba(255,236,192,.30) 27.5%,transparent 30% 56%,
+      rgba(66,42,14,.42) 57.5%,rgba(255,236,192,.30) 59.5%,transparent 62% 86%,
+      rgba(66,42,14,.38) 87.5%,rgba(255,236,192,.26) 89.5%,transparent 92% 100%),
+    repeating-linear-gradient(90deg,rgba(88,60,24,.16) 0 1px,transparent 1px 4px,
+      rgba(255,242,208,.12) 4px 5px,transparent 5px 9px);
+  backface-visibility:hidden;
+}
+.tube3d-top{
+  position:absolute;top:0;left:50%;width:190px;height:190px;
+  margin-left:-95px;margin-top:-95px;border-radius:50%;
+  transform:rotateX(90deg);
+  background:radial-gradient(circle at 50% 42%,#1c1206 0%,#2e2010 34%,#4a3418 58%,#7a5a2e 78%,#b8935a 92%,#dcbd82 100%);
+  box-shadow:0 0 0 4px rgba(150,112,60,.55),0 0 18px rgba(0,0,0,.35);
+}
+.tube3d-top::after{
+  content:'';position:absolute;inset:22px;border-radius:50%;
+  background:radial-gradient(circle at 50% 55%,rgba(0,0,0,.9),rgba(0,0,0,.55) 60%,transparent 78%);
+}
+.tube3d-bottom{
+  position:absolute;top:212px;left:50%;width:190px;height:190px;
+  margin-left:-95px;margin-top:-95px;border-radius:50%;
+  transform:rotateX(90deg);
+  background:radial-gradient(circle at 50% 50%,#4a3418,#2e2010 70%,#1c1206);
+}
+.tube3d-label{
+  position:absolute;top:34px;left:50%;width:70px;margin-left:-35px;
+  transform:rotateY(0deg) translateZ(96px);
+  writing-mode:vertical-rl;text-align:center;
+  font-family:'Ma Shan Zheng',cursive;font-size:38px;letter-spacing:10px;
+  color:rgba(64,40,12,.62);pointer-events:none;
+  text-shadow:0 1px 0 rgba(255,236,192,.4),0 -1px 1px rgba(0,0,0,.35);
+}
+.tube-shadow{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  width:250px;height:34px;border-radius:50%;z-index:1;
+  background:radial-gradient(ellipse,rgba(0,0,0,.32),transparent 70%);
+  filter:blur(5px);
+}
+
+/* --- 筒内竹签（4 面柱体，JS 生成） --- */
+.sticks3d{
+  position:absolute;top:0;left:0;width:190px;height:0;
+  transform-style:preserve-3d;pointer-events:none;z-index:2;
+}
+.stick3d{
+  position:absolute;top:0;left:50%;width:0;height:0;
+  transform-style:preserve-3d;
+  transform:rotateY(var(--ry)) translateZ(var(--tz)) rotateZ(var(--rz));
+}
+.stick3d .sseg{
+  position:absolute;bottom:0;left:50%;width:14px;height:var(--h);margin-left:-7px;
+  transform:rotateY(var(--sa)) translateZ(7px);
+  background-color:#c9a86a;
+  background-image:
+    linear-gradient(180deg,#8e2418 0 18px,#a8281c 18px 20px,transparent 20px),
+    linear-gradient(90deg,#7d5c2c 0%,#c9a86a 26%,#f2e2ba 48%,#c9a86a 72%,#7d5c2c 100%),
+    repeating-linear-gradient(180deg,rgba(120,85,40,.28) 0 1px,transparent 1px 8px);
+  box-shadow:inset 0 -6px 10px rgba(0,0,0,.25);
+  backface-visibility:hidden;
+}
+
+/* ============ 动画状态 ============ */
+.stage-box.shaking .tube3d{animation:tubeShake3d .72s cubic-bezier(.36,.07,.19,.97);}
+@keyframes tubeShake3d{
+  0%,100%{transform:translateX(-50%) rotateX(7deg) rotateY(0deg);}
+  10%{transform:translateX(calc(-50% - 12px)) rotateX(12deg) rotateY(-22deg);}
+  26%{transform:translateX(calc(-50% + 12px)) rotateX(3deg)  rotateY(21deg);}
+  42%{transform:translateX(calc(-50% - 9px))  rotateX(14deg) rotateY(-16deg);}
+  58%{transform:translateX(calc(-50% + 8px))  rotateX(2deg)  rotateY(14deg);}
+  74%{transform:translateX(calc(-50% - 5px))  rotateX(10deg) rotateY(-8deg);}
+  88%{transform:translateX(calc(-50% + 3px))  rotateX(6deg)  rotateY(4deg);}
+}
+.stage-box.shaking .stick3d{animation:stickRattle3d .15s infinite alternate;}
+.stage-box.shaking .stick3d:nth-child(2){animation-delay:.05s;}
+.stage-box.shaking .stick3d:nth-child(3){animation-delay:.09s;}
+.stage-box.shaking .stick3d:nth-child(4){animation-delay:.03s;}
+.stage-box.shaking .stick3d:nth-child(5){animation-delay:.07s;}
+@keyframes stickRattle3d{
+  from{filter:brightness(1) saturate(1);}
+  to{filter:brightness(1.2) saturate(1.1);}
+}
+
+/* 2. 筒口金光（放大版） */
+.glow{
+  position:absolute;bottom:150px;left:50%;transform:translate(-50%,50%) scale(0);
+  width:620px;height:620px;border-radius:50%;pointer-events:none;z-index:6;
+  background:radial-gradient(circle,var(--g0,rgba(255,252,230,1)) 0%,var(--g1,rgba(255,236,170,.9)) 22%,var(--g2,rgba(232,200,122,.55)) 45%,var(--g3,rgba(232,200,122,0)) 70%);
+  opacity:0;filter:blur(2px);
+}
+.stage-box.glowing .glow{animation:goldBurst 1.5s ease-out forwards;}
+@keyframes goldBurst{
+  0%{transform:translate(-50%,50%) scale(0);opacity:0;}
+  25%{transform:translate(-50%,50%) scale(1.3);opacity:1;}
+  60%{transform:translate(-50%,50%) scale(2.4);opacity:.9;}
+  100%{transform:translate(-50%,50%) scale(3.2);opacity:0;}
+}
+.ray{
+  position:absolute;bottom:200px;left:50%;width:4px;height:0;
+  background:linear-gradient(180deg,transparent,var(--br,#fff6cd));
+  transform-origin:bottom center;opacity:0;z-index:6;pointer-events:none;
+  box-shadow:0 0 10px rgba(255,225,140,.9);
+}
+.stage-box.glowing .ray{animation:rayShoot 1.2s ease-out forwards;}
+@keyframes rayShoot{
+  0%{height:0;opacity:0;}
+  25%{opacity:1;}
+  100%{height:420px;opacity:0;}
+}
+
+/* ===== 全屏金光（笼罩整个屏幕） ===== */
+.gold-screen{
+  position:fixed;inset:0;z-index:60;pointer-events:none;opacity:0;
+  transform-origin:var(--gx,50%) var(--gy,62%);
+  background:radial-gradient(circle at var(--gx,50%) var(--gy,62%),
+    var(--b0,#fffef8) 0%,var(--b1,#fff6cf) 14%,var(--b2,#ffe9a0) 30%,var(--b3,#f4c95c) 48%,
+    var(--b4,rgba(232,180,70,.6)) 66%,var(--b5,rgba(232,180,70,.2)) 84%,var(--b6,rgba(232,180,70,0)) 100%);
+}
+.gold-screen::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at var(--gx,50%) var(--gy,62%),var(--bcore,rgba(255,255,255,.9)) 0%,transparent 38%);
+}
+body.gold-burst .gold-screen{animation:goldScreen 1.7s cubic-bezier(.2,.7,.3,1) forwards;}
+@keyframes goldScreen{
+  0%{opacity:0;transform:scale(.04);}
+  14%{opacity:1;transform:scale(1);}
+  38%{opacity:1;transform:scale(1.3);}
+  68%{opacity:.9;transform:scale(1.7);}
+  100%{opacity:0;transform:scale(2.2);}
+}
+/* 全屏金色光环 */
+.gold-ring{
+  position:fixed;left:var(--gx,50%);top:var(--gy,62%);width:40px;height:40px;margin:-20px 0 0 -20px;
+  border-radius:50%;border:6px solid var(--br,rgba(255,248,214,.95));z-index:61;
+  pointer-events:none;opacity:0;box-shadow:0 0 40px var(--br,rgba(255,220,130,.9)),inset 0 0 30px var(--br,rgba(255,220,130,.7));
+}
+body.gold-burst .gold-ring{animation:goldRing 1.5s ease-out forwards;}
+@keyframes goldRing{
+  0%{opacity:0;transform:scale(.2);}
+  20%{opacity:1;}
+  100%{opacity:0;transform:scale(46);}
+}
+
+/* 3. 飞出的签（3D 四棱柱，脱离舞台浮于金光之上） */
+.fly-stick{
+  position:fixed;left:0;top:0;width:0;height:0;z-index:70;
+  perspective:800px;pointer-events:none;opacity:0;
+}
+.fly-body{
+  position:absolute;left:0;top:0;width:0;height:0;
+  transform-style:preserve-3d;
+}
+.fly-body .fseg{
+  position:absolute;bottom:0;left:50%;width:24px;height:190px;margin-left:-12px;
+  transform:rotateY(var(--sa)) translateZ(12px);
+  background-color:#c9a86a;
+  background-image:
+    linear-gradient(180deg,#8e2418 0 30px,#a8281c 30px 33px,transparent 33px),
+    linear-gradient(90deg,#7d5c2c 0%,#c9a86a 24%,#f9f0d2 48%,#c9a86a 74%,#7d5c2c 100%),
+    repeating-linear-gradient(180deg,rgba(120,85,40,.26) 0 1px,transparent 1px 9px);
+  box-shadow:inset 0 -8px 14px rgba(0,0,0,.28),0 8px 26px rgba(0,0,0,.35);
+  backface-visibility:hidden;
+}
+.fly-text{
+  position:absolute;bottom:52px;left:50%;width:24px;margin-left:-12px;
+  transform:rotateY(0deg) translateZ(13px);
+  writing-mode:vertical-rl;font-family:'Ma Shan Zheng',cursive;
+  font-size:15px;color:rgba(74,45,12,.88);letter-spacing:4px;text-align:center;
+  text-shadow:0 1px 0 rgba(255,242,205,.6);white-space:nowrap;
+}
+body.flying .fly-stick{opacity:1;}
+body.flying .fly-body{animation:stickFly3d 1.35s cubic-bezier(.25,.9,.3,1) forwards;}
+@keyframes stickFly3d{
+  0%{transform:translate(-50%,10px) translateZ(-160px) rotateY(-230deg) rotateZ(16deg) scale(.5);opacity:0;}
+  16%{opacity:1;}
+  46%{transform:translate(-50%,-215px) translateZ(110px) rotateY(14deg) rotateZ(-7deg) scale(1.08);opacity:1;}
+  70%{transform:translate(-50%,-178px) translateZ(70px) rotateY(-9deg) rotateZ(5deg) scale(1.02);}
+  100%{transform:translate(-50%,-192px) translateZ(85px) rotateY(0deg) rotateZ(0deg) scale(1);opacity:1;}
+}
+
+/* 跳过按钮 */
+.skip{
+  position:absolute;top:0;right:0;z-index:20;
+  padding:6px 16px;font-size:12px;letter-spacing:2px;
+  border:1px solid rgba(44,44,44,.2);border-radius:14px;
+  background:rgba(255,255,255,.7);color:var(--ink-light);cursor:pointer;
+  font-family:inherit;opacity:.85;pointer-events:auto;transition:.3s;
+}
+.skip.on{opacity:1;background:rgba(255,255,255,.95);border-color:var(--red);color:var(--red);}
+.skip:hover{background:var(--red);color:var(--paper);border-color:var(--red);}
+
+.hint{margin-top:14px;font-size:13px;color:var(--ink-light);letter-spacing:4px;transition:.3s;}
+.hint::before,.hint::after{content:'——';margin:0 10px;opacity:.4;}
+.hint.dim{opacity:.3;}
+.anim-switch{
+  margin-top:12px;font-size:12px;color:var(--ink-light);letter-spacing:1px;
+  display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;
+  padding:5px 14px;border:1px solid rgba(44,44,44,.12);border-radius:14px;
+  background:rgba(255,255,255,.5);transition:.25s;
+}
+.anim-switch:hover{border-color:var(--red);color:var(--red);}
+.anim-switch input{accent-color:var(--red);width:14px;height:14px;cursor:pointer;}
+
+/* 签文卡片 */
+.result{
+  margin-top:0;width:100%;max-width:340px;opacity:0;transform:translateY(24px) scale(.96);
+  transition:.55s cubic-bezier(.2,.9,.3,1);pointer-events:none;
+}
 .result.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto;}
-.card{background:#fffdf7;border:1px solid rgba(192,57,43,.2);border-radius:4px;padding:28px 24px;text-align:center;position:relative;box-shadow:0 10px 34px rgba(0,0,0,.1);}
-.level{display:inline-block;padding:4px 16px;border-radius:2px;font-size:13px;letter-spacing:3px;background:var(--red);color:var(--paper);margin-bottom:18px;}
+.card{
+  background:#fffdf7;border:1px solid rgba(192,57,43,.2);border-radius:4px;
+  padding:28px 24px;text-align:center;position:relative;
+  box-shadow:0 10px 34px rgba(0,0,0,.1);
+}
+.card::before{content:'';position:absolute;inset:6px;border:1px solid rgba(192,57,43,.15);pointer-events:none;}
+.level{
+  display:inline-block;padding:4px 16px;border-radius:2px;font-size:13px;letter-spacing:3px;
+  background:var(--red);color:var(--paper);margin-bottom:18px;
+}
+.level.ji{background:#2e7d5b;}
+.level.xiong{background:#5a5a5a;}
+.level.hidden-sig{background:linear-gradient(90deg,#c0392b,#8e44ad);}
 .card p{font-family:'Ma Shan Zheng',cursive;font-size:24px;line-height:1.7;}
 .card .no{margin-top:16px;font-size:11px;color:var(--ink-light);letter-spacing:2px;}
 .actions{display:flex;gap:10px;margin-top:16px;justify-content:center;}
 
-/* ===== 弹窗与遮罩基础 ===== */
-.mask{position:fixed;inset:0;background:rgba(44,44,44,.42);z-index:120;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);}
+/* ===== 侧栏 ===== */
+aside{display:flex;flex-direction:column;gap:20px;}
+.panel{background:rgba(255,255,255,.55);border:1px solid rgba(44,44,44,.08);border-radius:8px;padding:18px;}
+.panel h3{font-size:14px;letter-spacing:3px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.panel h3::before{content:'';width:3px;height:14px;background:var(--red);}
+.feed{max-height:220px;overflow-y:auto;font-size:12px;}
+.feed::-webkit-scrollbar{width:3px;}
+.feed::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);}
+.feed li{list-style:none;padding:8px 0;border-bottom:1px dashed rgba(0,0,0,.08);color:var(--ink-light);animation:fadeIn .4s;}
+.feed li b{color:var(--ink);}
+.feed li em{color:var(--red);font-style:normal;}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;}
+.cell{
+  aspect-ratio:3/4;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-size:10px;padding:2px;
+  background:rgba(0,0,0,.05);color:var(--ink-light);border:1px solid rgba(0,0,0,.06);
+  transition:.2s;
+}
+.cell.on{background:#fffdf7;border-color:rgba(192,57,43,.3);color:var(--red);cursor:pointer;}
+.cell.on:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(192,57,43,.22);border-color:var(--red);}
+.cell .clv{font-size:9px;line-height:1.25;white-space:nowrap;}
+.cell .cno{font-size:11px;font-weight:600;}
+.cell.t-ji .clv{color:#2e7d5b;}
+.cell.t-zhong .clv{color:#2c6fb0;}
+.cell.t-xiong .clv{color:#5a5a5a;}
+.cell.t-hidden .clv{color:#8e44ad;}
+.cell.t-hidden{background:linear-gradient(160deg,#fff7fb,#f4ebff);border-color:rgba(142,68,173,.4);}
+/* ===== 签匣详情：点击签 → 旋转放大到屏幕中央显示签文 ===== */
+.sv-pop{max-width:360px;text-align:center;}
+.sv-card{
+  background:#fffdf7;border:1px solid rgba(192,57,43,.25);border-radius:6px;
+  padding:30px 24px 24px;position:relative;margin-top:6px;
+  box-shadow:0 14px 44px rgba(0,0,0,.18);
+}
+.sv-card::before{content:'';position:absolute;inset:7px;border:1px solid rgba(192,57,43,.16);pointer-events:none;border-radius:3px;}
+.sv-card .level{margin-bottom:16px;}
+.sv-card p{font-family:'Ma Shan Zheng',cursive;font-size:26px;line-height:1.8;color:var(--ink);}
+.sv-card .no{margin-top:18px;font-size:11px;color:var(--ink-light);letter-spacing:2px;}
+.sv-card .sv-cond{margin-top:10px;font-size:11px;color:#8e44ad;letter-spacing:1px;min-height:0;}
+.sv-card .sv-hint{margin-top:14px;font-size:10.5px;color:var(--ink-light);letter-spacing:1px;}
+.sv-card.spin{animation:svSpinIn .8s cubic-bezier(.2,.85,.3,1) both;}
+@keyframes svSpinIn{
+  0%{opacity:0;transform:perspective(1000px) rotateY(105deg) rotateZ(6deg) scale(.25);}
+  55%{opacity:1;transform:perspective(1000px) rotateY(-12deg) rotateZ(-1deg) scale(1.04);}
+  78%{transform:perspective(1000px) rotateY(6deg) rotateZ(0deg) scale(.99);}
+  100%{opacity:1;transform:perspective(1000px) rotateY(0deg) rotateZ(0deg) scale(1);}
+}
+.progress{font-size:11px;color:var(--ink-light);margin-top:10px;text-align:right;}
+
+footer{text-align:center;margin-top:26px;padding:14px;font-size:12px;color:var(--ink-light);letter-spacing:2px;}
+.toast{
+  position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--ink);color:var(--paper);padding:10px 22px;border-radius:20px;
+  font-size:13px;letter-spacing:1px;transition:.4s;z-index:260;opacity:0;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+/* ===== Supabase 接入后新增的样式 ===== */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;margin-top:6px;
+  padding:3px 10px;border-radius:12px;font-size:11px;letter-spacing:1px;
+  background:rgba(0,0,0,.06);color:var(--ink-light);border:1px solid rgba(0,0,0,.06);
+}
+.badge.cloud{background:rgba(46,125,91,.12);color:#2e7d5b;border-color:rgba(46,125,91,.3);}
+.badge.local{background:rgba(192,57,43,.1);color:var(--red);border-color:rgba(192,57,43,.25);}
+.badge .lamp{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.8s infinite;}
+.nick{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.feed li.me b{color:var(--red);}
+.feed li .tm{float:right;font-size:10px;opacity:.6;}
+.panel.flash{animation:panelFlash 1.4s ease;}
+@keyframes panelFlash{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,0);}30%{box-shadow:0 0 0 4px rgba(192,57,43,.28);}}
+
+/* 排行榜弹窗 */
+.mask{
+  position:fixed;inset:0;background:rgba(44,44,44,.42);z-index:120;
+  display:none;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(2px);
+}
 .mask.on{display:flex;}
-.pop{background:var(--paper);border-radius:10px;max-width:400px;width:100%;padding:24px 22px;box-shadow:0 20px 60px rgba(0,0,0,.3);position:relative;border:1px solid rgba(192,57,43,.2);max-height:80vh;overflow:auto;}
+.pop{
+  background:var(--paper);border-radius:10px;max-width:400px;width:100%;
+  padding:24px 22px;box-shadow:0 20px 60px rgba(0,0,0,.3);position:relative;
+  border:1px solid rgba(192,57,43,.2);max-height:80vh;overflow:auto;
+}
 .pop h3{font-size:17px;letter-spacing:4px;margin-bottom:4px;}
 .pop .tip{font-size:11px;color:var(--ink-light);margin-bottom:14px;letter-spacing:1px;}
-.pop .close{position:absolute;top:12px;right:14px;border:0;background:none;font-size:18px;cursor:pointer;color:var(--ink-light);line-height:1;}
+.pop ul{list-style:none;font-size:13px;}
+.pop li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed rgba(0,0,0,.1);}
+.pop li .rk{width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.07);
+  display:grid;place-items:center;font-size:11px;color:var(--ink-light);flex:0 0 auto;}
+.pop li:nth-child(1) .rk{background:var(--red);color:var(--paper);}
+.pop li:nth-child(2) .rk{background:#c9a86a;color:#fff;}
+.pop li:nth-child(3) .rk{background:#a8834a;color:#fff;}
+.pop li .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pop li .ct{color:var(--red);font-size:12px;}
+.pop .close{position:absolute;top:12px;right:14px;border:0;background:none;
+  font-size:18px;cursor:pointer;color:var(--ink-light);line-height:1;}
 .pop .close:hover{color:var(--red);}
 .empty{text-align:center;color:var(--ink-light);font-size:12px;padding:18px 0;letter-spacing:1px;}
+/* ===== 设置面板 ===== */
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px dashed rgba(0,0,0,.1);}
+.set-row:last-of-type{border-bottom:0;}
+.set-row .lab{font-size:13px;letter-spacing:2px;}
+.set-tip{margin-top:10px;font-size:11px;color:var(--ink-light);letter-spacing:1px;line-height:1.8;}
+.switch{position:relative;display:inline-block;width:40px;height:22px;flex:0 0 auto;}
+.switch input{opacity:0;width:0;height:0;}
+.switch .knob{position:absolute;inset:0;border-radius:22px;background:rgba(0,0,0,.18);transition:.25s;cursor:pointer;}
+.switch .knob::before{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.switch input:checked + .knob{background:var(--red);}
+.switch input:checked + .knob::before{transform:translateX(18px);}
+.vol-wrap{display:flex;align-items:center;gap:10px;flex:1;justify-content:flex-end;}
+.vol-wrap b{font-size:12px;color:var(--red);min-width:38px;text-align:right;}
+input[type=range].vol{
+  -webkit-appearance:none;appearance:none;width:150px;max-width:46vw;height:6px;border-radius:3px;
+  background:linear-gradient(90deg,var(--red) 0%,var(--red) var(--vp,90%),rgba(0,0,0,.12) var(--vp,90%),rgba(0,0,0,.12) 100%);
+  outline:none;cursor:pointer;
+}
+input[type=range].vol::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--red);border:2px solid #fffdf7;box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:grab;
+}
+input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--red);border:2px solid #fffdf7;cursor:grab;}
+/* ===== 求签播报横幅 ===== */
+.broadcast{
+  position:fixed;top:0;left:50%;z-index:200;
+  transform:translate(-50%,-120%);
+  padding:12px 30px 14px;border-radius:0 0 14px 14px;
+  background:linear-gradient(90deg,#c0392b,#8e44ad);
+  color:#fff8ec;font-size:14px;letter-spacing:2px;
+  box-shadow:0 8px 30px rgba(142,68,173,.45);
+  transition:transform .5s cubic-bezier(.2,.9,.3,1);
+  pointer-events:none;white-space:nowrap;
+}
+.broadcast.show{transform:translate(-50%,0);}
+.broadcast .star{color:#ffe9a0;margin-right:6px;}
+/* ===== 求签动态弹窗列表 ===== */
+.feedlog{max-height:56vh;overflow-y:auto;font-size:12.5px;padding-right:4px;}
+.feedlog::-webkit-scrollbar{width:3px;}
+.feedlog::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);}
+.feedlog li{list-style:none;padding:9px 2px;border-bottom:1px dashed rgba(0,0,0,.1);color:var(--ink-light);display:flex;align-items:baseline;gap:6px;}
+.feedlog li b{color:var(--ink);}
+.feedlog li em{color:var(--red);font-style:normal;}
+.feedlog li.me b{color:var(--red);}
+.feedlog li .tm{margin-left:auto;font-size:10px;opacity:.6;white-space:nowrap;}
+/* ===== 登录 / 注册 ===== */
+.login-pop{max-width:368px;}
+.login-head{display:flex;gap:12px;align-items:center;margin-bottom:14px;}
+.login-head .seal{width:44px;height:44px;font-size:24px;flex:0 0 auto;}
+.login-head h3{margin-bottom:2px;}
+.login-tabs{display:flex;background:rgba(0,0,0,.06);border-radius:20px;padding:3px;margin-bottom:16px;}
+.login-tabs button{flex:1;border:0;background:none;padding:7px 0;border-radius:17px;font-size:13px;letter-spacing:3px;cursor:pointer;color:var(--ink-light);font-family:inherit;transition:.25s;}
+.login-tabs button.on{background:var(--red);color:var(--paper);box-shadow:0 2px 8px rgba(192,57,43,.3);}
+.fld{display:block;margin-bottom:12px;}
+.fld span{display:block;font-size:12px;letter-spacing:2px;color:var(--ink-light);margin-bottom:6px;}
+.fld input{width:100%;padding:10px 12px;border:1px solid rgba(44,44,44,.18);border-radius:6px;background:#fffdf7;font-family:inherit;font-size:14px;letter-spacing:1px;outline:none;transition:.25s;}
+.fld input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.12);}
+.login-err{min-height:18px;font-size:12px;color:var(--red);margin-bottom:8px;letter-spacing:1px;}
+.btn.wide{width:100%;border-radius:8px;padding:11px 0;font-size:14px;letter-spacing:4px;}
+.login-guest{margin-top:12px;font-size:11px;color:var(--ink-light);text-align:center;letter-spacing:1px;line-height:1.8;}
+.acct-wrap{display:flex;align-items:center;gap:8px;}
+.acct-wrap b{font-size:13px;color:var(--red);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btn.mini{padding:4px 12px;font-size:12px;border-radius:14px;}
 
-/* ===== 大厅（茶话会）与私聊专属样式 ===== */
-.hall-pop{max-width:620px;height:70vh;display:flex;flex-direction:column;}
-.hall-msgs,.soc-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:rgba(0,0,0,.03);border-radius:8px;border:1px solid rgba(0,0,0,.05);}
-.hall-msgs::-webkit-scrollbar,.soc-msgs::-webkit-scrollbar{width:3px;}
-.hall-msgs::-webkit-scrollbar-thumb,.soc-msgs::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);}
-.hall-msg{font-size:13px;line-height:1.6;word-break:break-word;animation:fadeIn .3s;}
-.hall-msg .nick{color:var(--red);font-weight:600;margin-right:6px;}
-.hall-msg .nick.me{color:#2e7d5b;}
-.hall-msg .tm{font-size:10px;color:var(--ink-light);margin-left:6px;}
-.soc-input{display:flex;gap:8px;align-items:flex-end;padding-top:10px;border-top:1px dashed rgba(0,0,0,.12);margin-top:10px;}
-.soc-input textarea{flex:1;min-height:38px;max-height:96px;resize:none;padding:9px 11px;border:1px solid rgba(44,44,44,.18);border-radius:8px;background:#fffdf7;font-family:inherit;font-size:13px;line-height:1.6;outline:none;transition:.25s;}
+/* ============ 祈愿主界面（仿祈愿抽卡） ============ */
+#wishScreen{
+  position:fixed;inset:0;z-index:150;overflow:hidden;color:#efe9ff;
+  background:radial-gradient(125% 95% at 78% 8%,#332a5e 0%,#1e1c40 32%,#141330 60%,#090917 100%);
+  opacity:0;visibility:hidden;transition:opacity .55s ease,visibility .55s;
+}
+#wishScreen.on{opacity:1;visibility:visible;}
+#wishScreen.quake{animation:wishQuake .5s cubic-bezier(.36,.07,.19,.97);}
+@keyframes wishQuake{
+  0%,100%{transform:translate(0,0);}
+  15%{transform:translate(-9px,5px);}
+  32%{transform:translate(8px,-6px);}
+  50%{transform:translate(-6px,-4px);}
+  70%{transform:translate(5px,4px);}
+  86%{transform:translate(-3px,2px);}
+}
+#wishStars{position:absolute;inset:0;width:100%;height:100%;}
+.wish-nebula{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none;mix-blend-mode:screen;}
+.wish-nebula.n1{width:62vw;height:62vw;left:-14vw;top:-20vw;background:radial-gradient(circle,rgba(126,92,232,.55),transparent 66%);animation:nebDrift 26s ease-in-out infinite alternate;}
+.wish-nebula.n2{width:54vw;height:54vw;right:-12vw;bottom:-18vw;background:radial-gradient(circle,rgba(58,140,224,.42),transparent 66%);animation:nebDrift 33s ease-in-out infinite alternate-reverse;}
+.wish-nebula.n3{width:34vw;height:34vw;left:44%;top:32%;background:radial-gradient(circle,rgba(232,200,122,.2),transparent 68%);animation:nebDrift 21s ease-in-out infinite alternate;}
+@keyframes nebDrift{from{transform:translate(0,0) scale(1);}to{transform:translate(6vw,4vw) scale(1.18);}}
+.wish-vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.6) 100%);}
+.wish-inner{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:18px 30px 20px;overflow-y:auto;}
+
+.wish-topbar{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap;}
+.wish-back{
+  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#e7e0ff;
+  padding:7px 16px;border-radius:18px;font-family:inherit;font-size:13px;letter-spacing:2px;cursor:pointer;transition:.25s;
+}
+.wish-back:hover{background:rgba(232,200,122,.2);border-color:rgba(232,200,122,.6);color:#fff3d4;}
+.wish-pool{flex:1;min-width:180px;}
+.wish-pool-name{font-family:'Ma Shan Zheng',cursive;font-size:25px;letter-spacing:5px;color:#f7e9c5;text-shadow:0 0 22px rgba(232,200,122,.55);}
+.wish-pool-sub{font-size:11px;letter-spacing:2px;color:rgba(233,225,255,.62);margin-top:2px;}
+.wish-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.wish-timer{font-size:12px;letter-spacing:1px;color:#ffe9a0;border:1px solid rgba(232,200,122,.32);background:rgba(232,200,122,.09);padding:6px 13px;border-radius:16px;}
+.wish-link{border:0;background:none;color:rgba(233,225,255,.8);font-family:inherit;font-size:12px;letter-spacing:2px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;padding:6px 2px;}
+.wish-link:hover{color:#ffe9a0;}
+
+.wish-body{flex:1;display:grid;grid-template-columns:1.15fr .85fr;gap:26px;align-items:center;min-height:0;padding:10px 0;}
+@media(max-width:820px){.wish-body{grid-template-columns:1fr;gap:14px;}}
+.wish-art{position:relative;display:flex;align-items:center;justify-content:center;min-height:230px;}
+.wish-orbit{position:absolute;width:min(44vh,78vw,360px);height:min(44vh,78vw,360px);border-radius:50%;border:1px solid rgba(232,200,122,.18);animation:orbitSpin 34s linear infinite;}
+.wish-orbit i{position:absolute;width:9px;height:9px;border-radius:50%;background:#ffe9a0;box-shadow:0 0 16px 4px rgba(255,225,140,.75);}
+.wish-orbit i:nth-child(1){top:-5px;left:50%;margin-left:-4px;}
+.wish-orbit i:nth-child(2){bottom:12%;right:6%;background:#b48cff;box-shadow:0 0 16px 4px rgba(180,140,255,.7);}
+.wish-orbit i:nth-child(3){top:38%;left:-3px;background:#7fc4ff;box-shadow:0 0 16px 4px rgba(127,196,255,.7);}
+.wish-orbit.o2{width:min(58vh,84vw,470px);height:min(58vh,84vw,470px);border-style:dashed;border-color:rgba(255,255,255,.1);animation-duration:52s;animation-direction:reverse;}
+@keyframes orbitSpin{to{transform:rotate(360deg);}}
+.wish-char{
+  position:relative;font-family:'Ma Shan Zheng',cursive;font-size:min(28vh,215px);line-height:1;
+  color:#fff6dd;text-shadow:0 0 34px rgba(232,200,122,.75),0 0 90px rgba(180,140,255,.45);
+  animation:wishBreathe 4.6s ease-in-out infinite;user-select:none;
+}
+@keyframes wishBreathe{0%,100%{transform:translateY(0) scale(1);opacity:.94;}50%{transform:translateY(-14px) scale(1.045);opacity:1;}}
+.wish-up-card{
+  position:absolute;right:0;bottom:0;max-width:250px;padding:13px 16px;border-radius:8px;
+  background:linear-gradient(160deg,rgba(60,44,110,.74),rgba(20,18,44,.8));
+  border:1px solid rgba(232,200,122,.38);backdrop-filter:blur(6px);box-shadow:0 12px 34px rgba(0,0,0,.4);
+}
+.wish-up-tag{font-size:10px;letter-spacing:3px;color:#0f0d22;background:linear-gradient(90deg,#f3d98b,#e0b45c);display:inline-block;padding:2px 9px;border-radius:9px;}
+.wish-up-name{font-family:'Ma Shan Zheng',cursive;font-size:26px;color:#fff3d4;margin:7px 0 3px;letter-spacing:4px;}
+.wish-up-desc{font-size:11px;line-height:1.75;color:rgba(236,230,255,.7);}
+.wish-info{
+  border:1px solid rgba(255,255,255,.13);border-radius:10px;padding:16px 18px;
+  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025));backdrop-filter:blur(6px);
+}
+.wish-info h3{font-size:14px;letter-spacing:4px;color:#f7e9c5;margin-bottom:10px;}
+.wish-info .row{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.1);color:rgba(236,230,255,.72);}
+.wish-info .row:last-of-type{border-bottom:0;}
+.wish-info .note{font-size:10.5px;line-height:1.85;color:rgba(236,230,255,.45);margin-top:10px;}
+.p-grey{color:#a8b2c4;} .p-blue{color:#8ec5ff;} .p-purple{color:#c3a3ff;} .p-gold{color:#f3d98b;} .p-hidden{color:#ff9ad5;}
+
+.wish-actions{display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:6px;}
+.wish-cost{font-size:12px;letter-spacing:2px;color:rgba(236,230,255,.78);display:flex;align-items:center;gap:6px;}
+.wish-cost .coin{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff6d6,#e8c87a 62%,#a8823c);color:#4a3410;font-size:10px;}
+.wish-cost b{color:#ffe9a0;font-size:14px;}
+.wish-btns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.wish-btn{
+  position:relative;overflow:hidden;min-width:152px;padding:13px 26px;border-radius:26px;
+  border:1px solid rgba(232,200,122,.6);cursor:pointer;font-family:inherit;color:#fdf3d8;
+  background:linear-gradient(180deg,rgba(232,200,122,.26),rgba(232,200,122,.06));
+  display:flex;align-items:center;justify-content:center;gap:12px;transition:.25s;
+}
+.wish-btn .wb-label{font-size:15px;letter-spacing:4px;}
+.wish-btn .wb-cost{font-size:12px;letter-spacing:1px;color:#ffe9a0;opacity:.9;}
+.wish-btn::after{
+  content:'';position:absolute;top:0;bottom:0;left:-65%;width:42%;transform:skewX(-22deg);
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);
+  animation:wbSweep 3.4s ease-in-out infinite;
+}
+@keyframes wbSweep{0%{left:-65%}52%{left:135%}100%{left:135%}}
+.wish-btn:hover{background:linear-gradient(180deg,rgba(243,217,139,.44),rgba(232,200,122,.14));transform:translateY(-2px);}
+.wish-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.wish-btn:disabled::after{display:none;}
+.wish-note{font-size:10.5px;letter-spacing:1px;color:rgba(236,230,255,.45);}
+
+/* 祈愿结算 */
+.wish-result-mask{position:fixed;inset:0;z-index:170;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(6,6,18,.82);backdrop-filter:blur(4px);}
+.wish-result-mask.on{display:flex;}
+.wr-box{width:100%;max-width:720px;max-height:88vh;overflow:auto;border-radius:12px;padding:20px 22px;
+  background:linear-gradient(180deg,rgba(44,38,84,.94),rgba(14,13,32,.96));
+  border:1px solid rgba(232,200,122,.3);box-shadow:0 26px 70px rgba(0,0,0,.6);position:relative;}
+.wr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.wr-head span{font-family:'Ma Shan Zheng',cursive;font-size:20px;letter-spacing:4px;color:#f7e9c5;}
+.wr-head button{border:0;background:none;color:rgba(255,255,255,.55);font-size:22px;cursor:pointer;line-height:1;}
+.wr-head button:hover{color:#ffe9a0;}
+.wish-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+@media(max-width:700px){.wish-grid{grid-template-columns:repeat(3,1fr);}}
+.wish-grid.one{grid-template-columns:1fr;max-width:230px;margin:0 auto;}
+.rcard{
+  position:relative;overflow:hidden;aspect-ratio:3/4.4;border-radius:7px;padding:11px 7px;text-align:center;
+  border:1px solid var(--rc,rgba(255,255,255,.2));
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.03));
+  opacity:0;transform:rotateY(88deg) scale(.9);
+  animation:rcFlip .5s cubic-bezier(.2,.9,.3,1) forwards;
+}
+@keyframes rcFlip{to{opacity:1;transform:rotateY(0) scale(1);}}
+.rcard .rc-star{font-size:9px;letter-spacing:1px;color:var(--rc);opacity:.95;}
+.rcard .rc-lv{font-family:'Ma Shan Zheng',cursive;font-size:19px;margin-top:9px;color:#fff8e8;text-shadow:0 0 14px var(--rc);}
+.rcard .rc-tx{font-size:9.5px;line-height:1.65;margin-top:8px;color:rgba(255,255,255,.6);}
+.rcard .rc-no{position:absolute;left:0;right:0;bottom:6px;font-size:8.5px;letter-spacing:1px;color:rgba(255,255,255,.32);}
+.rcard.r-grey{--rc:#93a0b4;}
+.rcard.r-blue{--rc:#7fb4ff;}
+.rcard.r-purple{--rc:#bb92ff;box-shadow:0 0 16px rgba(160,110,240,.3),inset 0 0 20px rgba(160,110,240,.12);}
+.rcard.r-gold{--rc:#f2cd72;box-shadow:0 0 22px rgba(240,200,110,.45),inset 0 0 26px rgba(240,200,110,.16);}
+.rcard.r-gold::before{content:'';position:absolute;inset:-40% -10%;background:linear-gradient(115deg,transparent 42%,rgba(255,244,205,.55) 50%,transparent 58%);animation:rcShine 2.4s linear infinite;}
+.rcard.r-hidden{--rc:#ff9ad5;border-width:2px;box-shadow:0 0 26px rgba(255,140,215,.5),inset 0 0 30px rgba(180,110,255,.24);background:linear-gradient(160deg,rgba(255,150,215,.22),rgba(140,90,240,.2));}
+.rcard.r-hidden::before{content:'';position:absolute;inset:-40% -10%;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.6) 50%,transparent 62%);animation:rcShine 1.6s linear infinite;}
+@keyframes rcShine{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+.wr-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;flex-wrap:wrap;}
+.wr-foot .sum{font-size:11.5px;color:rgba(236,230,255,.62);letter-spacing:1px;}
+.wr-foot .sum b{color:#ffe9a0;}
+.wr-btn{border:1px solid rgba(232,200,122,.5);background:rgba(232,200,122,.14);color:#fdf3d8;padding:8px 18px;border-radius:18px;font-family:inherit;font-size:12.5px;letter-spacing:2px;cursor:pointer;transition:.25s;}
+.wr-btn:hover{background:rgba(243,217,139,.3);}
+
+/* 流星层 */
+.meteor-layer{position:fixed;inset:0;z-index:160;pointer-events:none;opacity:0;transition:opacity .3s ease;}
+.meteor-layer.on{opacity:1;}
+.meteor-layer .sky{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 4%,rgba(28,22,64,.9),rgba(3,3,10,.97));}
+.meteor{
+  position:absolute;left:0;top:0;width:min(38vw,420px);height:3px;border-radius:3px;opacity:0;
+  background:linear-gradient(90deg,transparent 0%,var(--mc,#fff) 62%,#ffffff 100%);
+  box-shadow:0 0 22px 5px var(--mg,#ffe9a0);
+  animation:meteorFly var(--dur,1.2s) cubic-bezier(.36,.1,.6,1) forwards;
+}
+.meteor::after{content:'';position:absolute;right:-7px;top:50%;width:15px;height:15px;margin-top:-7.5px;border-radius:50%;
+  background:radial-gradient(circle,#fff 12%,var(--mc,#fff) 46%,transparent 74%);box-shadow:0 0 26px 10px var(--mg,#ffe9a0);}
+@keyframes meteorFly{
+  0%{opacity:0;transform:translate(92vw,-14vh) rotate(-33deg) scaleX(.25);}
+  10%{opacity:1;}
+  72%{opacity:1;}
+  100%{opacity:0;transform:translate(20vw,46vh) rotate(-33deg) scaleX(1.2);}
+}
+.meteor.trail2{width:min(24vw,260px);height:2px;animation-name:meteorFly2;}
+@keyframes meteorFly2{
+  0%{opacity:0;transform:translate(78vw,-20vh) rotate(-30deg) scaleX(.3);}
+  16%{opacity:.75;}
+  70%{opacity:.7;}
+  100%{opacity:0;transform:translate(12vw,38vh) rotate(-30deg) scaleX(1);}
+}
+.meteor-flash{position:absolute;left:26vw;top:48vh;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,var(--mc,#fff) 32%,transparent 70%);animation:meteorFlash .85s ease-out forwards;}
+@keyframes meteorFlash{0%{opacity:0;transform:scale(.4);}12%{opacity:1;transform:scale(6);}100%{opacity:0;transform:scale(34);}}
+.meteor-ring{position:absolute;left:26vw;top:48vh;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;
+  border:3px solid var(--mc,#fff);box-shadow:0 0 30px 8px var(--mg,#ffe9a0);animation:meteorRing 1.1s ease-out forwards;}
+@keyframes meteorRing{0%{opacity:0;transform:scale(.2);}16%{opacity:.95;}100%{opacity:0;transform:scale(26);}}
+.meteor-spark{position:absolute;left:26vw;top:48vh;width:5px;height:5px;border-radius:50%;background:var(--mc,#fff);
+  box-shadow:0 0 12px 3px var(--mg,#ffe9a0);animation:meteorSpark .95s ease-out forwards;}
+@keyframes meteorSpark{0%{opacity:1;transform:translate(0,0) scale(1);}100%{opacity:0;transform:translate(var(--sx,60px),var(--sy,-70px)) scale(.2);}}
+
+/* 祈愿相关弹窗（盖在祈愿界面之上） */
+.mask.wish-pop{z-index:180;background:rgba(6,6,18,.7);}
+.mask.wish-pop .pop{background:linear-gradient(180deg,#2a2450,#14122c);border-color:rgba(232,200,122,.3);color:#efe9ff;}
+.mask.wish-pop .pop h3{color:#f7e9c5;}
+.mask.wish-pop .pop .tip{color:rgba(236,230,255,.5);}
+.mask.wish-pop .pop .close{color:rgba(255,255,255,.5);}
+.mask.wish-pop .pop .close:hover{color:#ffe9a0;}
+.mask.wish-pop .rate-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed rgba(255,255,255,.12);font-size:13px;}
+.mask.wish-pop .rate-row:last-of-type{border-bottom:0;}
+.mask.wish-pop .pop .set-tip{color:rgba(236,230,255,.45);}
+.mask.wish-pop .feedlog li{border-bottom-color:rgba(255,255,255,.1);color:rgba(236,230,255,.6);}
+.mask.wish-pop .feedlog li b{color:#efe9ff;}
+.mask.wish-pop .feedlog li em{color:#ffe9a0;}
+.mask.wish-pop .feedlog li.me b{color:#ff9ad5;}
+.mask.wish-pop .empty{color:rgba(236,230,255,.42);}
+
+/* 导航：祈愿入口 */
+.btn.wish-nav{background:linear-gradient(135deg,#3a2f6e,#7a5cc4);color:#fdf3d8;border-color:rgba(232,200,122,.55);box-shadow:0 2px 12px rgba(122,92,196,.35);}
+.btn.wish-nav:hover{background:linear-gradient(135deg,#4a3b8a,#9375db);color:#fff8e2;border-color:#f3d98b;}
+
+/* ============================================================
+   ===== 好友与聊天（搜索账号 / 加好友 / 私聊）=====
+   ============================================================ */
+.nav-badge{
+  display:inline-block;min-width:16px;height:16px;line-height:16px;padding:0 4px;margin-left:6px;
+  border-radius:9px;background:var(--gold);color:#4a3410;font-size:10px;text-align:center;vertical-align:1px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.5) inset;
+}
+.mask.social-pop .pop{max-width:920px;width:100%;overflow:hidden;}
+.soc-body{display:grid;grid-template-columns:292px 1fr;gap:16px;height:min(64vh,580px);margin-top:8px;}
+.soc-side{display:flex;flex-direction:column;gap:4px;overflow-y:auto;padding-right:12px;
+  border-right:1px dashed rgba(0,0,0,.12);}
+.soc-side::-webkit-scrollbar,.soc-msgs::-webkit-scrollbar{width:3px;}
+.soc-side::-webkit-scrollbar-thumb,.soc-msgs::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);}
+.soc-search{display:flex;gap:6px;}
+.soc-search input{flex:1;min-width:0;padding:8px 10px;border:1px solid rgba(44,44,44,.18);border-radius:6px;
+  background:#fffdf7;font-family:inherit;font-size:13px;letter-spacing:1px;outline:none;transition:.25s;}
+.soc-search input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.1);}
+.soc-sec{font-size:11px;letter-spacing:2px;color:var(--ink-light);margin-top:10px;display:flex;align-items:center;gap:6px;}
+.soc-sec::before{content:'';width:2px;height:10px;background:var(--red);}
+.soc-sec .cnt{color:var(--red);}
+.soc-list{list-style:none;font-size:12.5px;max-height:158px;overflow-y:auto;}
+.soc-list li{display:flex;align-items:center;gap:7px;padding:7px 1px;border-bottom:1px dashed rgba(0,0,0,.08);}
+.soc-list li:last-child{border-bottom:0;}
+.soc-ava{width:26px;height:26px;flex:0 0 auto;border-radius:50%;background:rgba(192,57,43,.12);color:var(--red);
+  display:grid;place-items:center;font-size:13px;font-family:'Ma Shan Zheng',cursive;}
+.soc-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.soc-nm small{display:block;font-size:10px;color:var(--ink-light);letter-spacing:.5px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.soc-list .soc-hint{display:block;color:var(--ink-light);font-size:11.5px;text-align:center;padding:12px 4px;
+  letter-spacing:1px;line-height:1.9;}
+.soc-list .btn.mini{padding:3px 11px;font-size:11px;flex:0 0 auto;}
+.soc-unread{background:var(--red);color:#fff;border-radius:9px;font-size:10px;
+  padding:1px 7px;flex:0 0 auto;letter-spacing:0;}
+.soc-list .done{font-size:11px;color:#2e7d5b;letter-spacing:1px;flex:0 0 auto;}
+.soc-main{display:flex;flex-direction:column;min-width:0;}
+.soc-chat-head{font-size:13px;letter-spacing:1px;padding-bottom:9px;border-bottom:1px dashed rgba(0,0,0,.12);
+  display:flex;align-items:center;gap:8px;color:var(--ink-light);min-height:34px;}
+.soc-chat-head b{color:var(--red);font-size:14px;letter-spacing:2px;}
+.soc-chat-head .who{font-size:10.5px;letter-spacing:1px;opacity:.75;}
+.soc-msgs{flex:1;overflow-y:auto;padding:12px 2px;display:flex;flex-direction:column;gap:10px;}
+.msg{max-width:78%;display:flex;flex-direction:column;gap:3px;animation:fadeIn .3s;}
+.msg .bubble{padding:8px 12px;border-radius:10px;font-size:13px;line-height:1.75;word-break:break-word;
+  white-space:pre-wrap;background:#fffdf7;border:1px solid rgba(44,44,44,.1);}
+.msg .when{font-size:10px;color:var(--ink-light);letter-spacing:.5px;}
+.msg.me{align-self:flex-end;align-items:flex-end;}
+.msg.me .bubble{background:var(--red);color:var(--paper);border-color:var(--red);border-bottom-right-radius:3px;}
+.msg.other{align-self:flex-start;align-items:flex-start;}
+.msg.other .bubble{border-bottom-left-radius:3px;}
+.soc-input{display:flex;gap:8px;align-items:flex-end;padding-top:10px;border-top:1px dashed rgba(0,0,0,.12);}
+.soc-input textarea{flex:1;min-height:38px;max-height:96px;resize:none;padding:9px 11px;
+  border:1px solid rgba(44,44,44,.18);border-radius:8px;background:#fffdf7;font-family:inherit;font-size:13px;
+  line-height:1.6;outline:none;transition:.25s;}
 .soc-input textarea:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.12);}
-.nav-badge{display:inline-block;min-width:16px;height:16px;line-height:16px;padding:0 4px;margin-left:6px;border-radius:9px;background:var(--gold);color:#4a3410;font-size:10px;text-align:center;vertical-align:1px;box-shadow:0 0 0 1px rgba(255,255,255,.5) inset;}
-
-/* 好友弹窗基础布局 */
-.social-pop .pop{max-width:800px;width:100%;}
-.soc-body{display:grid;grid-template-columns:240px 1fr;gap:16px;height:60vh;}
-.soc-side{border-right:1px dashed rgba(0,0,0,.12);padding-right:12px;overflow-y:auto;}
-.soc-list{list-style:none;font-size:12px;}
-.soc-list li{display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px dashed rgba(0,0,0,.08);}
-.soc-ava{width:24px;height:24px;border-radius:50%;background:rgba(192,57,43,.12);color:var(--red);display:grid;place-items:center;font-family:'Ma Shan Zheng',cursive;}
-@media(max-width:760px){.soc-body{grid-template-columns:1fr;}.soc-side{border-right:0;border-bottom:1px dashed rgba(0,0,0,.12);}}
+.soc-tip{font-size:11px;color:var(--ink-light);letter-spacing:1px;margin-top:9px;line-height:1.8;}
+@media(max-width:760px){
+  .soc-body{grid-template-columns:1fr;height:auto;max-height:72vh;}
+  .soc-side{border-right:0;border-bottom:1px dashed rgba(0,0,0,.12);padding-right:0;padding-bottom:8px;}
+  .soc-main{min-height:300px;}
+}
 </style>
 </head>
 <body>
+<div id="meishiSplash" aria-hidden="true">
+  <div class="ms-logo">没事</div>
+  <div class="ms-foot">
+    <p>本页面仅供个人使用，签文内容纯属娱乐</p>
+    <p>请理性看待结果，合理安排时间</p>
+    <p>© 2026 解忧签</p>
+  </div>
+</div>
+<style>
+#meishiSplash{position:fixed;inset:0;z-index:2147483000;background:#ffffff;display:flex;align-items:center;justify-content:center;flex-direction:column;opacity:1;transition:opacity .7s ease;}
+#meishiSplash.ms-hide{opacity:0;pointer-events:none;}
+#meishiSplash .ms-logo{font-family:'Noto Serif SC','Source Han Serif SC','STZhongsong','SimSun',serif;font-weight:900;color:#0d0d0d;font-size:clamp(84px,16vw,196px);line-height:1.15;letter-spacing:.02em;user-select:none;white-space:nowrap;animation:msLogoIn 1.5s cubic-bezier(.16,.84,.28,1) .15s both;}
+@keyframes msLogoIn{0%{opacity:0;transform:scale(.86);letter-spacing:-.03em;filter:blur(8px);}55%{opacity:1;filter:blur(0);}100%{opacity:1;transform:scale(1);letter-spacing:.16em;filter:blur(0);}}
+#meishiSplash .ms-foot{position:absolute;left:0;right:0;bottom:6vh;text-align:center;font-family:'Noto Serif SC','SimSun',serif;color:#9a9a9a;font-size:13px;line-height:2.05;}
+#meishiSplash .ms-foot p{margin:0;opacity:0;animation:msFootIn .9s ease both;}
+#meishiSplash .ms-foot p:nth-child(1){animation-delay:1.7s;}
+#meishiSplash .ms-foot p:nth-child(2){animation-delay:2.1s;}
+#meishiSplash .ms-foot p:nth-child(3){animation-delay:2.5s;}
+@keyframes msFootIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@media (max-width:600px){#meishiSplash .ms-foot{font-size:11px;}}
+</style>
+<script>
+(function(){
+  var el=document.getElementById('meishiSplash');
+  if(!el)return;
+  var KEY='meishiSplashSeen',done=false;
+  function remove(){if(done)return;done=true;el.remove();document.body.style.overflow='';}
+  function hide(){if(done)return;el.classList.add('ms-hide');setTimeout(remove,700);}
+  if(sessionStorage.getItem(KEY)){remove();return;}
+  sessionStorage.setItem(KEY,'1');
+  document.body.style.overflow='hidden';
+  var t=setTimeout(hide,4200);
+  function skip(){clearTimeout(t);hide();}
+  document.addEventListener('click',skip,{once:true,capture:true});
+  document.addEventListener('keydown',skip,{once:true,capture:true});
+})();
+</script>
+
 <div class="watermark">签</div>
 <div class="wrap">
+
 <header>
   <div>
     <div class="brand">
       <div class="seal">签</div>
-      <div><h1>解忧签</h1><div class="sub">JIE YOU QIAN</div></div>
+      <div>
+        <h1>解忧签</h1>
+        <div class="sub">JIE YOU QIAN</div>
+      </div>
     </div>
     <div class="meta">
-      <span class="badge local" id="cloudBadge" style="margin-top:8px;display:inline-block;padding:4px 8px;border-radius:4px;background:rgba(0,0,0,.06);font-size:11px;">
-        <span class="dot"></span><span id="cloudText">连接中…</span>
-      </span>
+      自建站以来 <b id="totalCount">0</b> 次求签<br>
+      <span style="font-size:12px"><span class="dot"></span>此刻 <b id="onlineCount" style="font-size:13px">1</b> 人在线</span><br>
+      <span class="badge local" id="cloudBadge"><span class="lamp"></span><span id="cloudText">正在连接云数据库…</span></span>
     </div>
   </div>
   <nav class="nav">
-    <button class="btn" onclick="drawSign()">摇一签</button>
-    <button class="btn" id="hallBtn" onclick="openHall()" title="无需加好友，全站公共聊天">茶话会<span class="nav-badge" id="hallBadge" hidden>0</span></button>
-    <button class="btn" id="friendBtn" onclick="openSocial()" title="搜索账号、加好友、私聊">签友</button>
+    <button class="btn wish-nav" onclick="openWish()" title="进入祈愿界面">祈愿</button>
+    <button class="btn" onclick="openFeed()">求签动态</button>
+    <button class="btn" onclick="openRank()">签运榜</button>
+    <button class="btn primary" onclick="openMyBox()">我的签匣</button>
+    <button class="btn" id="friendBtn" onclick="openSocial()" title="搜索账号、加好友、私聊">签友<span class="nav-badge" id="friendBadge" hidden>0</span></button>
+    <button class="btn" id="nickBtn" onclick="navAccount()" title="账号">登录/注册</button>
     <button class="btn" onclick="openSettings()" title="设置">⚙ 设置</button>
   </nav>
 </header>
 
 <main>
-  <section class="stage" id="stageBox" onclick="drawSign()" style="cursor:pointer;text-align:center;">
-    <div style="font-size:100px;font-family:'Ma Shan Zheng',cursive;color:var(--red);text-shadow:0 0 20px rgba(192,57,43,.3);">签</div>
-    <div class="hint" style="margin-top:20px;">轻点摇签筒</div>
+  <section class="stage">
+    <div class="stage-box" id="stageBox">
+      <button class="skip" id="skipBtn" onclick="skipAnim(event)">跳过 »</button>
+
+      <div class="tube-shadow"></div>
+      <div class="tube3d" id="tube3d">
+        <div class="tube3d-bottom"></div>
+        <div class="tube3d-top"></div>
+        <div class="tube3d-label">解忧</div>
+        <div class="sticks3d" id="sticks3d"></div>
+      </div>
+
+      <div class="glow"></div>
+      <div class="ray" style="transform:translateX(-50%) rotate(-42deg)"></div>
+      <div class="ray" style="transform:translateX(-50%) rotate(-21deg)"></div>
+      <div class="ray" style="transform:translateX(-50%) rotate(0deg)"></div>
+      <div class="ray" style="transform:translateX(-50%) rotate(21deg)"></div>
+      <div class="ray" style="transform:translateX(-50%) rotate(42deg)"></div>
+    </div>
+
+    <div class="hint" id="hint">轻摇签筒</div>
   </section>
+
   <section class="side">
+    <label class="anim-switch" title="勾选后摇签直接出结果，不播放动画"><input type="checkbox" id="noAnimChk">无动画模式</label>
     <div class="result" id="result">
       <div class="card">
         <span class="level" id="level">上上签</span>
         <p id="text">签文内容</p>
         <div class="no" id="signNo">第 001 签</div>
       </div>
+      <div class="actions">
+        <button class="btn" onclick="saveSign()">收入签匣</button>
+        <button class="btn" onclick="shareSign()">分享</button>
+      </div>
     </div>
   </section>
+
 </main>
+
+<footer>愿你所求皆如愿，所行化坦途。</footer>
 </div>
 
-<!-- ===== 大厅（茶话会）弹窗 ===== -->
-<div class="mask" id="hallMask">
-  <div class="pop hall-pop">
-    <button class="close" onclick="closeHall()">&times;</button>
-    <h3>解忧茶话会</h3>
-    <div class="tip">全站公共大厅 · 无需加好友即可畅聊</div>
-    <div class="hall-msgs" id="hallMsgs">
-      <div class="empty">连接中…</div>
+<!-- 全屏金光层（脱离 wrap 的层叠上下文，才能笼罩整屏） -->
+<div class="gold-screen"></div>
+<div class="gold-ring"></div>
+<!-- 飞出的签（浮于金光之上） -->
+<div class="fly-stick" id="flyStick">
+  <div class="fly-body" id="flyBody">
+    <div class="fseg" style="--sa:0deg"></div>
+    <div class="fseg" style="--sa:90deg"></div>
+    <div class="fseg" style="--sa:180deg"></div>
+    <div class="fseg" style="--sa:270deg"></div>
+    <span class="fly-text" id="flyText">上上签</span>
+  </div>
+</div>
+
+
+<!-- ===== 祈愿主界面（仿祈愿抽卡） ===== -->
+<div id="wishScreen" aria-hidden="true">
+  <canvas id="wishStars"></canvas>
+  <div class="wish-nebula n1"></div>
+  <div class="wish-nebula n2"></div>
+  <div class="wish-nebula n3"></div>
+  <div class="wish-vignette"></div>
+  <div class="wish-inner">
+    <div class="wish-topbar">
+      <button class="wish-back" onclick="closeWish()">&#8249; 返回</button>
+      <div class="wish-pool">
+        <div class="wish-pool-name">解忧祈愿 · 上上签</div>
+        <div class="wish-pool-sub">UP 隐藏签「天选」概率提升中</div>
+      </div>
+      <div class="wish-right">
+        <span class="wish-timer" id="wishTimer">剩余 --:--:--</span>
+        <button class="wish-link" onclick="openWishHistory()">祈愿记录</button>
+        <button class="wish-link" onclick="openWishDetail()">详情</button>
+      </div>
     </div>
-    <div class="soc-input">
-      <textarea id="hallMsgInput" rows="1" maxlength="200" placeholder="对大家说点什么…（Enter 发送）"></textarea>
-      <button class="btn primary mini" onclick="sendHallMsg()">发送</button>
+
+    <div class="wish-body">
+      <div class="wish-art">
+        <div class="wish-orbit o2"></div>
+        <div class="wish-orbit"><i></i><i></i><i></i></div>
+        <div class="wish-char">签</div>
+        <div class="wish-up-card">
+          <span class="wish-up-tag">UP · 隐藏签</span>
+          <div class="wish-up-name">天选</div>
+          <div class="wish-up-desc">今日不宜摇签，你已被命运选中。</div>
+        </div>
+      </div>
+      <div class="wish-info">
+        <h3>祈愿说明</h3>
+        <div class="row"><span>命定 · 隐藏签</span><b class="p-hidden">★★★★★★ 2.0%</b></div>
+        <div class="row"><span>天签 · 上上签</span><b class="p-gold">★★★★★ 10.0%</b></div>
+        <div class="row"><span>上吉 · 上签 / 中吉</span><b class="p-purple">★★★★ 33.0%</b></div>
+        <div class="row"><span>吉签 · 中签 / 中平</span><b class="p-blue">★★★ 35.0%</b></div>
+        <div class="row"><span>凡签 · 下签 / 下下签</span><b class="p-grey">★★ 20.0%</b></div>
+        <div class="note">每次祈愿消耗 1 枚签缘，每日 04:00 恢复至 30 枚。<br>累计 40 抽内必出天签及以上；十连必含上吉及以上。<br>祈愿所得与摇签共用同一签匣、同一动态流。</div>
+      </div>
+    </div>
+
+    <div class="wish-actions">
+      <div class="wish-cost"><span class="coin">&#10022;</span>签缘 <b id="wishFate">30</b> / 30</div>
+      <div class="wish-btns">
+        <button class="wish-btn" id="wishBtnSingle" onclick="doWish(1)"><span class="wb-label">祈愿</span><span class="wb-cost">&#10022; 1</span></button>
+        <button class="wish-btn" id="wishBtnMulti" onclick="doWish(10)"><span class="wb-label">祈愿 ×10</span><span class="wb-cost">&#10022; 10</span></button>
+      </div>
+      <div class="wish-note" id="wishPity">距必出天签还需 40 抽</div>
     </div>
   </div>
 </div>
 
-<!-- ===== 好友与聊天弹窗 ===== -->
+<!-- 流星层：抽卡瞬间的过场动画 -->
+<div class="meteor-layer" id="meteorLayer"></div>
+
+<!-- 祈愿结算 -->
+<div class="wish-result-mask" id="wishResultMask">
+  <div class="wr-box">
+    <div class="wr-head"><span id="wrTitle">祈愿结果</span><button onclick="closeWishResult()">&times;</button></div>
+    <div class="wish-grid" id="wishGrid"></div>
+    <div class="wr-foot">
+      <span class="sum" id="wrFoot"></span>
+      <span>
+        <button class="wr-btn" onclick="collectAllWish()">全部收入签匣</button>
+        <button class="wr-btn" onclick="closeWishResult()">关闭</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- 祈愿详情（概率公示） -->
+<div class="mask wish-pop" id="wishDetailMask">
+  <div class="pop">
+    <button class="close" onclick="closeWishDetail()">&times;</button>
+    <h3>祈愿详情</h3>
+    <div class="tip">概率公示 · 与摇签共用同一签库</div>
+    <div class="rate-row"><span>命定 · 隐藏签（天选 / 摆烂 / 摸鱼 / 无为 / 碎筒 / 圆满）</span><b class="p-hidden">2.0%</b></div>
+    <div class="rate-row"><span>天签 · 上上签</span><b class="p-gold">10.0%</b></div>
+    <div class="rate-row"><span>上吉 · 上签 / 中吉</span><b class="p-purple">33.0%</b></div>
+    <div class="rate-row"><span>吉签 · 中签 / 中平</span><b class="p-blue">35.0%</b></div>
+    <div class="rate-row"><span>凡签 · 下签 / 下下签</span><b class="p-grey">20.0%</b></div>
+    <div class="set-tip">保底：累计 40 抽内必出天签及以上，出了即重置；十连内必含上吉及以上。稀有度同时决定流星颜色、撞击特效与音效：凡签灰蓝、吉签蓝、上吉紫、天签金、命定虹彩。</div>
+  </div>
+</div>
+
+<!-- 祈愿记录 -->
+<div class="mask wish-pop" id="wishHistoryMask">
+  <div class="pop">
+    <button class="close" onclick="closeWishHistory()">&times;</button>
+    <h3>祈愿记录</h3>
+    <div class="tip">最近 100 条祈愿与求签记录</div>
+    <ul class="feedlog" id="wishHistoryList"></ul>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 签运榜弹窗 -->
+<div class="mask" id="rankMask">
+  <div class="pop">
+    <button class="close" onclick="closeRank()">×</button>
+    <h3>签运榜</h3>
+    <div class="tip">按「集签数」排名 · 数据来自 Supabase 实时库</div>
+    <ul id="rankList"><li>加载中…</li></ul>
+  </div>
+</div>
+
+<!-- 设置弹窗 -->
+<div class="mask" id="settingsMask">
+  <div class="pop">
+    <button class="close" onclick="closeSettings()">×</button>
+    <h3>设置</h3>
+    <div class="tip">声音、音量与求签播报偏好</div>
+    <div class="set-row">
+      <span class="lab">声音</span>
+      <label class="switch"><input type="checkbox" id="setSoundChk"><span class="knob"></span></label>
+    </div>
+    <div class="set-row">
+      <span class="lab">音量</span>
+      <div class="vol-wrap">
+        <input type="range" class="vol" id="volSlider" min="0" max="100" step="1" value="90">
+        <b id="volVal">90%</b>
+      </div>
+    </div>
+    <div class="set-row">
+      <span class="lab">求签播报</span>
+      <label class="switch"><input type="checkbox" id="setBroadcastChk"><span class="knob"></span></label>
+    </div>
+    <div class="set-row">
+      <span class="lab">账号</span>
+      <div class="acct-wrap">
+        <b id="acctName">未登录</b>
+        <button class="btn mini" onclick="editNick(event)">改昵称</button>
+        <button class="btn mini" id="acctBtn" onclick="acctAction()">登录</button>
+      </div>
+    </div>
+    <div class="set-tip">勾选求签播报后，当有人抽出隐藏签时屏幕上方会滑出提示；不勾选则不会提示。账号与签匣保存在本机浏览器，换设备需重新注册。</div>
+  </div>
+</div>
+
+<!-- 求签动态弹窗 -->
+<div class="mask" id="feedMask">
+  <div class="pop">
+    <button class="close" onclick="closeFeed()">×</button>
+    <h3>求签动态</h3>
+    <div class="tip">滚动查看全部求签动态</div>
+    <ul class="feedlog" id="feedLogList"></ul>
+  </div>
+</div>
+
+<!-- 我的签匣弹窗 -->
+<div class="mask" id="boxMask">
+  <div class="pop">
+    <button class="close" onclick="closeMyBox()">×</button>
+    <h3>我的签匣</h3>
+    <div class="tip" id="boxTip">你的集签进度</div>
+    <div class="grid" id="myGrid"></div>
+    <div class="progress">已集 <b id="myCount">0</b> / <span id="allCount">0</span> 签</div>
+  </div>
+</div>
+
+<!-- 签匣详情弹窗：点击签后旋转放大到屏幕中央显示签文 -->
+<div class="mask" id="signViewMask">
+  <div class="pop sv-pop">
+    <button class="close" onclick="closeSignView()">×</button>
+    <div class="sv-card" id="svCard">
+      <span class="level" id="svLevel">上上签</span>
+      <p id="svText">签文内容</p>
+      <div class="no" id="svNo">第 001 签</div>
+      <div class="sv-cond" id="svCond"></div>
+      <div class="sv-hint">—— 点击空白处或按 Esc 关闭 ——</div>
+    </div>
+  </div>
+</div>
+
+<!-- 登录 / 注册弹窗 -->
+<div class="mask" id="loginMask">
+  <div class="pop login-pop">
+    <button class="close" onclick="closeLogin()">×</button>
+    <div class="login-head">
+      <div class="seal">签</div>
+      <div>
+        <h3 id="loginTitle">欢迎回来</h3>
+        <div class="tip" id="loginTip">登录后即可摇签，签匣与动态随账号保存</div>
+      </div>
+    </div>
+    <div class="login-tabs">
+      <button id="tabLogin" class="on" onclick="switchLoginTab('login')">登录</button>
+      <button id="tabReg" onclick="switchLoginTab('reg')">注册</button>
+    </div>
+    <label class="fld"><span>用户名</span><input id="loginUser" maxlength="12" placeholder="你的签名" autocomplete="off"></label>
+    <label class="fld"><span>密码</span><input id="loginPw" type="password" placeholder="至少 8 位" autocomplete="off"></label>
+    <div class="login-err" id="loginErr"></div>
+    <button class="btn primary wide" id="loginSubmit" onclick="submitLogin()">登录</button>
+    <div class="login-guest">只想随便看看？关闭本窗口即可继续游客浏览<br>摇签、收入签匣等功能需登录后使用</div>
+  </div>
+</div>
+
+<!-- ===== 好友与聊天弹窗：搜索账号 / 好友申请 / 好友列表 / 私聊 ===== -->
 <div class="mask social-pop" id="socialMask">
   <div class="pop">
     <button class="close" onclick="closeSocial()">&times;</button>
     <h3>签友 · 传话</h3>
+    <div class="tip">按用户名搜索其他账号，加好友后即可私聊</div>
     <div class="soc-body">
       <div class="soc-side">
-        <div style="display:flex;gap:6px;margin-bottom:10px;">
-          <input id="socSearchInput" style="flex:1;padding:6px;border:1px solid #ccc;border-radius:4px;" placeholder="搜索用户名">
+        <div class="soc-search">
+          <input id="socSearchInput" maxlength="20" placeholder="搜索用户名 / 昵称" autocomplete="off">
           <button class="btn mini" onclick="searchUsers()">搜索</button>
         </div>
-        <ul class="soc-list" id="socSearchList"><li class="soc-hint">搜索后添加好友</li></ul>
-        <div style="margin:12px 0 4px;font-size:12px;font-weight:bold;">我的好友</div>
-        <ul class="soc-list" id="socFriendList"><li>加载中…</li></ul>
+        <div class="soc-sec">搜索结果</div>
+        <ul class="soc-list" id="socSearchList"><li class="soc-hint">输入用户名后点「搜索」</li></ul>
+        <div class="soc-sec">好友申请 <span class="cnt" id="reqCount"></span></div>
+        <ul class="soc-list" id="socReqList"><li class="soc-hint">暂无新申请</li></ul>
+        <div class="soc-sec">我的好友</div>
+        <ul class="soc-list" id="socFriendList"><li class="soc-hint">加载中…</li></ul>
       </div>
-      <div class="soc-main" style="display:flex;flex-direction:column;">
-        <div style="font-size:13px;font-weight:bold;margin-bottom:8px;" id="socChatHead">请选择好友聊天</div>
-        <div class="soc-msgs" id="socMsgs"></div>
+      <div class="soc-main">
+        <div class="soc-chat-head" id="socChatHead">选择左侧好友开始聊天</div>
+        <div class="soc-msgs" id="socMsgs"><div class="empty">还没有选择聊天对象</div></div>
         <div class="soc-input">
-          <textarea id="socMsgInput" rows="1" maxlength="500" placeholder="说点什么…（Enter 发送）"></textarea>
+          <textarea id="socMsgInput" rows="1" maxlength="500" placeholder="说点什么…（Enter 发送，Shift+Enter 换行）"></textarea>
           <button class="btn primary mini" onclick="sendMsg()">发送</button>
         </div>
+        <div class="soc-tip" id="socTip">已连接云数据库：好友关系与聊天记录存于云端，多设备同步、实时推送。</div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast" style="position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;display:none;z-index:999;"></div>
+<!-- 求签播报横幅 -->
+<div class="broadcast" id="broadcastBar"><span class="star">✦</span><span id="broadcastText"></span></div>
 
+<!-- Supabase JS SDK（UMD 版，提供全局 window.supabase）；加载失败时会自动尝试备用 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
 <script>
-/* ================= 基础工具与数据 ================= */
-const SIGNS = [{id:1, level:'上上签', type:'ji', text:'今日宜向前一步，你等的机会已在路上。'}, {id:2, level:'下签', type:'xiong', text:'今日诸事不宜，不如早点休息。'}];
+/* ============ 签文库 ============ */
+const SIGNS = [
+  {id:1,  level:'上上签', type:'ji',    text:'今日宜向前一步，你等的机会已在路上。'},
+  {id:2,  level:'上签',   type:'ji',    text:'心之所向，素履以往。'},
+  {id:3,  level:'中吉',   type:'ji',    text:'不必急于一时，水到自然渠成。'},
+  {id:4,  level:'中签',   type:'zhong', text:'平平淡淡才是真，今日宜守不宜攻。'},
+  {id:5,  level:'中平',   type:'zhong', text:'进退皆宜，全凭你一念之间。'},
+  {id:6,  level:'下签',   type:'xiong', text:'今日诸事不宜，不如早点休息。'},
+  {id:7,  level:'下下签', type:'xiong', text:'山重水复疑无路，且慢，柳暗花明在转角。'},
+  {id:8,  level:'上签',   type:'ji',    text:'贵人就在身边，多与人说说话。'},
+  {id:9,  level:'中吉',   type:'ji',    text:'放下手中的事，去晒晒太阳。'},
+  {id:10, level:'中签',   type:'zhong', text:'旧的不去，新的不来。'},
+  {id:11, level:'上上签', type:'ji',    text:'云开见月明，你所念的事正在悄悄成形。'},
+  {id:12, level:'上签',   type:'ji',    text:'宜动不宜静，走出去，答案在路上。'},
+  {id:13, level:'上签',   type:'ji',    text:'拖了很久的一件小事，今天可以了结。'},
+  {id:14, level:'中吉',   type:'ji',    text:'借人之力可成己事，开口不丢人。'},
+  {id:15, level:'中吉',   type:'ji',    text:'晚一点没关系，方向对了就不算慢。'},
+  {id:16, level:'中签',   type:'zhong', text:'半得半失皆是常态，别在细节里纠缠。'},
+  {id:17, level:'中平',   type:'zhong', text:'今天没有好消息，也没有坏消息。'},
+  {id:18, level:'下签',   type:'xiong', text:'话到嘴边留三分，有些局不必赴。'},
+  {id:19, level:'下下签', type:'xiong', text:'竹篮打水未必空，至少洗净了篮子。'},
+  {id:20, level:'上签',   type:'ji',    text:'旧友忽至，或有一饭之约、一句点醒。'},
+  {id:21, level:'中吉',   type:'ji',    text:'种树最好的时机是十年前，其次是今天。'},
+  {id:22, level:'中签',   type:'zhong', text:'宜整理：房间、账单、心事，挑一样。'},
+  {id:23, level:'中平',   type:'zhong', text:'风不大也不静，船照样往前开。'},
+  {id:24, level:'下签',   type:'xiong', text:'别在深夜做决定，明天的你会谢你。'},
+  {id:25, level:'上上签', type:'ji',    text:'你随手种下的善意，今日开始发芽。'},
+  {id:26, level:'上签',   type:'ji',    text:'该拒绝的就拒绝，今日宜划清边界。'},
+  {id:27, level:'中吉',   type:'ji',    text:'去学一样新东西，哪怕只学十分钟。'},
+  {id:28, level:'中签',   type:'zhong', text:'不进不退，先把手边的事做完。'},
+  {id:29, level:'中平',   type:'zhong', text:'有些问题不必解答，放着放着就小了。'},
+  {id:30, level:'下签',   type:'xiong', text:'破财消灾，今日花的一笔钱是买平安。'},
+  {id:31, level:'下下签', type:'xiong', text:'走错路也别慌，路上有你要见的人。'},
+  {id:32, level:'上签',   type:'ji',    text:'一句话能解开的心结，今天就说了吧。'},
+  {id:33, level:'中吉',   type:'ji',    text:'你羡慕的那个人，也在某处羡慕着你。'},
+  {id:34, level:'中签',   type:'zhong', text:'宜早睡，宜少言，宜把期待放低一点。'},
+  {id:35, level:'中平',   type:'zhong', text:'水未满，灯未亮，再等一小会儿。'},
+  {id:36, level:'下签',   type:'xiong', text:'宜守口，宜藏锋，宜把功劳分出去。'},
+  {id:37, level:'上上签', type:'ji',    text:'大器晚成，你只是把高光留在了后面。'},
+  {id:38, level:'上签',   type:'ji',    text:'远行有喜，哪怕只是去隔壁街区走走。'},
+  {id:39, level:'中吉',   type:'ji',    text:'你担心的那件事，八成不会发生。'},
+  {id:40, level:'中签',   type:'zhong', text:'一成一败，今日宜收尾，不宜开新篇。'},
+];
+const HIDDEN = [
+  {id:101, level:'天选', type:'hidden-sig', text:'今日不宜摇签，你已被命运选中。', cond:'第7次摇签'},
+  {id:102, level:'摆烂', type:'hidden-sig', text:'别摇了，越摇越差，去睡一觉吧。', cond:'连续3次凶签'},
+  {id:103, level:'摸鱼', type:'hidden-sig', text:'深夜摇签，宜摸鱼，忌内卷。', cond:'凌晨0-5点'},
+  {id:104, level:'无为', type:'hidden-sig', text:'什么都不做，就是最好的签。', cond:'静置60秒 · 当日摇满12签 · 每日限一次'},
+  {id:105, level:'碎筒', type:'hidden-sig', text:'签筒被你摇碎了，里面什么都没有。', cond:'长按3秒'},
+  {id:106, level:'圆满', type:'hidden-sig', text:'签匣过半，万事圆满。', cond:'集齐一半普通签'},
+];
+const ALL = [...SIGNS, ...HIDDEN];
+
+/* ============ 音效引擎（Web Audio 合成，无需外部音频文件） ============ */
+const Sound = (()=>{
+  let ctx = null, master = null, rattleTimer = null;
+  let enabled = localStorage.getItem('jieyou_sound') !== '0';
+  let volume = parseFloat(localStorage.getItem('jieyou_vol'));
+  if(isNaN(volume)) volume = 0.9;
+  volume = Math.min(1, Math.max(0, volume));
+
+  function ensure(){
+    if(!ctx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = volume;
+      master.connect(ctx.destination);
+    }
+    if(ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function noiseBuf(dur){
+    const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
+    return buf;
+  }
+  /* 单次竹签碰撞：高频噪声碎响 + 木质短音「咔」 */
+  function knock(vol){
+    const c = ensure(); if(!c || !enabled) return;
+    const t = c.currentTime;
+    const src = c.createBufferSource(); src.buffer = noiseBuf(0.06);
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass';
+    bp.frequency.value = 1500 + Math.random()*1500; bp.Q.value = 1.8;
+    const ng = c.createGain();
+    ng.gain.setValueAtTime(0.0001, t);
+    ng.gain.exponentialRampToValueAtTime(0.45*vol, t+0.004);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t+0.07);
+    src.connect(bp); bp.connect(ng); ng.connect(master);
+    src.start(t); src.stop(t+0.08);
+    const osc = c.createOscillator(); osc.type = 'triangle';
+    osc.frequency.setValueAtTime(720 + Math.random()*360, t);
+    osc.frequency.exponentialRampToValueAtTime(230, t+0.07);
+    const og = c.createGain();
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.3*vol, t+0.006);
+    og.gain.exponentialRampToValueAtTime(0.0001, t+0.09);
+    osc.connect(og); og.connect(master);
+    osc.start(t); osc.stop(t+0.1);
+  }
+  /* 晃动阶段：连续随机碰撞，模拟筒内竹签乱撞 */
+  function startRattle(){
+    stopRattle();
+    const loop = ()=>{
+      knock(0.5 + Math.random()*0.55);
+      rattleTimer = setTimeout(loop, 55 + Math.random()*110);
+    };
+    loop();
+  }
+  function stopRattle(){ clearTimeout(rattleTimer); rattleTimer = null; }
+  /* 「啵」：出签瞬间——音高快速上滑后回落，带一缕气口噪声 */
+  function pop(){
+    const c = ensure(); if(!c || !enabled) return;
+    const t = c.currentTime;
+    const osc = c.createOscillator(); osc.type = 'sine';
+    osc.frequency.setValueAtTime(260, t);
+    osc.frequency.exponentialRampToValueAtTime(900, t+0.09);
+    osc.frequency.exponentialRampToValueAtTime(420, t+0.2);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.5, t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+0.24);
+    osc.connect(g); g.connect(master);
+    osc.start(t); osc.stop(t+0.26);
+    const src = c.createBufferSource(); src.buffer = noiseBuf(0.12);
+    const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1200;
+    const ng2 = c.createGain();
+    ng2.gain.setValueAtTime(0.0001, t);
+    ng2.gain.exponentialRampToValueAtTime(0.18, t+0.015);
+    ng2.gain.exponentialRampToValueAtTime(0.0001, t+0.12);
+    src.connect(hp); hp.connect(ng2); ng2.connect(master);
+    src.start(t); src.stop(t+0.14);
+  }
+  /* ===== 祈愿新增音效 ===== */
+  /* 流星划过：带通噪声上下扫频（嗖——）+ 低频铺垫，稀有度越高铺垫越厚 */
+  function meteor(tier){
+    const c = ensure(); if(!c || !enabled) return;
+    const t = c.currentTime, dur = (tier==='gold'||tier==='hidden') ? 1.35 : 1.0;
+    const src = c.createBufferSource(); src.buffer = noiseBuf(dur);
+    const bp = c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=2.4;
+    bp.frequency.setValueAtTime(300, t);
+    bp.frequency.exponentialRampToValueAtTime(2800, t+dur*0.7);
+    bp.frequency.exponentialRampToValueAtTime(620, t+dur);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(tier==='grey'?0.16:0.28, t+0.16);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(t); src.stop(t+dur+0.05);
+    const base = tier==='hidden'?52 : tier==='gold'?62 : tier==='purple'?76 : tier==='blue'?90 : 108;
+    const osc = c.createOscillator(); osc.type='sawtooth';
+    osc.frequency.setValueAtTime(base, t);
+    osc.frequency.exponentialRampToValueAtTime(base*2.6, t+dur);
+    const lp = c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=430;
+    const og = c.createGain();
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(tier==='grey'?0.05:0.14, t+0.22);
+    og.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    osc.connect(lp); lp.connect(og); og.connect(master);
+    osc.start(t); osc.stop(t+dur+0.05);
+  }
+  /* 分级铃音：稀有度越高，琶音越长、泛音越亮，命定另加低频轰鸣 */
+  function chime(tier){
+    const c = ensure(); if(!c || !enabled) return;
+    const t0 = c.currentTime;
+    const sets = {
+      grey  :[392.00, 466.16],
+      blue  :[523.25, 659.25],
+      purple:[523.25, 659.25, 783.99],
+      gold  :[523.25, 659.25, 783.99, 1046.50, 1318.51],
+      hidden:[523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00]
+    };
+    const notes = sets[tier] || sets.blue;
+    const bright = (tier==='gold' || tier==='hidden');
+    const step = bright ? 0.078 : 0.062;
+    notes.forEach((f,i)=>{
+      const t = t0 + i*step;
+      const osc = c.createOscillator(); osc.type = bright ? 'triangle' : 'sine';
+      osc.frequency.value = f;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.3, t+0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (bright?1.15:0.5));
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t+1.25);
+      if(bright){
+        const o2 = c.createOscillator(); o2.type='sine'; o2.frequency.value = f*2.01;
+        const g2 = c.createGain();
+        g2.gain.setValueAtTime(0.0001, t);
+        g2.gain.exponentialRampToValueAtTime(0.11, t+0.01);
+        g2.gain.exponentialRampToValueAtTime(0.0001, t+0.85);
+        o2.connect(g2); g2.connect(master); o2.start(t); o2.stop(t+0.9);
+      }
+    });
+    if(tier==='hidden'){
+      const t = t0;
+      const o = c.createOscillator(); o.type='sine';
+      o.frequency.setValueAtTime(46, t);
+      o.frequency.exponentialRampToValueAtTime(23, t+1.5);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.4, t+0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+1.55);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t+1.6);
+    }
+  }
+  /* 结算卡片逐张翻扣的「哒」，音高随序号递增 */
+  function tick(i){
+    const c = ensure(); if(!c || !enabled) return;
+    const t = c.currentTime;
+    const osc = c.createOscillator(); osc.type='square';
+    osc.frequency.value = 400 * Math.pow(2, (i%12)/12);
+    const lp = c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2600;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.09, t+0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+0.1);
+    osc.connect(lp); lp.connect(g); g.connect(master);
+    osc.start(t); osc.stop(t+0.12);
+  }
+  /* 打开祈愿界面：一层缓缓拉开的天幕声 */
+  function wishOpen(){
+    const c = ensure(); if(!c || !enabled) return;
+    const t = c.currentTime;
+    const src = c.createBufferSource(); src.buffer = noiseBuf(0.9);
+    const bp = c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.2;
+    bp.frequency.setValueAtTime(170, t);
+    bp.frequency.exponentialRampToValueAtTime(1500, t+0.7);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.13, t+0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+0.9);
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(t); src.stop(t+0.95);
+  }
+  function setEnabled(v){
+    enabled = v;
+    localStorage.setItem('jieyou_sound', v ? '1' : '0');
+    if(!v) stopRattle();
+  }
+  function isEnabled(){ return enabled; }
+  function setVolume(v){
+    volume = Math.min(1, Math.max(0, v));
+    localStorage.setItem('jieyou_vol', String(volume));
+    if(master) master.gain.value = volume;
+  }
+  function getVolume(){ return volume; }
+  /* 首次用户手势解锁 AudioContext（浏览器自动播放策略） */
+  window.addEventListener('pointerdown', ()=>ensure(), {once:true});
+  return {knock, startRattle, stopRattle, pop, meteor, chime, tick, wishOpen, setEnabled, isEnabled, setVolume, getVolume};
+})();
+
+
+/* ============================================================
+   ★★★  新手只需改这两行  ★★★
+   去 Supabase 后台 → 左侧齿轮 Project Settings → API，复制：
+     1) Project URL   （形如 https://abcdefgh.supabase.co）
+     2) anon public   （那一长串 public key，不是 service_role）
+   粘到下面两个引号里，保存文件即可。
+   ★ 没填 / 填错也能正常玩：会自动退回「本地演示模式」，不会白屏。
+   ============================================================ */
 const SUPABASE_URL = 'https://qwokxoxlojbhhhrhctuc.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3b2t4b3hsb2piaGhocmhjdHVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzMzU2MzUsImV4cCI6MjExMDkxMTYzNX0.-l7wzlfPBld2fEGk5Fi87fSi_LNg-5IchBmwjb6RcGs';
 
-let MY_ID = localStorage.getItem('jieyou_id') || 'v_' + Date.now().toString(36);
-localStorage.setItem('jieyou_id', MY_ID);
-let MY_NICK = localStorage.getItem('jieyou_nick') || '访客' + MY_ID.slice(-4);
-let CUR_USER = 'guest'; // 当前用户名
-let lastHallReadTime = Date.now(), unreadHallCount = 0;
-let currentPeerId = null;
+/* ============ 状态 ============ */
+let state = { drawCount:0, xiongStreak:0, collected:new Set(), current:null,
+              recent:[], idleTimer:null, pressTimer:null, longPressed:false, animating:false };
+let MY_ID = null, MY_NICK = localStorage.getItem('jieyou_nick') || '访客';
+let TOTAL_DRAWS = 128456;   // 全站累计求签次数（云端为真实值）
+let ONLINE = 1;             // 此刻在线（近 5 分钟摇过签的去重用户数）
 
-function esc(s) { return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(()=>t.style.display='none', 3000); }
-function drawSign() {
-  const s = SIGNS[Math.floor(Math.random()*SIGNS.length)];
-  document.getElementById('level').textContent = s.level;
-  document.getElementById('text').textContent = s.text;
-  document.getElementById('signNo').textContent = '第 ' + s.id + ' 签';
-  document.getElementById('result').classList.add('show');
-  if(Cloud.isOn()) Cloud.recordDraw(s);
+/* 近期出签记录：最近 12 支内不重复，从源头压低重复率 */
+const RECENT_KEEP = 12;
+function pickRecent(){
+  let pool = SIGNS.filter(s=>!state.recent.includes(s.id));
+  if(pool.length===0){ state.recent=[]; pool = SIGNS.slice(); }
+  const sign = pool[Math.floor(Math.random()*pool.length)];
+  state.recent.push(sign.id);
+  if(state.recent.length>RECENT_KEEP) state.recent.shift();
+  return sign;
 }
 
-/* ================= Supabase 云端模块 ================= */
-const Cloud = (() => {
+function dataKey(){ return 'jieyou_sign_' + (CUR_USER || 'guest'); }
+function load(){
+  let raw = localStorage.getItem(dataKey());
+  /* 旧版单账号数据一次性迁移到游客档 */
+  if(!raw && !CUR_USER && localStorage.getItem('jieyou_sign')){
+    localStorage.setItem(dataKey(), localStorage.getItem('jieyou_sign'));
+    raw = localStorage.getItem(dataKey());
+  }
+  if(raw){ const d=JSON.parse(raw);
+    state.drawCount=d.drawCount||0; state.collected=new Set(d.collected||[]);
+    state.recent=Array.isArray(d.recent)?d.recent:[]; }
+  else{ state.drawCount=0; state.collected=new Set(); state.recent=[]; }
+  state.xiongStreak=0; state.current=null;
+  document.getElementById('result').classList.remove('show');
+}
+/* 本地永远存一份（离线兜底 + 抽取去重记录 + 秒开缓存），按账号分键 */
+function save(){
+  localStorage.setItem(dataKey(), JSON.stringify({
+    drawCount:state.drawCount, collected:[...state.collected], recent:state.recent }));
+}
+
+/* ============ 云端数据层（Supabase） ============
+   所有对 Supabase 的读写都收在这个模块里：
+   · 未配置 / 网络失败 → available 保持 false，全站自动走本地模式
+   · 页面不会因此报错或白屏
+================================================ */
+const Cloud = (()=>{
   let sb = null, available = false;
-  async function init() {
-    if(!window.supabase) return console.warn('SDK未加载');
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    try {
-      // 确保有用户身份（修复原本的时序 bug）
-      const { data, error } = await sb.from('users').upsert({ id: MY_ID, nickname: MY_NICK }, { onConflict: 'id' });
-      if (error) throw error;
+
+  const configured = ()=>
+    /^https?:\/\/.+/.test(SUPABASE_URL) && !SUPABASE_URL.includes('你的') &&
+    SUPABASE_ANON_KEY.length > 20 && !SUPABASE_ANON_KEY.includes('粘到');
+
+  /* SDK 兜底：主 CDN 不通时依次试备用源 */
+  async function loadSdk(){
+    if(window.supabase && window.supabase.createClient) return true;
+    const backups = [
+      'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js',
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js'
+    ];
+    for(const src of backups){
+      try{
+        await new Promise((res,rej)=>{
+          const s=document.createElement('script'); s.src=src; s.async=true;
+          s.onload=res; s.onerror=()=>rej(new Error('sdk load fail'));
+          document.head.appendChild(s);
+        });
+      }catch(e){ /* 换下一个 */ }
+      if(window.supabase && window.supabase.createClient) return true;
+    }
+    return false;
+  }
+
+  /* 访客身份：优先匿名登录（后台需开启 Anonymous Provider）；
+     没开则降级为本地生成的访客指纹，功能照样可用 */
+  async function ensureIdentity(){
+    /* 已登录本地账号：身份以账号为准，不走匿名/访客逻辑 */
+    if(CUR_USER){ MY_ID = 'u_' + CUR_USER; MY_NICK = Account.nick(CUR_USER) || CUR_USER; return; }
+    let uid = null;
+    try{
+      const {data} = await sb.auth.getUser();
+      if(data && data.user) uid = data.user.id;
+    }catch(e){ /* 忽略 */ }
+    if(!uid){
+      try{
+        const r = await sb.auth.signInAnonymously();
+        if(r.data && r.data.user) uid = r.data.user.id;
+        else if(r.error) console.warn('[Supabase] 匿名登录未开启，降级为本地访客ID：', r.error.message);
+      }catch(e){ console.warn('[Supabase] 匿名登录异常，降级为本地访客ID：', e); }
+    }
+    if(!uid){
+      uid = localStorage.getItem('jieyou_visitor');
+      if(!uid){
+        uid = 'v_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+        localStorage.setItem('jieyou_visitor', uid);
+      }
+    }
+    MY_ID = uid;
+    const saved = localStorage.getItem('jieyou_nick');
+    MY_NICK = saved || (NAMES[Math.floor(Math.random()*NAMES.length)] + '·' + uid.slice(-4).toUpperCase());
+    if(!saved) localStorage.setItem('jieyou_nick', MY_NICK);
+  }
+
+  async function init(){
+    if(!configured()){ console.info('[解忧签] 未配置 Supabase，运行在本地演示模式'); return false; }
+    if(!(await loadSdk())){ console.warn('[解忧签] Supabase SDK 加载失败，转本地模式'); return false; }
+    try{
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      await ensureIdentity();
+      const {error} = await sb.from('users').upsert({id:MY_ID, nickname:MY_NICK}, {onConflict:'id'});
+      if(error) throw error;
+      /* 新增：把用户名一并写入 users 表，供「搜索账号 / 加好友」使用（失败不影响主流程） */
+      try{ await syncAccount(CUR_USER, MY_NICK); }catch(e){ /* 忽略 */ }
       available = true;
-      document.getElementById('cloudText').textContent = '已连接云端';
-      document.getElementById('cloudBadge').style.color = '#2e7d5b';
-      initRealtime();
       return true;
-    } catch(e) {
-      console.warn('云端连接失败', e);
-      document.getElementById('cloudText').textContent = '离线模式';
+    }catch(err){
+      console.warn('[解忧签] 云端初始化失败，已自动回退本地模式：', err);
+      available = false;
       return false;
     }
   }
 
-  async function recordDraw(sign) {
-    if(!available) return;
-    await sb.from('draws').insert({ user_id: MY_ID, nickname: MY_NICK, sign_id: sign.id, sign_level: sign.level, is_hidden: false });
+  /* 摇到一支签 → 写入 draws（动态流 / 累计次数 / 在线人数都靠它） */
+  async function recordDraw(sign){
+    if(!available) return false;
+    const {error} = await sb.from('draws').insert({
+      user_id: MY_ID, nickname: MY_NICK, sign_id: sign.id,
+      sign_level: sign.level, sign_type: sign.type, is_hidden: sign.id > 100
+    });
+    if(error){ console.warn('[Supabase] 写入求签记录失败：', error.message); return false; }
+    return true;
   }
 
-  // 发送消息（统一接口，大厅传 public_hall）
-  async function sendMessage(toId, text) {
+  /* 动态流历史（最近 n 条） */
+  async function fetchFeed(limit=20){
+    if(!available) return [];
+    const {data, error} = await sb.from('draws').select('user_id,nickname,sign_level,is_hidden,created_at')
+      .order('created_at', {ascending:false}).limit(limit);
+    if(error){ console.warn('[Supabase] 读取动态失败：', error.message); return []; }
+    return (data||[]).reverse();
+  }
+
+  /* 实时订阅：别人摇签时自动推给你 */
+  function subscribeFeed(onInsert){
+    if(!available) return null;
+    const ch = sb.channel('jieyou-feed')
+      .on('postgres_changes',
+         {event:'INSERT', schema:'public', table:'draws'},
+         payload=>{
+           const r = payload.new;
+           if(r && r.user_id !== MY_ID) onInsert(r);   // 自己那条已本地展示，跳过避免重复
+         })
+      .subscribe(status=>{ if(status==='ERROR') console.warn('[Supabase] 实时通道异常，可刷新页面重试'); });
+    return ch;
+  }
+
+  /* 我的签匣 */
+  async function fetchCollection(){
+    if(!available) return null;
+    const {data, error} = await sb.from('collection').select('sign_id').eq('user_id', MY_ID);
+    if(error){ console.warn('[Supabase] 读取签匣失败：', error.message); return null; }
+    return (data||[]).map(r=>r.sign_id);
+  }
+  async function collect(sign){
     if(!available) return false;
-    const { error } = await sb.from('messages').insert({ from_id: MY_ID, to_id: toId, content: text, from_nick: MY_NICK });
+    const {error} = await sb.from('collection').upsert(
+      {user_id: MY_ID, sign_id: sign.id}, {onConflict:'user_id,sign_id'});
+    if(error){ console.warn('[Supabase] 收藏失败：', error.message); return false; }
+    return true;
+  }
+
+  /* 全站统计：累计次数 + 近 5 分钟在线人数 */
+  async function fetchStats(){
+    if(!available) return null;
+    const since = new Date(Date.now() - 5*60*1000).toISOString();
+    const [cnt, recent] = await Promise.all([
+      sb.from('draws').select('id', {count:'exact', head:true}),
+      sb.from('draws').select('user_id').gte('created_at', since).limit(2000)
+    ]);
+    if(cnt.error) console.warn('[Supabase] 统计失败：', cnt.error.message);
+    const online = cnt.error ? null : new Set((recent.data||[]).map(r=>r.user_id)).size;
+    return { total: cnt.count || 0, online: (online || 0) + 1 };
+  }
+
+  /* 我自己的累计摇签次数（隐藏签「天选」按它判定） */
+  async function fetchMyDrawCount(){
+    if(!available) return null;
+    const {count, error} = await sb.from('draws').select('id', {count:'exact', head:true}).eq('user_id', MY_ID);
+    return error ? null : (count || 0);
+  }
+
+  /* 签运榜：集签数 Top N */
+  async function fetchRank(limit=10){
+    if(!available) return null;
+    const {data, error} = await sb.rpc('top_collectors', {lim: limit});
+    if(error){ console.warn('[Supabase] 排行榜读取失败（请确认已运行 SQL 脚本中的 top_collectors 函数）：', error.message); return null; }
+    return data||[];
+  }
+
+  /* 改昵称 */
+  async function rename(nick){
+    MY_NICK = nick;
+    localStorage.setItem('jieyou_nick', nick);
+    if(!available) return false;
+    const {error} = await sb.from('users').update({nickname:nick}).eq('id', MY_ID);
     return !error;
   }
 
-  async function fetchMessages(peerId, limit = 50) {
-    if(!available) return [];
-    let query = sb.from('messages').select('*');
-    if(peerId === 'public_hall') {
-      query = query.eq('to_id', 'public_hall');
-    } else {
-      query = query.or(`and(from_id.eq.${MY_ID},to_id.eq.${peerId}),and(from_id.eq.${peerId},to_id.eq.${MY_ID})`);
-    }
-    const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
-    return error ? [] : (data || []).reverse();
+  /* ===== 好友与聊天（新增云端接口） =====
+     依赖两张表：friends（好友关系/申请）、messages（私聊消息）
+     建表与实时 publication 语句见随附的「解忧签-聊天功能.sql」；
+     表不存在或未开 RLS 策略时，这些方法只会 console.warn，不会打断页面。 */
+
+  /* 把用户名一并写进 users 表，供全站「搜索账号」使用。
+     老库没有 username 列时自动降级为只写 nickname。 */
+  async function syncAccount(username, nickname){
+    if(!available || !username) return false;
+    const id = 'u_' + String(username).trim();
+    const base = {id:id, nickname:nickname || username};
+    try{
+      const {error} = await sb.from('users').upsert(Object.assign({username:String(username).trim()}, base), {onConflict:'id'});
+      if(!error) return true;
+    }catch(e){ /* 无 username 列：换下一种写法 */ }
+    try{
+      const {error} = await sb.from('users').upsert(base, {onConflict:'id'});
+      return !error;
+    }catch(e){ console.warn('[Supabase] 账号信息同步失败：', e); return false; }
   }
 
-  // 获取好友列表
-  async function fetchFriends() {
+  /* 搜索账号：取一批 users 后在前端按用户名 / 昵称模糊匹配
+     （用 select('*') 而非指定列，避免表结构差异导致整条查询报错） */
+  async function searchUsers(kw){
     if(!available) return [];
-    const { data, error } = await sb.from('friends').select('*')
-      .or(`user_id.eq.${MY_ID},friend_id.eq.${MY_ID}`).eq('status', 'accepted');
-    return error ? [] : (data || []);
-  }
-  
-  // 搜索用户
-  async function searchUsers(kw) {
-    if(!available) return [];
-    const { data, error } = await sb.from('users').select('*').ilike('username', `%${kw}%`).limit(10);
-    if (error) {
-        const { data: d2 } = await sb.from('users').select('*').ilike('nickname', `%${kw}%`).limit(10);
-        return d2 || [];
-    }
-    return data || [];
+    const {data, error} = await sb.from('users').select('*').limit(500);
+    if(error){ console.warn('[Supabase] 搜索账号失败：', error.message); return []; }
+    const k = String(kw||'').trim().toLowerCase();
+    if(!k) return [];
+    return (data||[]).filter(u=>{
+      const name = String(u.username||'').toLowerCase();
+      const nick = String(u.nickname||'').toLowerCase();
+      const id   = String(u.id||'').toLowerCase();
+      return name.includes(k) || nick.includes(k) || id.includes(k);
+    }).slice(0, 20);
   }
 
-  // 发送好友申请
-  async function sendFriendRequest(toId, toNick) {
+  /* 发出好友申请（重复发送视为幂等更新） */
+  async function sendFriendRequest(toId, toNick){
     if(!available) return false;
-    const { error } = await sb.from('friends').insert({ user_id: MY_ID, friend_id: toId, status: 'pending', nickname: MY_NICK, friend_nickname: toNick });
+    const row = {user_id:MY_ID, friend_id:toId, status:'pending', nickname:MY_NICK, friend_nickname:toNick||''};
+    try{
+      const {error} = await sb.from('friends').upsert(row, {onConflict:'user_id,friend_id'});
+      if(!error) return true;
+    }catch(e){ /* 不支持 upsert 时退回 insert */ }
+    try{
+      const {error} = await sb.from('friends').insert(row);
+      if(!error) return true;
+      console.warn('[Supabase] 发送好友申请失败：', error && error.message);
+      return false;
+    }catch(e){ console.warn('[Supabase] 发送好友申请异常：', e); return false; }
+  }
+
+  /* 别人发给我的待通过申请 */
+  async function fetchRequests(){
+    if(!available) return [];
+    const {data, error} = await sb.from('friends').select('*').eq('friend_id', MY_ID).eq('status','pending');
+    if(error){ console.warn('[Supabase] 读取好友申请失败：', error.message); return []; }
+    return data||[];
+  }
+  /* 我发出的、尚未被通过的申请 */
+  async function fetchSentRequests(){
+    if(!available) return [];
+    const {data, error} = await sb.from('friends').select('*').eq('user_id', MY_ID).eq('status','pending');
+    return error ? [] : (data||[]);
+  }
+  /* 已通过的好友关系（双向都算） */
+  async function fetchFriends(){
+    if(!available) return [];
+    const {data, error} = await sb.from('friends').select('*')
+      .or('user_id.eq.'+MY_ID+',friend_id.eq.'+MY_ID).eq('status','accepted').limit(500);
+    if(error){ console.warn('[Supabase] 读取好友列表失败：', error.message); return []; }
+    return data||[];
+  }
+  /* 处理申请：接受=改状态，拒绝=删行 */
+  async function respondRequest(fromId, accept){
+    if(!available) return false;
+    if(accept){
+      const {error} = await sb.from('friends').update({status:'accepted'}).eq('user_id', fromId).eq('friend_id', MY_ID);
+      return !error;
+    }
+    const {error} = await sb.from('friends').delete().eq('user_id', fromId).eq('friend_id', MY_ID);
     return !error;
   }
 
-  // 实时订阅（合并大厅、私聊、好友）
-  function initRealtime() {
-    if(!available) return;
-    sb.channel('chat_room')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-        const row = payload.new;
-        if(row.to_id === 'public_hall') {
-          // 大厅消息
-          if(document.getElementById('hallMask').classList.contains('on')) {
-            renderHallMsg(row);
-          } else if(row.from_id !== MY_ID) {
-            unreadHallCount++;
-            const badge = document.getElementById('hallBadge');
-            badge.textContent = unreadHallCount;
-            badge.hidden = false;
-          }
-        } else if(row.to_id === MY_ID || row.from_id === MY_ID) {
-          // 私聊消息
-          if(document.getElementById('socialMask').classList.contains('on') && (currentPeerId === row.from_id || currentPeerId === row.to_id)) {
-            renderPrivateMsg(row);
-          }
-        }
-      })
-      .subscribe();
+  /* 发一条私聊消息（messages 表无 from_nick 列时自动降级） */
+  async function sendMessage(toId, text){
+    if(!available) return false;
+    try{
+      const {error} = await sb.from('messages').insert({from_id:MY_ID, to_id:toId, content:text, from_nick:MY_NICK});
+      if(!error) return true;
+    }catch(e){ /* 换不带昵称的写法 */ }
+    try{
+      const {error} = await sb.from('messages').insert({from_id:MY_ID, to_id:toId, content:text});
+      if(!error) return true;
+      console.warn('[Supabase] 发送消息失败：', error && error.message);
+      return false;
+    }catch(e){ console.warn('[Supabase] 发送消息异常：', e); return false; }
+  }
+  /* 与某人的最近聊天记录（倒序取再翻转，保证 limit 截断的是最新一批） */
+  async function fetchMessages(peerId, limit){
+    if(!available) return [];
+    const lim = limit || 200;
+    const {data, error} = await sb.from('messages').select('*')
+      .or('and(from_id.eq.'+MY_ID+',to_id.eq.'+peerId+'),and(from_id.eq.'+peerId+',to_id.eq.'+MY_ID+')')
+      .order('created_at', {ascending:false}).limit(lim);
+    if(error){ console.warn('[Supabase] 读取聊天记录失败：', error.message); return []; }
+    return (data||[]).reverse();
+  }
+  /* 发给我、且晚于某时刻的消息（用于未读红点轮询兜底） */
+  async function fetchIncomingSince(ms){
+    if(!available) return [];
+    const since = new Date(ms || 0).toISOString();
+    const {data, error} = await sb.from('messages').select('*').eq('to_id', MY_ID).gt('created_at', since).limit(200);
+    return error ? [] : (data||[]);
+  }
+  /* 实时订阅：新消息 + 新好友申请，共用一条 channel */
+  function subscribeSocial(onEvent){
+    if(!available) return null;
+    return sb.channel('jieyou-social')
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p=>onEvent({kind:'msg', row:p.new}))
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'friends'},  p=>onEvent({kind:'friend', row:p.new}))
+      .on('postgres_changes', {event:'UPDATE', schema:'public', table:'friends'},  p=>onEvent({kind:'friend', row:p.new}))
+      .subscribe(status=>{ if(status==='ERROR') console.warn('[Supabase] 好友/聊天实时通道异常，可刷新页面重试'); });
   }
 
-  return { init, recordDraw, sendMessage, fetchMessages, fetchFriends, searchUsers, sendFriendRequest, isOn: () => available };
+  return {
+    init, recordDraw, fetchFeed, subscribeFeed, fetchCollection, collect,
+    fetchStats, fetchMyDrawCount, fetchRank, rename,
+    /* 好友与聊天（新增） */
+    syncAccount, searchUsers, sendFriendRequest, fetchRequests, fetchSentRequests,
+    fetchFriends, respondRequest, sendMessage, fetchMessages, fetchIncomingSince, subscribeSocial,
+    isOn: ()=>available,
+    reason: ()=> configured() ? (window.supabase ? '连接失败（看控制台 warn）' : 'SDK 加载失败') : '未填写 URL / Key'
+  };
 })();
 
-/* ================= 大厅（茶话会）逻辑 ================= */
-async function openHall() {
-  unreadHallCount = 0;
-  document.getElementById('hallBadge').hidden = true;
-  document.getElementById('hallMask').classList.add('on');
-  const list = document.getElementById('hallMsgs');
-  list.innerHTML = '<div class="empty">加载中…</div>';
-  
-  if(!Cloud.isOn()) return list.innerHTML = '<div class="empty">未连接云端，无法进入大厅</div>';
-  
-  const msgs = await Cloud.fetchMessages('public_hall', 100);
-  list.innerHTML = msgs.length ? '' : '<div class="empty">这里静悄悄的，说句话吧~</div>';
-  msgs.forEach(renderHallMsg);
-  list.scrollTop = list.scrollHeight;
+/* ============ 3D 建模：圆柱签筒 + 四棱竹签 ============ */
+function mix(c1,c2,t){
+  const p=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+  const a=p(c1),b=p(c2);
+  return '#'+a.map((v,i)=>Math.round(v+(b[i]-v)*Math.max(0,Math.min(1,t))).toString(16).padStart(2,'0')).join('');
 }
 
-function closeHall() { document.getElementById('hallMask').classList.remove('on'); }
+const TUBE_R = 95, TUBE_SEG = 18;
+const SEG_W = 2*TUBE_R*Math.tan(Math.PI/TUBE_SEG) + 1.6;
+const tube3d = document.getElementById('tube3d');
 
-function renderHallMsg(m) {
-  const list = document.getElementById('hallMsgs');
-  const empty = list.querySelector('.empty');
-  if(empty) empty.remove();
-  const isMe = m.from_id === MY_ID;
-  const time = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  const div = document.createElement('div');
-  div.className = 'hall-msg';
-  div.innerHTML = `<span class="nick ${isMe?'me':''}">${esc(m.from_nick || '神秘人')}</span> <span>${esc(m.content)}</span> <span class="tm">${time}</span>`;
-  list.appendChild(div);
-  list.scrollTop = list.scrollHeight;
+for(let i=0;i<TUBE_SEG;i++){
+  const a = i*(360/TUBE_SEG);
+  const seg = document.createElement('div');
+  seg.className = 'seg';
+  // 光源位于左前上方 → 用余弦算每片受光量，做出圆柱明暗过渡
+  const lit = (Math.cos((a-318)*Math.PI/180)+1)/2;
+  const col = lit>0.5 ? mix('#c9a86a','#f7e6bd',(lit-0.5)*2) : mix('#5a4020','#c9a86a',lit*2);
+  seg.style.setProperty('--a', a+'deg');
+  seg.style.setProperty('--r', TUBE_R+'px');
+  seg.style.setProperty('--w', SEG_W+'px');
+  seg.style.setProperty('--c', col);
+  tube3d.appendChild(seg);
 }
 
-async function sendHallMsg() {
-  const input = document.getElementById('hallMsgInput');
-  const txt = input.value.trim();
-  if(!txt) return;
-  input.value = '';
-  const ok = await Cloud.sendMessage('public_hall', txt);
-  if(!ok) toast('发送失败，请检查权限');
+const sticks3d = document.getElementById('sticks3d');
+const STICK_CFG = [
+  {ry:-34,tz:34,rz:-16,h:104},{ry:-14,tz:52,rz:-7,h:122},
+  {ry:4,  tz:42,rz:-1, h:110},{ry:20, tz:56,rz:8,  h:128},
+  {ry:38, tz:36,rz:17, h:106},
+];
+STICK_CFG.forEach(cfg=>{
+  const w = document.createElement('div');
+  w.className = 'stick3d';
+  w.style.setProperty('--ry', cfg.ry+'deg');
+  w.style.setProperty('--tz', cfg.tz+'px');
+  w.style.setProperty('--rz', cfg.rz+'deg');
+  [0,90,180,270].forEach(sa=>{
+    const f = document.createElement('div');
+    f.className = 'sseg';
+    f.style.setProperty('--sa', sa+'deg');
+    f.style.setProperty('--h', cfg.h+'px');
+    w.appendChild(f);
+  });
+  sticks3d.appendChild(w);
+});
+
+/* ============ 动画时间轴 ============ */
+const box = document.getElementById('stageBox');
+const skipBtn = document.getElementById('skipBtn');
+const flyStick = document.getElementById('flyStick');
+const flyText = document.getElementById('flyText');
+const hint = document.getElementById('hint');
+const noAnimChk = document.getElementById('noAnimChk');
+let timers = [];
+let pendingSign = null;
+
+function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+
+/* 把飞出的签对齐到筒口的屏幕坐标 */
+function positionFlyStick(){
+  const r = tube3d.getBoundingClientRect();
+  flyStick.style.left = (r.left + r.width/2) + 'px';
+  flyStick.style.top  = (r.top + 4) + 'px';
 }
 
-/* ================= 私聊与好友逻辑 ================= */
-async function openSocial() {
-  document.getElementById('socialMask').classList.add('on');
-  loadFriendList();
+/* 金光中心 = 签筒口的屏幕坐标（而非画面中心），滚动/缩放时同步 */
+function updateGoldOrigin(){
+  const r = tube3d.getBoundingClientRect();
+  const x = r.left + r.width/2;
+  const y = r.top + 6;
+  document.documentElement.style.setProperty('--gx', x+'px');
+  document.documentElement.style.setProperty('--gy', y+'px');
+}
+window.addEventListener('resize', updateGoldOrigin);
+window.addEventListener('scroll', updateGoldOrigin, {passive:true});
+
+function drawSign(forceHidden){
+  if(!CUR_USER){ openLogin('摇签需要先登录，请登录或注册一个账号'); return; }
+  if(state.animating) return;
+  bumpTodayDraws();   /* 当日摇签计数：「无为」隐藏签的门槛之一 */
+  let sign;
+  if(forceHidden){ sign = forceHidden; }
+  else{
+    state.drawCount++;
+    sign = checkHidden() || pickRecent();
+  }
+  pendingSign = sign;
+  if(noAnimChk.checked){ instantDraw(); return; }
+  runAnimation(sign);
 }
 
-function closeSocial() { document.getElementById('socialMask').classList.remove('on'); currentPeerId = null; }
+/* 无动画模式：跳过全部动画直接落定结果 */
+function instantDraw(){
+  clearTimers();
+  clearMeteor();
+  box.classList.remove('shaking','glowing','flying');
+  document.body.classList.remove('gold-burst','flying');
+  Sound.pop();
+  showSign(pendingSign);
+  pushFeed(pendingSign, MY_NICK, true);
+  save(); renderAll();
+  Cloud.recordDraw(pendingSign).then(ok=>{ if(ok) refreshStats(); });
+}
 
-async function searchUsers() {
-  const kw = document.getElementById('socSearchInput').value.trim();
-  if(!kw) return;
-  const users = await Cloud.searchUsers(kw);
-  const list = document.getElementById('socSearchList');
-  list.innerHTML = users.length ? '' : '<li class="soc-hint">未找到用户</li>';
-  users.forEach(u => {
-    if(u.id === MY_ID) return;
-    const li = document.createElement('li');
-    li.innerHTML = `<div class="soc-ava">${esc(u.nickname[0])}</div>
-                    <div style="flex:1;">${esc(u.nickname)}</div>
-                    <button class="btn mini" onclick="addFriend('${u.id}','${esc(u.nickname)}')">加好友</button>`;
-    list.appendChild(li);
+function runAnimation(sign){
+  state.animating = true;
+  clearTimers();
+  clearMeteor();
+  document.getElementById('result').classList.remove('show');
+  hint.classList.add('dim');
+  skipBtn.classList.add('on');
+
+  // 重置
+  box.classList.remove('shaking','glowing','flying');
+  document.body.classList.remove('gold-burst','flying');
+  void box.offsetWidth;
+
+  const tier = rarityOf(sign);   // 稀有度决定流星颜色、撞击特效与音效
+
+  // ① 晃动（3D 摆动）+ 竹签碰撞声
+  box.classList.add('shaking');
+  Sound.startRattle();
+
+  // ② 摇定 → 天幕变暗，按稀有度划过一颗流星
+  timers.push(setTimeout(()=>{
+    box.classList.remove('shaking');
+    Sound.stopRattle();
+    playMeteor(tier, ()=>{
+      // ③ 流星撞击：全屏光爆按稀有度染色 + 竹签飞出
+      setBurstTheme(tier);
+      box.classList.add('glowing');
+      updateGoldOrigin();
+      document.body.classList.add('gold-burst');
+      flyText.textContent = sign.level.replace('隐藏签·','');
+      positionFlyStick();
+      box.classList.add('flying');
+      document.body.classList.add('flying');
+      Sound.pop();
+    });
+  }, 720));
+
+  // ④ 落定签文（流星撞击后再留一段余韵）
+  timers.push(setTimeout(()=>{ finishDraw(); }, 720 + meteorHitMs(tier) + 1400));
+}
+
+/* 跳过：直接跳到最终结果 */
+function skipAnim(e){
+  e && e.stopPropagation();
+  if(!state.animating){
+    toast(noAnimChk.checked ? '已开启无动画模式，结果直接呈现' : '当前没有播放中的动画');
+    return;
+  }
+  clearTimers();
+  clearMeteor();
+  Sound.stopRattle();
+  box.classList.remove('shaking','glowing');
+  document.body.classList.remove('gold-burst');
+  if(pendingSign) setBurstTheme(rarityOf(pendingSign));
+  flyText.textContent = (pendingSign?pendingSign.level:'').replace('隐藏签·','');
+  positionFlyStick();
+  box.classList.add('flying');
+  document.body.classList.add('flying');
+  Sound.pop();
+  finishDraw();
+}
+
+function finishDraw(){
+  const sign = pendingSign;
+  box.classList.remove('shaking','glowing');
+  skipBtn.classList.remove('on');
+  hint.classList.remove('dim');
+  showSign(sign);
+  pushFeed(sign, MY_NICK, true);
+  save(); renderAll();
+  Cloud.recordDraw(sign).then(ok=>{ if(ok) refreshStats(); });
+  state.animating = false;
+  // 稍后隐藏飞出的签，回到待摇状态
+  timers.push(setTimeout(()=>{
+    box.classList.remove('flying');
+    document.body.classList.remove('flying');
+  }, 1000));
+}
+
+function checkHidden(){
+  const hour = new Date().getHours();
+  if(hour>=0 && hour<5) return HIDDEN.find(s=>s.id===103);
+  if(state.drawCount>0 && state.drawCount%7===0) return HIDDEN.find(s=>s.id===101);
+  if(state.xiongStreak>=2) return HIDDEN.find(s=>s.id===102);
+  if(state.collected.size>=Math.ceil(SIGNS.length/2)) return HIDDEN.find(s=>s.id===106);
+  return null;
+}
+
+function showSign(sign){
+  state.current = sign;
+  const lv = document.getElementById('level');
+  lv.textContent = sign.level;
+  lv.className = 'level ' + (sign.type==='ji'?'ji':sign.type==='xiong'?'xiong':sign.type==='hidden-sig'?'hidden-sig':'');
+  document.getElementById('text').textContent = sign.text;
+  document.getElementById('signNo').textContent = sign.id>100 ? '【隐藏签】' : `第 ${String(sign.id).padStart(3,'0')} 签`;
+  document.getElementById('result').classList.add('show');
+  if(sign.type==='xiong') state.xiongStreak++;
+  else if(sign.id<=100) state.xiongStreak=0;
+}
+
+/* ============ 收藏 / 分享 ============ */
+function saveSign(){
+  if(!state.current) return;
+  const sign = state.current;
+  if(state.collected.has(sign.id)){ toast('这支签已经在你的签匣里了'); return; }
+  state.collected.add(sign.id);
+  save(); renderAll();
+  Cloud.collect(sign).then(ok=>{
+    if(ok) toast(sign.id>100 ? '隐藏签已收入签匣 ✦（已同步云端）' : '已收入签匣（已同步云端）');
+    else   toast('已本地收藏 · 云端未连接');
   });
 }
-
-async function addFriend(toId, toNick) {
-  const ok = await Cloud.sendFriendRequest(toId, toNick);
-  toast(ok ? '好友申请已发送' : '发送失败，请查看控制台（可能权限不足）');
+function shareSign(){
+  if(!state.current) return;
+  const txt = `【${state.current.level}】${state.current.text} —— 来自「解忧签」`;
+  if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); }
+  else{ navigator.clipboard.writeText(txt); toast('签文已复制，去分享吧'); }
 }
 
-async function loadFriendList() {
-  const friends = await Cloud.fetchFriends();
-  const list = document.getElementById('socFriendList');
-  list.innerHTML = friends.length ? '' : '<li class="soc-hint">暂无好友</li>';
-  friends.forEach(f => {
-    const isMe = f.user_id === MY_ID;
-    const peerId = isMe ? f.friend_id : f.user_id;
-    const peerNick = isMe ? f.friend_nickname : f.nickname;
-    const li = document.createElement('li');
-    li.innerHTML = `<div class="soc-ava">${esc((peerNick||'友')[0])}</div>
-                    <div style="flex:1;" onclick="openPrivateChat('${peerId}','${esc(peerNick)}')">${esc(peerNick)}</div>`;
-    list.appendChild(li);
-  });
+/* ============ 动态流 ============ */
+const NAMES = ['清风','无名','小舟','阿茶','半夏','长安','南栀','木子','青衫','白鹭'];
+
+function timeAgo(iso){
+  if(!iso) return '';
+  const s = Math.floor((Date.now() - new Date(iso).getTime())/1000);
+  if(s < 60) return '刚刚';
+  if(s < 3600) return Math.floor(s/60) + ' 分钟前';
+  if(s < 86400) return Math.floor(s/3600) + ' 小时前';
+  return Math.floor(s/86400) + ' 天前';
 }
 
-async function openPrivateChat(peerId, peerNick) {
-  currentPeerId = peerId;
-  document.getElementById('socChatHead').textContent = '正在与 ' + peerNick + ' 聊天';
-  const list = document.getElementById('socMsgs');
-  list.innerHTML = '加载中...';
-  const msgs = await Cloud.fetchMessages(peerId, 50);
+/* ===== 求签动态历史（本地持久化，弹窗内滚动查看全部） ===== */
+const FEED_LOG_KEY = 'jieyou_feedlog';
+const FEED_LOG_MAX = 300;
+let FEED_LOG = [];
+try{
+  const raw = JSON.parse(localStorage.getItem(FEED_LOG_KEY));
+  if(Array.isArray(raw)) FEED_LOG = raw;
+}catch(e){ FEED_LOG = []; }
+function saveFeedLog(){
+  try{ localStorage.setItem(FEED_LOG_KEY, JSON.stringify(FEED_LOG)); }catch(e){}
+}
+
+/* 往动态流插一行（me=true 高亮为"我"；hidden=true 触发求签播报） */
+function addFeedLine(nickname, level, me, iso, hidden){
+  const rec = {n:nickname, l:level, me:me?1:0, t:iso||new Date().toISOString(), h:hidden?1:0, u:CUR_USER||'guest'};
+  FEED_LOG.unshift(rec);
+  while(FEED_LOG.length > FEED_LOG_MAX) FEED_LOG.pop();
+  saveFeedLog();
+  if(document.getElementById('feedMask').classList.contains('on')){
+    document.getElementById('feedLogList').prepend(buildFeedLi(rec));
+  }
+  if(hidden) broadcastHidden(nickname, level, me);
+}
+function buildFeedLi(rec){
+  const li = document.createElement('li');
+  if(isMeRec(rec)) li.className = 'me';
+  li.innerHTML = `<b>${escapeHtml(rec.me ? '我' : rec.n)}</b> 摇到了 <em>${escapeHtml(rec.l)}</em>`
+               + `<span class="tm">${timeAgo(rec.t)}</span>`;
+  return li;
+}
+function renderFeedLog(){
+  const list = document.getElementById('feedLogList');
   list.innerHTML = '';
-  msgs.forEach(renderPrivateMsg);
+  if(!FEED_LOG.length){
+    list.innerHTML = '<div class="empty">还没有求签动态<br>摇一签，你就是第一条</div>';
+    return;
+  }
+  FEED_LOG.forEach(rec=>list.appendChild(buildFeedLi(rec)));
+}
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function renderPrivateMsg(m) {
-  const list = document.getElementById('socMsgs');
-  const isMe = m.from_id === MY_ID;
-  const div = document.createElement('div');
-  div.style.cssText = `padding:8px 12px;border-radius:8px;font-size:13px;max-width:80%;margin:4px 0;${isMe?'align-self:flex-end;background:var(--red);color:#fff;':'align-self:flex-start;background:#fff;'}`;
-  div.textContent = m.content;
-  list.appendChild(div);
-  list.scrollTop = list.scrollHeight;
+/* 兼容原调用：pushFeed(sign, name?, isMe?) */
+function pushFeed(sign, name, me){
+  addFeedLine(name || NAMES[Math.floor(Math.random()*NAMES.length)], sign.level, !!me, null, sign.id > 100);
 }
 
-async function sendMsg() {
-  if(!currentPeerId) return toast('请先选择好友');
-  const input = document.getElementById('socMsgInput');
-  const txt = input.value.trim();
-  if(!txt) return;
-  input.value = '';
-  await Cloud.sendMessage(currentPeerId, txt);
+/* 云端行记录 → 动态流（实时推送与历史加载共用） */
+function pushFeedFromRow(r, me){
+  addFeedLine(r.nickname, r.sign_level, !!me, r.created_at, !!r.is_hidden);
 }
 
-function openSettings() { toast('设置功能待完善'); }
+/* ===== 求签播报：有人抽出隐藏签时屏幕上方提示（由设置开关控制） ===== */
+let broadcastOn = localStorage.getItem('jieyou_broadcast') === '1';
+let bcTimer = null;
+function broadcastHidden(nickname, level, me){
+  if(!broadcastOn) return;
+  const bar = document.getElementById('broadcastBar');
+  document.getElementById('broadcastText').textContent =
+    (me ? '你' : escapeHtml(nickname)) + ` 抽出了隐藏签「${level}」`;
+  bar.classList.add('show');
+  clearTimeout(bcTimer);
+  bcTimer = setTimeout(()=>bar.classList.remove('show'), 4000);
+}
 
-// 绑定回车发送
-document.getElementById('hallMsgInput').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendHallMsg(); } });
-document.getElementById('socMsgInput').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } });
+/* ============ 渲染 ============ */
+function renderAll(){
+  document.getElementById('allCount').textContent = ALL.length;
+  document.getElementById('myCount').textContent = state.collected.size;
+  document.getElementById('totalCount').textContent = TOTAL_DRAWS.toLocaleString();
+  document.getElementById('onlineCount').textContent = ONLINE;
+  const grid = document.getElementById('myGrid');
+  grid.innerHTML = '';
+  ALL.forEach(s=>{
+    const div = document.createElement('div');
+    const on = state.collected.has(s.id);
+    if(on){
+      const t = s.type==='hidden-sig' ? 'hidden' : s.type;
+      div.className = 'cell on t-' + t;
+      div.dataset.id = s.id;
+      div.innerHTML = '<span class="clv">' + escapeHtml(s.level) + '</span>'
+                    + '<span class="cno">' + (s.id>100 ? '✦' : String(s.id).padStart(3,'0')) + '</span>';
+      div.title = s.level + ' · 点击查看签文';
+    }else{
+      div.className = 'cell';
+      div.textContent = '?';
+      div.title = '未解锁';
+    }
+    grid.appendChild(div);
+  });
+}
 
-// 启动
-Cloud.init();
+/* ===== 签匣详情：左键点击已收集的签 → 旋转放大到屏幕中央，显示具体签文 ===== */
+function openSignView(id){
+  const s = ALL.find(x=>x.id===id);
+  if(!s) return;
+  const lv = document.getElementById('svLevel');
+  lv.textContent = s.level;
+  lv.className = 'level ' + (s.type==='ji'?'ji':s.type==='xiong'?'xiong':s.type==='hidden-sig'?'hidden-sig':'');
+  document.getElementById('svText').textContent = s.text;
+  document.getElementById('svNo').textContent = s.id>100 ? '【隐藏签】' : '第 ' + String(s.id).padStart(3,'0') + ' 签';
+  document.getElementById('svCond').textContent = s.cond ? '解锁条件：' + s.cond : '';
+  const card = document.getElementById('svCard');
+  card.classList.remove('spin'); void card.offsetWidth; card.classList.add('spin');
+  document.getElementById('signViewMask').classList.add('on');
+  Sound.pop();
+}
+function closeSignView(){ document.getElementById('signViewMask').classList.remove('on'); }
+/* 事件委托：仅左键、仅已收集的格子响应 */
+document.getElementById('myGrid').addEventListener('click', e=>{
+  if(e.button!==0) return;
+  const c = e.target.closest('.cell.on');
+  if(!c || !c.dataset.id) return;
+  openSignView(Number(c.dataset.id));
+});
+
+/* ============ 交互绑定 ============ */
+box.addEventListener('click', (e)=>{
+  if(e.target.id==='skipBtn') return;
+  if(state.animating) return;
+  if(state.longPressed){ state.longPressed=false; return; }
+  resetIdle(); drawSign();
+});
+box.addEventListener('mousedown', ()=>{
+  if(state.animating) return;
+  state.pressTimer = setTimeout(()=>{ state.longPressed=true; drawSign(HIDDEN.find(s=>s.id===105)); }, 3000);
+});
+['mouseup','mouseleave'].forEach(ev=>box.addEventListener(ev, ()=>clearTimeout(state.pressTimer)));
+
+/* ===== 「无为」隐藏签：大"无为"难得 =====
+   旧条件（静置10秒即出）太容易，现改为四条件同时满足才触发：
+   1. 连续 60 秒对页面零操作（点击/按键/滚轮/触摸任一项都重新计时）；
+   2. 当日已摇签满 12 次——先"有为"，才有资格"无为"；
+   3. 页面全程保持前台可见（切走挂后台不算静置）；
+   4. 同一账号每日限得一次。 */
+const WUWEI_IDLE_MS = 60000;
+const WUWEI_NEED_TODAY = 12;
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function todayDraws(){
+  if(!CUR_USER) return 0;
+  try{ const o=JSON.parse(localStorage.getItem('jieyou_tday_'+CUR_USER)||'null'); return (o && o.d===todayStr()) ? (o.n||0) : 0; }catch(e){ return 0; }
+}
+function bumpTodayDraws(){
+  if(!CUR_USER) return;
+  localStorage.setItem('jieyou_tday_'+CUR_USER, JSON.stringify({d:todayStr(), n:todayDraws()+1}));
+}
+function wuweiDoneToday(){ return !!CUR_USER && localStorage.getItem('jieyou_wuwei_'+CUR_USER)===todayStr(); }
+function resetIdle(){
+  clearTimeout(state.idleTimer);
+  if(!CUR_USER) return;
+  state.idleTimer = setTimeout(()=>{
+    if(state.animating || !CUR_USER) return;
+    if(document.visibilityState!=='visible') return resetIdle();   /* 挂后台不算静置，回前台重新计时 */
+    if(todayDraws() < WUWEI_NEED_TODAY || wuweiDoneToday()) return; /* 条件不齐，无为仍静默隐藏 */
+    localStorage.setItem('jieyou_wuwei_'+CUR_USER, todayStr());
+    drawSign(HIDDEN.find(s=>s.id===104));
+  }, WUWEI_IDLE_MS);
+}
+/* 任何真实交互都打断"静置"计数 */
+['pointerdown','keydown','wheel','touchstart'].forEach(ev=>document.addEventListener(ev, ()=>resetIdle(), {passive:true}));
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') resetIdle(); });
+
+/* ===== 设置弹窗 ===== */
+function openSettings(){
+  document.getElementById('setSoundChk').checked = Sound.isEnabled();
+  const v = Math.round(Sound.getVolume()*100);
+  const slider = document.getElementById('volSlider');
+  slider.value = v;
+  slider.style.setProperty('--vp', v+'%');
+  document.getElementById('volVal').textContent = v+'%';
+  document.getElementById('setBroadcastChk').checked = broadcastOn;
+  document.getElementById('settingsMask').classList.add('on');
+}
+function closeSettings(){ document.getElementById('settingsMask').classList.remove('on'); }
+
+/* ===== 求签动态弹窗 ===== */
+function openFeed(){
+  renderFeedLog();
+  document.getElementById('feedMask').classList.add('on');
+}
+function closeFeed(){ document.getElementById('feedMask').classList.remove('on'); }
+
+/* ===== 我的签匣弹窗 ===== */
+function openMyBox(){
+  document.getElementById('boxTip').textContent = CUR_USER ? `你是「${MY_NICK}」 · 集签进度` : '游客模式 · 登录后签匣随账号保存';
+  document.getElementById('boxMask').classList.add('on');
+}
+function closeMyBox(){ document.getElementById('boxMask').classList.remove('on'); }
+
+/* 弹窗统一关闭：点遮罩 / 按 Esc */
+[['settingsMask', closeSettings], ['feedMask', closeFeed], ['boxMask', closeMyBox], ['rankMask', closeRank], ['loginMask', closeLogin], ['signViewMask', closeSignView]]
+  .forEach(([id, fn])=>{
+    document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) fn(); });
+  });
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ closeSettings(); closeFeed(); closeMyBox(); closeRank(); closeLogin(); closeSignView(); }
+});
+
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ============ 云状态徽标 ============ */
+function setCloudStatus(on){
+  const b = document.getElementById('cloudBadge'), t = document.getElementById('cloudText');
+  b.className = 'badge ' + (on ? 'cloud' : 'local');
+  t.textContent = on ? '已连接云数据库 · 动态实时推送中' : '本地演示模式（' + Cloud.reason() + '）';
+}
+
+/* 刷新全站统计：累计求签次数 + 近 5 分钟在线人数 */
+async function refreshStats(){
+  const s = await Cloud.fetchStats();
+  if(!s) return;
+  TOTAL_DRAWS = s.total;
+  ONLINE = s.online;
+  renderAll();
+}
+
+/* 我的签匣（云端） */
+async function refreshMyCollection(){
+  const ids = await Cloud.fetchCollection();
+  if(ids){ state.collected = new Set(ids); save(); renderAll(); }
+}
+
+/* 签运榜 */
+async function openRank(){
+  const mask = document.getElementById('rankMask');
+  const list = document.getElementById('rankList');
+  mask.classList.add('on');
+  if(!Cloud.isOn()){
+    list.innerHTML = '<div class="empty">本地演示模式暂无榜单<br>接入 Supabase 后自动显示全网排名</div>';
+    return;
+  }
+  list.innerHTML = '<li>加载中…</li>';
+  const rows = await Cloud.fetchRank(10);
+  if(!rows || !rows.length){
+    list.innerHTML = '<div class="empty">还没有人集签，快去摇一签占榜一</div>';
+    return;
+  }
+  list.innerHTML = '';
+  rows.forEach((r,i)=>{
+    const li = document.createElement('li');
+    const me = r.user_id === MY_ID;
+    li.innerHTML = `<span class="rk">${i+1}</span><span class="nm">${escapeHtml(me?'我':r.nickname)}</span><span class="ct">${r.cnt} 签</span>`;
+    list.appendChild(li);
+  });
+}
+function closeRank(){ document.getElementById('rankMask').classList.remove('on'); }
+
+/* 改昵称（同步到 users 表） */
+async function editNick(e){
+  e && e.stopPropagation();
+  if(!CUR_USER){ openLogin('改昵称需要先登录'); return; }
+  const v = prompt('给自己取个名字（会显示在求签动态里）：', MY_NICK);
+  if(v === null) return;
+  const nick = v.trim().slice(0, 12);
+  if(!nick){ toast('昵称不能为空'); return; }
+  Account.setNick(CUR_USER, nick);
+  MY_NICK = nick;
+  const ok = await Cloud.rename(nick);
+  refreshUserUI();
+  toast(ok ? `昵称已改为「${nick}」` : `已本地改名为「${nick}」（云端未连接）`);
+}
+
+/* ============ 本地账号系统（用户名 + 密码哈希，存于本机浏览器） ============ */
+const Account = (()=>{
+  const USERS_KEY='jieyou_users', SESSION_KEY='jieyou_session';
+  function users(){ try{ const u=JSON.parse(localStorage.getItem(USERS_KEY)); return (u&&typeof u==='object'&&u)?u:{}; }catch(e){ return {}; } }
+  function saveUsers(u){ localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+  function fbHash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return 'f'+(h>>>0).toString(16); }
+  async function hash(pw){
+    const s='jyq::'+pw;
+    if(window.crypto && crypto.subtle && crypto.subtle.digest){
+      try{
+        const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+        return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');
+      }catch(e){ /* 降级本地哈希 */ }
+    }
+    return fbHash(s);
+  }
+  async function register(name,pw){
+    name=name.trim();
+    if(!name) return {ok:false,msg:'请填写用户名'};
+    if(name.length>12) return {ok:false,msg:'用户名最长 12 个字'};
+    if(!pw||pw.length<8) return {ok:false,msg:'密码至少 8 位'};
+    const u=users();
+    if(u[name]) return {ok:false,msg:'该用户名已注册，请直接登录'};
+    u[name]={pw:await hash(pw), nick:name, created:Date.now()};
+    saveUsers(u);
+    return {ok:true};
+  }
+  async function login(name,pw){
+    name=name.trim();
+    const rec=users()[name];
+    if(!rec) return {ok:false,msg:'用户名未注册，请先注册'};
+    if(rec.pw!==await hash(pw)) return {ok:false,msg:'密码不正确'};
+    localStorage.setItem(SESSION_KEY,name);
+    return {ok:true};
+  }
+  function logout(){ localStorage.removeItem(SESSION_KEY); }
+  function current(){ const n=localStorage.getItem(SESSION_KEY); return (n&&users()[n])?n:null; }
+  function nick(n){ const r=users()[n]; return r?r.nick:n; }
+  function setNick(n,nick){ const u=users(); if(u[n]){ u[n].nick=nick; saveUsers(u); } }
+  return {register,login,logout,current,nick,setNick};
+})();
+
+/* ============ 当前登录态 ============ */
+let CUR_USER = Account.current();
+
+function isMeRec(rec){ return rec.u ? rec.u === (CUR_USER||'guest') : !!rec.me; }
+
+let loginMode = 'login';
+function openLogin(msg){
+  document.getElementById('loginErr').textContent = msg || '';
+  document.getElementById('loginMask').classList.add('on');
+  setTimeout(()=>document.getElementById('loginUser').focus(), 60);
+}
+function closeLogin(){ document.getElementById('loginMask').classList.remove('on'); }
+function switchLoginTab(mode){
+  loginMode = mode;
+  document.getElementById('tabLogin').classList.toggle('on', mode==='login');
+  document.getElementById('tabReg').classList.toggle('on', mode==='reg');
+  document.getElementById('loginTitle').textContent = mode==='login' ? '欢迎回来' : '加入解忧签';
+  document.getElementById('loginTip').textContent = mode==='login' ? '登录后即可摇签，签匣与动态随账号保存' : '用户名 + 密码注册，签匣与记录随账号保存';
+  document.getElementById('loginSubmit').textContent = mode==='login' ? '登录' : '注册并登录';
+  document.getElementById('loginErr').textContent = '';
+}
+async function submitLogin(){
+  const name = document.getElementById('loginUser').value;
+  const pw = document.getElementById('loginPw').value;
+  const err = document.getElementById('loginErr');
+  const btn = document.getElementById('loginSubmit');
+  btn.disabled = true;
+  let r;
+  if(loginMode==='reg'){
+    r = await Account.register(name, pw);
+    if(r.ok) localStorage.setItem('jieyou_session', name.trim());
+  }else{
+    r = await Account.login(name, pw);
+  }
+  btn.disabled = false;
+  if(!r.ok){ err.textContent = r.msg; return; }
+  onLogin(name.trim());
+  closeLogin();
+}
+function onLogin(name){
+  save();                 /* 先把当前游客/上一账号的数据落盘 */
+  CUR_USER = name;
+  MY_NICK = Account.nick(name) || name;
+  MY_ID = 'u_' + name;
+  load();                 /* 载入该账号自己的签匣与次数 */
+  resetIdle();
+  refreshUserUI();
+  renderAll();
+  toast(`欢迎回来，「${MY_NICK}」，轻摇签筒开始`);
+  Cloud.syncAccount(name, MY_NICK);   /* 让本账号可被他人搜索到 */
+  SOCIAL.afterAuthChange();
+}
+function acctAction(){
+  if(CUR_USER){
+    save();
+    Account.logout();
+    CUR_USER = null;
+    MY_NICK = '访客';
+    MY_ID = null;
+    load();
+    resetIdle();
+    refreshUserUI();
+    renderAll();
+    toast('已退出登录，回到游客模式');
+    SOCIAL.afterAuthChange();
+  }else{
+    openLogin();
+  }
+}
+function navAccount(){ CUR_USER ? openSettings() : openLogin(); }
+function refreshUserUI(){
+  const chip = document.getElementById('nickBtn');
+  chip.textContent = CUR_USER ? ('👤 ' + MY_NICK) : '登录/注册';
+  document.getElementById('hint').textContent = CUR_USER ? '轻摇签筒' : '登录后摇签';
+  document.getElementById('acctName').textContent = CUR_USER ? MY_NICK : '未登录';
+  document.getElementById('acctBtn').textContent = CUR_USER ? '退出登录' : '登录';
+}
+document.getElementById('loginPw').addEventListener('keydown', e=>{ if(e.key==='Enter') submitLogin(); });
+
+
+/* ============================================================
+   ============ 祈愿系统：稀有度 / 流星过场 / 结算 ============
+   稀有度分五档：grey 凡签 → blue 吉签 → purple 上吉 → gold 天签 → hidden 命定
+   档位决定：流星颜色、撞击环数与火星数量、全屏爆光配色、铃音长度
+   ============================================================ */
+const TIER_ORDER = ['grey','blue','purple','gold','hidden'];
+const TIER_META = {
+  grey  :{star:'★★',     name:'凡签'},
+  blue  :{star:'★★★',    name:'吉签'},
+  purple:{star:'★★★★',   name:'上吉'},
+  gold  :{star:'★★★★★',  name:'天签'},
+  hidden:{star:'★★★★★★', name:'命定'}
+};
+/* 签 → 稀有度 */
+function rarityOf(sign){
+  if(sign.type==='hidden-sig') return 'hidden';
+  if(sign.level==='上上签')     return 'gold';
+  if(sign.type==='ji')          return 'purple';
+  if(sign.type==='zhong')       return 'blue';
+  return 'grey';
+}
+/* 稀有度 → 从对应签池里抽一支 */
+function signByTier(tier){
+  let pool;
+  if(tier==='hidden')            pool = HIDDEN;
+  else if(tier==='gold')         pool = SIGNS.filter(s=>s.level==='上上签');
+  else if(tier==='purple')       pool = SIGNS.filter(s=>s.type==='ji' && s.level!=='上上签');
+  else if(tier==='blue')         pool = SIGNS.filter(s=>s.type==='zhong');
+  else                           pool = SIGNS.filter(s=>s.type==='xiong');
+  if(!pool.length) pool = SIGNS;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+/* 流星配色：[亮色, 光晕色] */
+const METEOR_COLORS = {
+  grey  :['#cdd8e6','#6c7b92'],
+  blue  :['#a8d4ff','#3a7fd0'],
+  purple:['#d3b0ff','#7a45d6'],
+  gold  :['#fff2c4','#e8b53a'],
+  hidden:['#ffd9f4','#c264f0']
+};
+/* 全屏爆光配色：核心→外缘 7 段 + 光环色 */
+const BURST = {
+  grey  :['#f4f7fa','#e3eaf2','#c3cfdd','#9aa8bc','rgba(120,140,165,.55)','rgba(120,140,165,.2)','rgba(120,140,165,0)','#e0e8f2'],
+  blue  :['#f2fbff','#dcf1ff','#a9d7ff','#6fa8ff','rgba(70,145,225,.55)','rgba(70,145,225,.2)','rgba(70,145,225,0)','#c3e4ff'],
+  purple:['#fbf5ff','#eddcff','#d3b0ff','#a86fe8','rgba(150,95,225,.55)','rgba(150,95,225,.2)','rgba(150,95,225,0)','#dfc4ff'],
+  gold  :['#fffef8','#fff6cf','#ffe9a0','#f4c95c','rgba(232,180,70,.6)','rgba(232,180,70,.2)','rgba(232,180,70,0)','#fff6d8'],
+  hidden:['#fff6fd','#ffdff8','#f0b4ff','#c07cf0','rgba(138,92,240,.6)','rgba(138,92,240,.22)','rgba(138,92,240,0)','#ffd9f6']
+};
+/* 把稀有度写进 CSS 变量，金光层 / 筒口光 / 光环 / 放射线一起换色 */
+function setBurstTheme(tier){
+  const c = BURST[tier] || BURST.gold, s = document.documentElement.style;
+  s.setProperty('--b0',c[0]); s.setProperty('--b1',c[1]); s.setProperty('--b2',c[2]);
+  s.setProperty('--b3',c[3]); s.setProperty('--b4',c[4]); s.setProperty('--b5',c[5]);
+  s.setProperty('--b6',c[6]); s.setProperty('--br',c[7]);
+  s.setProperty('--g0',c[0]); s.setProperty('--g1',c[1]);
+  s.setProperty('--g2',c[4]); s.setProperty('--g3',c[6]);
+  s.setProperty('--bcore', tier==='grey' ? 'rgba(255,255,255,.72)' : 'rgba(255,255,255,.92)');
+}
+
+/* ===== 流星过场 ===== */
+let meteorTimers = [];
+function clearMeteor(){
+  meteorTimers.forEach(clearTimeout); meteorTimers = [];
+  const layer = document.getElementById('meteorLayer');
+  if(layer){ layer.classList.remove('on'); layer.innerHTML = ''; }
+}
+function meteorDur(tier){ return (tier==='gold'||tier==='hidden') ? 1550 : 1150; }
+function meteorHitMs(tier){ return Math.round(meteorDur(tier)*0.72); }
+
+function playMeteor(tier, onImpact, onDone){
+  clearMeteor();
+  const layer = document.getElementById('meteorLayer');
+  if(!layer){ onImpact && onImpact(); onDone && onDone(); return; }
+  const col = METEOR_COLORS[tier] || METEOR_COLORS.blue;
+  const dur = meteorDur(tier);
+  layer.innerHTML = '<div class="sky"></div>';
+
+  const m = document.createElement('div');
+  m.className = 'meteor';
+  m.style.setProperty('--mc', col[0]); m.style.setProperty('--mg', col[1]);
+  m.style.setProperty('--dur', dur+'ms');
+  layer.appendChild(m);
+
+  const m2 = document.createElement('div');      // 第二颗细尾迹，增加层次
+  m2.className = 'meteor trail2';
+  m2.style.setProperty('--mc', col[0]); m2.style.setProperty('--mg', col[1]);
+  m2.style.setProperty('--dur', Math.round(dur*1.15)+'ms');
+  layer.appendChild(m2);
+
+  void layer.offsetWidth;
+  layer.classList.add('on');
+  Sound.meteor(tier);
+
+  const hit = meteorHitMs(tier);
+  meteorTimers.push(setTimeout(()=>{
+    const f = document.createElement('div');
+    f.className = 'meteor-flash';
+    f.style.setProperty('--mc', col[0]); f.style.setProperty('--mg', col[1]);
+    layer.appendChild(f);
+
+    const rings = (tier==='hidden') ? 4 : (tier==='gold' ? 3 : (tier==='purple' ? 2 : 1));
+    for(let i=0;i<rings;i++){
+      const r = document.createElement('div');
+      r.className = 'meteor-ring';
+      r.style.setProperty('--mc', i%2 ? '#ffffff' : col[0]);
+      r.style.setProperty('--mg', col[1]);
+      r.style.animationDelay = (i*130)+'ms';
+      layer.appendChild(r);
+    }
+    const sparks = tier==='grey' ? 5 : tier==='blue' ? 8 : tier==='purple' ? 12 : 18;
+    for(let i=0;i<sparks;i++){
+      const s = document.createElement('div');
+      s.className = 'meteor-spark';
+      const ang = Math.random()*Math.PI*2, dist = 70 + Math.random()*190;
+      s.style.setProperty('--sx', (Math.cos(ang)*dist).toFixed(1)+'px');
+      s.style.setProperty('--sy', (Math.sin(ang)*dist).toFixed(1)+'px');
+      s.style.setProperty('--mc', col[0]); s.style.setProperty('--mg', col[1]);
+      s.style.animationDelay = (Math.random()*170)+'ms';
+      layer.appendChild(s);
+    }
+    Sound.chime(tier);
+    if(tier==='gold' || tier==='hidden'){
+      const w = document.getElementById('wishScreen');
+      if(w){ w.classList.add('quake'); setTimeout(()=>w.classList.remove('quake'), 520); }
+    }
+    onImpact && onImpact();
+  }, hit));
+
+  meteorTimers.push(setTimeout(()=>{
+    layer.classList.remove('on');
+    meteorTimers.push(setTimeout(()=>{ layer.innerHTML=''; }, 340));
+    onDone && onDone();
+  }, hit + (tier==='hidden' ? 1300 : 1000)));
+}
+
+/* ===== 签缘（每日次数）与保底 ===== */
+const FATE_MAX = 30, PITY_GOLD = 40;
+function fateInfo(){
+  let o = null;
+  try{ o = JSON.parse(localStorage.getItem('jieyou_fate')); }catch(e){ o = null; }
+  if(!o || o.d !== todayStr()) o = {d:todayStr(), n:FATE_MAX};
+  return o;
+}
+function fateSpend(k){
+  const o = fateInfo();
+  if(o.n < k) return false;
+  o.n -= k;
+  localStorage.setItem('jieyou_fate', JSON.stringify(o));
+  renderWishCost();
+  return true;
+}
+function pityKey(){ return 'jieyou_pity_' + (CUR_USER || 'guest'); }
+function pityGet(){
+  try{
+    const p = JSON.parse(localStorage.getItem(pityKey()));
+    if(p && typeof p==='object') return {g:p.g||0, p:p.p||0};
+  }catch(e){}
+  return {g:0, p:0};
+}
+function pitySet(p){ localStorage.setItem(pityKey(), JSON.stringify(p)); }
+
+function renderWishCost(){
+  const f = fateInfo();
+  const a = document.getElementById('wishFate');
+  if(a) a.textContent = f.n;
+  const p = pityGet(), el = document.getElementById('wishPity');
+  if(el) el.textContent = '距必出天签还需 ' + Math.max(0, PITY_GOLD - p.g) + ' 抽 · 距十连保底还需 ' + Math.max(0, 9 - p.p) + ' 抽';
+  const s = document.getElementById('wishBtnSingle'), m = document.getElementById('wishBtnMulti');
+  if(s) s.disabled = state.animating || f.n < 1;
+  if(m) m.disabled = state.animating || f.n < 10;
+}
+
+/* 单抽：先走保底，再按概率表掷骰 */
+function rollOne(p){
+  p.g++; p.p++;
+  let tier;
+  if(p.g >= PITY_GOLD){ tier = 'gold'; p.g = 0; }
+  else{
+    const r = Math.random();
+    if(r < 0.02)      tier = 'hidden';
+    else if(r < 0.12) tier = 'gold';
+    else if(r < 0.45) tier = 'purple';
+    else if(r < 0.80) tier = 'blue';
+    else              tier = 'grey';
+    if(tier==='gold') p.g = 0;
+  }
+  if(tier==='purple' || tier==='gold' || tier==='hidden') p.p = 0;
+  return signByTier(tier);
+}
+
+/* ===== 星空背景 ===== */
+let wishStarsRAF = null, wishTimerId = null;
+function startStars(){
+  const cv = document.getElementById('wishStars');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  if(!ctx) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  let W = 0, H = 0;
+  function size(){
+    W = cv.width  = Math.max(1, Math.floor(cv.offsetWidth  * dpr));
+    H = cv.height = Math.max(1, Math.floor(cv.offsetHeight * dpr));
+  }
+  size();
+  window.addEventListener('resize', size);
+  const N = Math.max(60, Math.min(190, Math.floor(window.innerWidth/7)));
+  const stars = [];
+  for(let i=0;i<N;i++) stars.push({
+    x:Math.random(), y:Math.random(), r:.3+Math.random()*1.5,
+    p:Math.random()*Math.PI*2, s:.25+Math.random()*.85,
+    vy:.00003+Math.random()*.00011
+  });
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    for(const st of stars){
+      st.p += .02*st.s; st.y -= st.vy;
+      if(st.y < -.02) st.y = 1.02;
+      const a = .2 + .8*Math.abs(Math.sin(st.p));
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(' + (215+Math.floor(40*a)) + ',228,255,' + (a*.85).toFixed(3) + ')';
+      ctx.arc(st.x*W, st.y*H, st.r*dpr, 0, 6.2832);
+      ctx.fill();
+    }
+    wishStarsRAF = requestAnimationFrame(frame);
+  }
+  frame();
+}
+function stopStars(){
+  if(wishStarsRAF){ cancelAnimationFrame(wishStarsRAF); wishStarsRAF = null; }
+}
+/* 倒计时到每日 04:00（签缘恢复点） */
+function wishCountdown(){
+  const now = new Date(), end = new Date(now);
+  end.setHours(4,0,0,0);
+  if(end <= now) end.setDate(end.getDate()+1);
+  let s = Math.floor((end - now)/1000);
+  const d = Math.floor(s/86400); s %= 86400;
+  const h = Math.floor(s/3600);  s %= 3600;
+  const m = Math.floor(s/60);    s %= 60;
+  const pad = n => String(n).padStart(2,'0');
+  return (d>0 ? d+' 天 ' : '') + pad(h)+':'+pad(m)+':'+pad(s);
+}
+
+/* ===== 祈愿界面开合 ===== */
+function openWish(){
+  if(!CUR_USER){ openLogin('祈愿需要先登录，请登录或注册一个账号'); return; }
+  const w = document.getElementById('wishScreen');
+  w.classList.add('on'); w.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden';
+  startStars(); renderWishCost();
+  const t = document.getElementById('wishTimer');
+  const tick = ()=>{ t.textContent = '剩余 ' + wishCountdown(); };
+  tick();
+  clearInterval(wishTimerId);
+  wishTimerId = setInterval(tick, 1000);
+  Sound.wishOpen();
+}
+function closeWish(){
+  const w = document.getElementById('wishScreen');
+  w.classList.remove('on'); w.setAttribute('aria-hidden','true');
+  document.body.style.overflow = '';
+  stopStars();
+  clearInterval(wishTimerId); wishTimerId = null;
+}
+
+/* ===== 祈愿主流程 ===== */
+let wishResults = [], wishBest = null, wishResultTimers = [];
+function doWish(n){
+  if(!CUR_USER){ openLogin('祈愿需要先登录'); return; }
+  if(state.animating) return;
+  if(fateInfo().n < n){ toast('签缘不足，明日 04:00 恢复'); return; }
+  fateSpend(n);
+
+  const p = pityGet(), results = [];
+  for(let i=0;i<n;i++){
+    const s = rollOne(p);
+    results.push(s);
+    state.drawCount++;
+    bumpTodayDraws();
+    Cloud.recordDraw(s);
+    TOTAL_DRAWS++;
+  }
+  /* 十连保底：整组没有上吉及以上，就把最后一张换成上吉 */
+  if(n>=10 && !results.some(s=>TIER_ORDER.indexOf(rarityOf(s))>=2)){
+    results[results.length-1] = signByTier('purple');
+  }
+  pitySet(p);
+  save(); renderAll(); renderWishCost();
+
+  wishResults = results;
+  wishBest = results.reduce((a,s)=>
+    TIER_ORDER.indexOf(rarityOf(s)) > TIER_ORDER.indexOf(rarityOf(a)) ? s : a, results[0]);
+
+  state.animating = true;
+  if(noAnimChk.checked){ finishWish(); return; }
+  playMeteor(rarityOf(wishBest), ()=>{ Sound.pop(); }, ()=>{ finishWish(); });
+}
+function finishWish(){
+  state.animating = false;
+  showSign(wishBest);                 // 主页卡片展示本次最好的一支
+  wishResults.forEach(s=>pushFeed(s, MY_NICK, true));
+  save(); renderAll(); renderWishCost();
+  openWishResult(wishResults);
+}
+function openWishResult(results){
+  const grid = document.getElementById('wishGrid');
+  grid.innerHTML = '';
+  grid.className = 'wish-grid' + (results.length===1 ? ' one' : '');
+  document.getElementById('wrTitle').textContent =
+    results.length===1 ? '祈愿结果' : '祈愿 ×' + results.length;
+  wishResultTimers.forEach(clearTimeout); wishResultTimers = [];
+
+  results.forEach((s,i)=>{
+    const tier = rarityOf(s), meta = TIER_META[tier];
+    const card = document.createElement('div');
+    card.className = 'rcard r-' + tier;
+    card.style.animationDelay = (i*95) + 'ms';
+    card.innerHTML =
+        '<div class="rc-star">' + meta.star + ' ' + meta.name + '</div>'
+      + '<div class="rc-lv">' + escapeHtml(s.level) + '</div>'
+      + '<div class="rc-tx">' + escapeHtml(s.text) + '</div>'
+      + '<div class="rc-no">' + (s.id>100 ? '隐藏签' : '第 ' + String(s.id).padStart(3,'0') + ' 签') + '</div>';
+    grid.appendChild(card);
+    wishResultTimers.push(setTimeout(()=>{
+      Sound.tick(i);
+      if(tier==='gold' || tier==='hidden') Sound.chime(tier);
+    }, i*95 + 250));
+  });
+
+  const cnt = {};
+  results.forEach(s=>{ const t=rarityOf(s); cnt[t]=(cnt[t]||0)+1; });
+  const parts = TIER_ORDER.filter(t=>cnt[t]).map(t=>TIER_META[t].name+' ×'+cnt[t]);
+  document.getElementById('wrFoot').innerHTML = '本次祈愿：' + parts.join(' · ');
+  document.getElementById('wishResultMask').classList.add('on');
+}
+function closeWishResult(){
+  wishResultTimers.forEach(clearTimeout); wishResultTimers = [];
+  document.getElementById('wishResultMask').classList.remove('on');
+}
+function collectAllWish(){
+  if(!wishResults.length){ toast('没有可收纳的签'); return; }
+  let added = 0;
+  wishResults.forEach(s=>{
+    if(!state.collected.has(s.id)){ state.collected.add(s.id); added++; Cloud.collect(s); }
+  });
+  save(); renderAll();
+  toast(added ? ('已收入 ' + added + ' 支新签') : '这些签都已经在签匣里了');
+}
+
+/* ===== 祈愿详情 / 祈愿记录 ===== */
+function openWishDetail(){ document.getElementById('wishDetailMask').classList.add('on'); }
+function closeWishDetail(){ document.getElementById('wishDetailMask').classList.remove('on'); }
+function openWishHistory(){
+  const list = document.getElementById('wishHistoryList');
+  list.innerHTML = '';
+  if(!FEED_LOG.length){
+    list.innerHTML = '<div class="empty">还没有祈愿记录<br>去祈一签，你就是第一条</div>';
+  }else{
+    FEED_LOG.slice(0,100).forEach(rec=>{
+      const li = document.createElement('li');
+      if(isMeRec(rec)) li.className = 'me';
+      li.innerHTML = '<b>' + escapeHtml(rec.me ? '我' : rec.n) + '</b> 祈出了 <em>'
+                   + escapeHtml(rec.l) + '</em><span class="tm">' + timeAgo(rec.t) + '</span>';
+      list.appendChild(li);
+    });
+  }
+  document.getElementById('wishHistoryMask').classList.add('on');
+}
+function closeWishHistory(){ document.getElementById('wishHistoryMask').classList.remove('on'); }
+
+[['wishDetailMask', closeWishDetail], ['wishHistoryMask', closeWishHistory]].forEach(([id, fn])=>{
+  document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) fn(); });
+});
+document.getElementById('wishResultMask').addEventListener('click', e=>{
+  if(e.target.id==='wishResultMask') closeWishResult();
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape') return;
+  closeWishDetail(); closeWishHistory();
+  if(document.getElementById('wishResultMask').classList.contains('on')) closeWishResult();
+  if(document.getElementById('wishScreen').classList.contains('on')) closeWish();
+});
+
+/* 登录态变化后刷新签缘/保底显示（保底按账号分别计） */
+const _prevRefreshUserUI = refreshUserUI;
+refreshUserUI = function(){ _prevRefreshUserUI(); renderWishCost(); };
+renderWishCost();
+
+/* ============================================================
+   ============ 好友与聊天：搜索账号 / 加好友 / 私聊 ============
+   与全站「云端优先、本地兜底」策略保持一致，两条数据通路：
+   ① 云端（Supabase）：users 搜索账号、friends 好友关系、
+      messages 私聊消息，并走 postgres_changes 实时推送；
+   ② 本地演示模式（未配置 / 连不上云）：好友关系、申请与聊天记录
+      全部落 localStorage；同一浏览器多开标签页（登录不同账号）
+      可凭 storage 事件实时互聊，并内置 3 位「演示签友」自动回话。
+   入口：顶部导航「签友」按钮 → openSocial()
+   ============================================================ */
+const SOCIAL = (()=>{
+  let currentPeer = null;      // 当前会话对象 {id, nickname}
+  let SEARCH_CACHE = [];       // 最近一次搜索结果，用于刷新按钮态
+  let socChannel = null;
+  let demoTimer = null;
+  let unread = {};
+
+  /* 本地演示模式下的内置签友（仅离线兜底时出现，云端模式不掺入） */
+  const DEMO_USERS = [
+    {id:'u_demo_yun', nickname:'云游签友',
+     reply:['幸会。你今日摇到什么签？','签文只指方向，路还得自己走。','我也是摇完一签才肯走的。']},
+    {id:'u_demo_shu', nickname:'树下小舟',
+     reply:['你好呀，久仰签名。','我攒到「圆满」了，你集了几支？','别连着摇，越摇越糊。']},
+    {id:'u_demo_qing', nickname:'青衫客',
+     reply:['深夜摇签的人，多半有心事。','说与我听也无妨。','签好就笑一笑，签差就睡一觉。']}
+  ];
+
+  const cloudOn = ()=> Cloud.isOn();
+  /* 本地存储统一主键：登录后 MY_ID = 'u_' + 用户名；未登录兜底为 u_guest。
+     好友表 / 会话记录 / 申请箱全部用它，避免 CUR_USER 与 MY_ID 两套主键读写错位。 */
+  const meId = ()=> MY_ID || ('u_' + (CUR_USER || 'guest'));
+  const esc = s => escapeHtml(s);
+  function avatarText(nick){
+    const s = String(nick||'签').trim();
+    return s.charAt(0) || '签';
+  }
+  function fmtTime(ts){
+    if(!ts) return '';
+    const d = new Date(ts), now = new Date(), pad = n=>String(n).padStart(2,'0');
+    const hm = pad(d.getHours())+':'+pad(d.getMinutes());
+    return (d.toDateString()===now.toDateString()) ? hm : (d.getMonth()+1)+'月'+d.getDate()+'日 '+hm;
+  }
+  const maskOn = ()=>{ const m=document.getElementById('socialMask'); return !!m && m.classList.contains('on'); };
+
+  /* ---------- 未读红点 ---------- */
+  const unreadKey = ()=> 'jieyou_unread_' + (CUR_USER || 'guest');
+  function loadUnread(){
+    try{ const o=JSON.parse(localStorage.getItem(unreadKey())); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; }
+  }
+  function saveUnread(){ localStorage.setItem(unreadKey(), JSON.stringify(unread)); renderBadge(); }
+  function renderBadge(){
+    const el = document.getElementById('friendBadge'); if(!el) return;
+    const n = Object.keys(unread).reduce((a,k)=>a+(unread[k]||0), 0);
+    el.textContent = n>99 ? '99+' : n;
+    el.hidden = n===0;
+  }
+  function bumpUnread(peerId){ if(!peerId) return; unread[peerId]=(unread[peerId]||0)+1; saveUnread(); }
+  function clearUnread(peerId){ if(unread[peerId]!==undefined){ delete unread[peerId]; saveUnread(); } }
+
+  /* ---------- 本地存储（演示模式） ---------- */
+  const fkey = u=> 'jieyou_friends_' + u;
+  function lFriends(){
+    try{ const o=JSON.parse(localStorage.getItem(fkey(meId()))); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; }
+  }
+  function lFriendAdd(aId, aNick, bId, bNick){
+    const A = JSON.parse(localStorage.getItem(fkey(aId))||'{}');
+    const B = JSON.parse(localStorage.getItem(fkey(bId))||'{}');
+    A[bId] = {nickname:bNick||bId, at:Date.now()};
+    B[aId] = {nickname:aNick||aId, at:Date.now()};
+    localStorage.setItem(fkey(aId), JSON.stringify(A));
+    localStorage.setItem(fkey(bId), JSON.stringify(B));
+  }
+  const REQ_KEY = 'jieyou_reqs';
+  function lReqs(){
+    try{ const o=JSON.parse(localStorage.getItem(REQ_KEY)); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; }
+  }
+  function lSetReqs(o){ localStorage.setItem(REQ_KEY, JSON.stringify(o)); }
+  function lIncoming(){ return (lReqs()[meId()]||[]).filter(r=>r.status==='pending'); }
+  function lOutgoing(){
+    const R=lReqs(), out=[];
+    Object.keys(R).forEach(to=>{ (R[to]||[]).forEach(r=>{ if(r.from===meId() && r.status==='pending') out.push({id:to}); }); });
+    return out;
+  }
+  /* 会话键按 id 排序，保证双方读写同一份记录 */
+  function chatKey(a,b){ const p=[a,b].sort(); return 'jieyou_chat_'+p[0]+'__'+p[1]; }
+  function lMsgs(a,b){
+    try{ const o=JSON.parse(localStorage.getItem(chatKey(a,b))); return Array.isArray(o)?o:[]; }catch(e){ return []; }
+  }
+  function lPushMsg(a,b,rec){
+    const arr=lMsgs(a,b); arr.push(rec);
+    while(arr.length>500) arr.shift();
+    localStorage.setItem(chatKey(a,b), JSON.stringify(arr));
+  }
+  /* 本地账号目录：本机已注册账号 + 演示签友 */
+  function localDirectory(){
+    let u={}; try{ u = JSON.parse(localStorage.getItem('jieyou_users'))||{}; }catch(e){ u={}; }
+    const rows = Object.keys(u).map(n=>({id:'u_'+n, nickname:u[n].nick||n}));
+    return rows.concat(DEMO_USERS.map(d=>({id:d.id, nickname:d.nickname})));
+  }
+  const isDemo = id=> DEMO_USERS.some(d=>d.id===id);
+
+  /* ---------- 好友 / 申请（云端 + 本地合并） ---------- */
+  async function myFriends(){
+    const map = {};
+    const lf = lFriends();
+    Object.keys(lf).forEach(id=>{ map[id] = {id:id, nickname:lf[id].nickname||id}; });
+    if(cloudOn()){
+      const rows = await Cloud.fetchFriends();
+      (rows||[]).forEach(r=>{
+        const pid = r.user_id===meId() ? r.friend_id : r.user_id;
+        const pn  = r.user_id===meId() ? (r.friend_nickname||pid) : (r.nickname||pid);
+        if(pid && pid!==meId()) map[pid] = {id:pid, nickname:pn||pid};
+      });
+    }
+    return Object.keys(map).map(k=>map[k]);
+  }
+  async function myRequests(){
+    const out=[], seen={};
+    lIncoming().forEach(r=>{ if(!seen[r.from]){ seen[r.from]=1; out.push({id:r.from, nickname:r.fromNick||r.from}); } });
+    if(cloudOn()){
+      const rows = await Cloud.fetchRequests();
+      (rows||[]).forEach(r=>{ if(!seen[r.user_id]){ seen[r.user_id]=1; out.push({id:r.user_id, nickname:r.nickname||r.user_id}); } });
+    }
+    return out;
+  }
+  async function mySent(){
+    const out=[], seen={};
+    lOutgoing().forEach(r=>{ if(!seen[r.id]){ seen[r.id]=1; out.push(r.id); } });
+    if(cloudOn()){
+      const rows = await Cloud.fetchSentRequests();
+      (rows||[]).forEach(r=>{ if(!seen[r.friend_id]){ seen[r.friend_id]=1; out.push(r.friend_id); } });
+    }
+    return out;
+  }
+
+  /* ---------- 渲染：搜索结果 ---------- */
+  async function renderSearch(){
+    const ul = document.getElementById('socSearchList');
+    if(!ul) return;
+    if(!SEARCH_CACHE.length) return;
+    const fr = await myFriends(), reqs = await myRequests(), sent = await mySent();
+    ul.innerHTML = '';
+    SEARCH_CACHE.forEach(u=>{
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="soc-ava">'+esc(avatarText(u.nickname))+'</span>'
+                   + '<span class="soc-nm">'+esc(u.nickname)+'<small>@'+esc(String(u.id).replace(/^u_/,''))+'</small></span>';
+      if(fr.some(f=>f.id===u.id)){
+        const b=document.createElement('button'); b.className='btn mini primary'; b.textContent='发消息';
+        b.onclick=()=>openChat(u); li.appendChild(b);
+      }else if(sent.indexOf(u.id)>=0){
+        const s=document.createElement('span'); s.className='done'; s.textContent='待通过'; li.appendChild(s);
+      }else if(reqs.some(r=>r.id===u.id)){
+        const s=document.createElement('span'); s.className='done'; s.textContent='对方申请中'; li.appendChild(s);
+      }else{
+        const b=document.createElement('button'); b.className='btn mini'; b.textContent='加好友';
+        b.onclick=()=>addFriend(u.id, u.nickname); li.appendChild(b);
+      }
+      ul.appendChild(li);
+    });
+  }
+
+  async function search(kw){
+    const ul = document.getElementById('socSearchList');
+    if(!ul) return;
+    kw = String(kw||'').trim();
+    if(!kw){ SEARCH_CACHE=[]; ul.innerHTML='<li class="soc-hint">输入用户名后点「搜索」</li>'; return; }
+    ul.innerHTML = '<li class="soc-hint">搜索中…</li>';
+    let rows = [];
+    if(cloudOn()){
+      rows = (await Cloud.searchUsers(kw)).map(u=>({id:u.id, nickname:u.nickname||u.username||'签友'}));
+    }else{
+      const k = kw.toLowerCase();
+      rows = localDirectory().filter(u=>u.nickname.toLowerCase().includes(k) || String(u.id).toLowerCase().includes(k));
+    }
+    const seen = {};
+    rows = rows.filter(u=> u.id && u.id!==meId() && (seen[u.id]?false:(seen[u.id]=1)));
+    SEARCH_CACHE = rows;
+    if(!rows.length){
+      ul.innerHTML = '<li class="soc-hint">没有找到与「'+esc(kw)+'」匹配的账号<br>'
+                   + (cloudOn() ? '对方需已登录过本站（账号会同步到云端目录）' : '本地演示模式只能搜到本机已注册的账号与演示签友')
+                   + '</li>';
+      return;
+    }
+    await renderSearch();
+  }
+
+  /* ---------- 渲染：好友申请 ---------- */
+  async function renderRequests(){
+    const ul = document.getElementById('socReqList'), cnt = document.getElementById('reqCount');
+    if(!ul) return;
+    const rows = await myRequests();
+    if(cnt) cnt.textContent = rows.length ? '('+rows.length+')' : '';
+    if(!rows.length){ ul.innerHTML = '<li class="soc-hint">暂无新申请</li>'; return; }
+    ul.innerHTML = '';
+    rows.forEach(r=>{
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="soc-ava">'+esc(avatarText(r.nickname))+'</span>'
+                   + '<span class="soc-nm">'+esc(r.nickname)+'</span>';
+      const ok=document.createElement('button'); ok.className='btn mini primary'; ok.textContent='接受';
+      ok.onclick=()=>respond(r.id, true, r.nickname);
+      const no=document.createElement('button'); no.className='btn mini'; no.textContent='拒绝';
+      no.onclick=()=>respond(r.id, false, r.nickname);
+      li.appendChild(ok); li.appendChild(no); ul.appendChild(li);
+    });
+  }
+
+  /* ---------- 渲染：好友列表 ---------- */
+  async function renderFriends(){
+    const ul = document.getElementById('socFriendList');
+    if(!ul) return;
+    const rows = await myFriends();
+    if(!rows.length){ ul.innerHTML = '<li class="soc-hint">还没有好友<br>上方搜索用户名添加一位</li>'; return; }
+    ul.innerHTML = '';
+    rows.forEach(f=>{
+      const li = document.createElement('li');
+      const active = currentPeer && currentPeer.id===f.id;
+      const n = unread[f.id]||0;
+      li.innerHTML = '<span class="soc-ava">'+esc(avatarText(f.nickname))+'</span>'
+                   + '<span class="soc-nm">'+esc(f.nickname)+'</span>'
+                   + (n ? '<span class="soc-unread">'+(n>99?'99+':n)+'</span>' : '');
+      const b=document.createElement('button');
+      b.className='btn mini'+(active?' primary':''); b.textContent='发消息';
+      b.onclick=()=>openChat(f);
+      li.appendChild(b); ul.appendChild(li);
+    });
+  }
+
+  /* ---------- 加好友 / 处理申请 ---------- */
+  async function addFriend(id, nickname){
+    if(!CUR_USER){ openLogin('加好友需要先登录'); return; }
+    if(id===meId()){ toast('不能加自己为好友'); return; }
+    const fr = await myFriends();
+    if(fr.some(f=>f.id===id)){ openChat({id:id, nickname:nickname}); return; }
+    /* 本地申请箱：写在「对方」名下，对方在同一浏览器登录即可看到 */
+    const R = lReqs(), arr = R[id] || (R[id]=[]);
+    if(!arr.some(x=>x.from===meId() && x.status==='pending')){
+      arr.push({from:meId(), fromNick:MY_NICK, at:Date.now(), status:'pending'});
+    }
+    lSetReqs(R);
+    let cloudOk = false;
+    if(cloudOn()) cloudOk = await Cloud.sendFriendRequest(id, nickname);
+
+    if(!cloudOn() && isDemo(id)){
+      /* 演示签友：稍后自动通过，方便单机体验完整链路 */
+      toast('已向「'+nickname+'」发出好友申请');
+      clearTimeout(demoTimer);
+      demoTimer = setTimeout(()=>{
+        lFriendAdd(meId(), MY_NICK, id, nickname);
+        const R2 = lReqs();
+        if(R2[id]) R2[id] = R2[id].filter(x=>x.from!==meId());
+        lSetReqs(R2);
+        toast('「'+nickname+'」通过了你的好友申请');
+        renderFriends(); renderSearch();
+      }, 1200);
+    }else{
+      toast(cloudOn() ? (cloudOk ? '好友申请已发出，等待对方通过' : '申请发送失败，请检查云端好友表是否已建')
+                      : '申请已记在本机（本地演示模式：对方在本浏览器登录后即可看到）');
+    }
+    renderSearch();
+  }
+
+  async function respond(fromId, accept, nickname){
+    if(accept) lFriendAdd(meId(), MY_NICK, fromId, nickname||fromId);
+    const R = lReqs(), arr = R[meId()] || [];
+    R[meId()] = arr.filter(x=>x.from!==fromId);
+    lSetReqs(R);
+    if(cloudOn()) await Cloud.respondRequest(fromId, accept);
+    toast(accept ? '已与「'+(nickname||'对方')+'」成为好友，可以聊天了' : '已拒绝该好友申请');
+    renderRequests(); renderFriends(); renderSearch();
+  }
+
+  /* ---------- 私聊 ---------- */
+  function buildMsg(rec){
+    const me = rec.from===meId();
+    const d = document.createElement('div');
+    d.className = 'msg ' + (me?'me':'other');
+    const b = document.createElement('div'); b.className='bubble'; b.textContent = rec.text;
+    const w = document.createElement('div'); w.className='when';
+    w.textContent = (me?'我':(rec.fromNick||'签友')) + ' · ' + fmtTime(rec.at);
+    d.appendChild(b); d.appendChild(w);
+    return d;
+  }
+  function appendMsg(rec){
+    const box = document.getElementById('socMsgs');
+    if(!box) return;
+    const empty = box.querySelector('.empty'); if(empty) empty.remove();
+    box.appendChild(buildMsg(rec));
+    box.scrollTop = box.scrollHeight;
+  }
+  async function loadMsgs(){
+    if(!currentPeer) return;
+    const box = document.getElementById('socMsgs');
+    box.innerHTML = '<div class="empty">加载中…</div>';
+    let rows = [];
+    if(cloudOn()){
+      rows = ((await Cloud.fetchMessages(currentPeer.id, 200))||[]).map(r=>({
+        from:r.from_id,
+        fromNick:(r.from_id===meId() ? MY_NICK : (r.from_nick||currentPeer.nickname)),
+        text:r.content,
+        at:Date.parse(r.created_at)||Date.now()
+      }));
+    }else{
+      rows = lMsgs(meId(), currentPeer.id);
+    }
+    rows.sort((a,b)=>a.at-b.at);
+    box.innerHTML = '';
+    if(!rows.length){
+      box.innerHTML = '<div class="empty">还没有对话<br>说第一句话吧</div>';
+      return;
+    }
+    rows.forEach(r=>box.appendChild(buildMsg(r)));
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function openChat(peer){
+    if(!CUR_USER){ openLogin('聊天需要先登录'); return; }
+    currentPeer = {id:peer.id, nickname:peer.nickname||peer.id};
+    clearUnread(currentPeer.id);
+    const head = document.getElementById('socChatHead');
+    head.innerHTML = '<span class="soc-ava">'+esc(avatarText(currentPeer.nickname))+'</span>'
+                   + '<b>'+esc(currentPeer.nickname)+'</b>'
+                   + '<span class="who">@'+esc(String(currentPeer.id).replace(/^u_/,''))+' · 私聊，仅你们两人可见</span>';
+    loadMsgs();
+    renderFriends();
+    const ta = document.getElementById('socMsgInput'); if(ta) ta.focus();
+  }
+
+  async function sendMsg(){
+    if(!CUR_USER){ openLogin('聊天需要先登录'); return; }
+    if(!currentPeer){ toast('先在左侧选择一位好友'); return; }
+    const ta = document.getElementById('socMsgInput');
+    const text = String(ta.value||'').trim();
+    if(!text){ return; }
+    if(text.length>500){ toast('一条消息最多 500 字'); return; }
+    ta.value = '';
+    const rec = {from:meId(), fromNick:MY_NICK, text:text, at:Date.now()};
+    appendMsg(rec);                              /* 先本地即时上屏 */
+    if(cloudOn()){
+      const ok = await Cloud.sendMessage(currentPeer.id, text);
+      if(!ok) toast('消息未送达云端，请检查 messages 表与权限策略');
+    }else{
+      lPushMsg(meId(), currentPeer.id, rec);      /* 本地演示模式落盘 */
+      demoReply(currentPeer.id);
+    }
+  }
+
+  /* 演示签友自动回话（仅本地演示模式） */
+  function demoReply(peerId){
+    const d = DEMO_USERS.find(x=>x.id===peerId);
+    if(!d) return;
+    setTimeout(()=>{
+      const pool = d.reply, reply = {
+        from:d.id, fromNick:d.nickname,
+        text:pool[Math.floor(Math.random()*pool.length)], at:Date.now()
+      };
+      lPushMsg(meId(), d.id, reply);
+      if(maskOn() && currentPeer && currentPeer.id===d.id) appendMsg(reply);
+      else { bumpUnread(d.id); if(maskOn()) renderFriends(); }
+    }, 900 + Math.random()*1100);
+  }
+
+  /* ---------- 云端实时订阅与未读轮询 ---------- */
+  function subscribeCloud(){
+    if(!cloudOn() || socChannel) return;
+    socChannel = Cloud.subscribeSocial(ev=>{
+      const r = ev && ev.row; if(!r) return;
+      if(ev.kind==='msg'){
+        if(r.to_id!==meId()) return;
+        if(maskOn() && currentPeer && r.from_id===currentPeer.id){
+          appendMsg({from:r.from_id, fromNick:currentPeer.nickname, text:r.content, at:Date.parse(r.created_at)||Date.now()});
+          clearUnread(r.from_id);
+        }else{
+          bumpUnread(r.from_id);
+          if(maskOn()) renderFriends();
+          toast('「'+(r.from_nick||'有新的签友')+'」给你发来一条消息');
+        }
+      }else if(ev.kind==='friend'){
+        if(r.friend_id===meId() && r.status==='pending'){
+          toast('「'+(r.nickname||'有人')+'」想加你为好友');
+          renderRequests();
+        }else if(r.user_id===meId() && r.status==='accepted'){
+          toast('「'+(r.friend_nickname||'对方')+'」通过了你的好友申请');
+          renderFriends(); renderSearch();
+        }
+      }
+    });
+  }
+
+  /* 实时通道之外的一层兜底：定时补算未读（断线、切后台时不漏消息） */
+  async function pollUnread(){
+    if(!cloudOn() || !CUR_USER) return;
+    const key = 'jieyou_seen_' + (CUR_USER||'guest');
+    const last = Number(localStorage.getItem(key))||0;
+    if(!last){ localStorage.setItem(key, String(Date.now())); return; }
+    const rows = await Cloud.fetchIncomingSince(last);
+    if(rows && rows.length){
+      rows.forEach(r=>{
+        if(maskOn() && currentPeer && r.from_id===currentPeer.id) return;
+        bumpUnread(r.from_id);
+      });
+      saveUnread();
+    }
+    localStorage.setItem(key, String(Date.now()));
+  }
+
+  /* ---------- 开关面板 ---------- */
+  function openSocial(){
+    if(!CUR_USER){ openLogin('搜索账号、加好友与聊天都需要先登录'); return; }
+    document.getElementById('socialMask').classList.add('on');
+    const tip = document.getElementById('socTip');
+    if(tip){
+      tip.textContent = cloudOn()
+        ? '已连接云数据库：好友关系与聊天记录存于云端，多设备同步、实时推送。'
+        : '本地演示模式：好友与聊天记录只存在本机浏览器；再开一个标签页注册另一个账号即可互聊（或搜索「签友」找演示账号）。';
+    }
+    renderRequests(); renderFriends();
+    /* 面板打开且已有会话对象：视为已读该会话 */
+    if(currentPeer){ clearUnread(currentPeer.id); loadMsgs(); }
+  }
+  function closeSocial(){ document.getElementById('socialMask').classList.remove('on'); }
+
+  /* 登录 / 退出后重置会话与红点 */
+  function afterAuthChange(){
+    currentPeer = null;
+    SEARCH_CACHE = [];
+    unread = loadUnread(); renderBadge();
+    const head = document.getElementById('socChatHead');
+    if(head) head.textContent = '选择左侧好友开始聊天';
+    const box = document.getElementById('socMsgs');
+    if(box) box.innerHTML = '<div class="empty">还没有选择聊天对象</div>';
+    const sl = document.getElementById('socSearchList');
+    if(sl) sl.innerHTML = '<li class="soc-hint">输入用户名后点「搜索」</li>';
+    if(CUR_USER){ renderRequests(); renderFriends(); }
+  }
+
+  /* ---------- 初始化 ---------- */
+  function init(){
+    unread = loadUnread(); renderBadge();
+    const si = document.getElementById('socSearchInput');
+    if(si) si.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); search(si.value); } });
+    const ta = document.getElementById('socMsgInput');
+    if(ta){
+      ta.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMsg(); } });
+      ta.addEventListener('input', ()=>{                    /* 自动增高 */
+        ta.style.height='auto';
+        ta.style.height = Math.min(96, Math.max(38, ta.scrollHeight)) + 'px';
+      });
+    }
+    const mask = document.getElementById('socialMask');
+    if(mask) mask.addEventListener('click', e=>{ if(e.target.id==='socialMask') closeSocial(); });
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSocial(); });
+    /* 本地演示模式：另一标签页（另一账号）的操作实时同步过来 */
+    window.addEventListener('storage', e=>{
+      if(!e.key) return;
+      if(e.key===REQ_KEY) renderRequests();
+      else if(/^jieyou_friends_/.test(e.key)) renderFriends();
+      else if(/^jieyou_chat_/.test(e.key)){ if(maskOn() && currentPeer) loadMsgs(); }
+    });
+    if(CUR_USER){ renderRequests(); renderFriends(); }
+  }
+
+  return {init, open:openSocial, close:closeSocial, search, sendMsg,
+          subscribeCloud, pollUnread, afterAuthChange, renderBadge};
+})();
+
+/* 供 HTML 内联 onclick 调用的全局入口 */
+function openSocial(){ SOCIAL.open(); }
+function closeSocial(){ SOCIAL.close(); }
+function searchUsers(){ SOCIAL.search(document.getElementById('socSearchInput').value); }
+function sendMsg(){ SOCIAL.sendMsg(); }
+
+/* ============ 启动 ============ */
+async function boot(){
+  if(CUR_USER){ MY_NICK = Account.nick(CUR_USER) || CUR_USER; MY_ID = 'u_' + CUR_USER; }
+  load();
+  renderAll();
+  refreshUserUI();
+  resetIdle();
+  updateGoldOrigin();
+  SOCIAL.init();
+
+  noAnimChk.checked = localStorage.getItem('jieyou_noanim')==='1';
+  noAnimChk.addEventListener('change', ()=>{
+    localStorage.setItem('jieyou_noanim', noAnimChk.checked ? '1' : '0');
+    toast(noAnimChk.checked ? '已开启无动画模式：摇签直接出结果' : '已开启动画模式：晃动 → 金光 → 出签');
+  });
+  refreshUserUI();
+
+  /* 设置面板控件接线 */
+  const setSoundChk = document.getElementById('setSoundChk');
+  setSoundChk.checked = Sound.isEnabled();
+  setSoundChk.addEventListener('change', ()=>{
+    Sound.setEnabled(setSoundChk.checked);
+    toast(setSoundChk.checked ? '音效已开启：竹签碰撞 · 出签啵声' : '音效已关闭');
+  });
+  const volSlider = document.getElementById('volSlider');
+  volSlider.value = Math.round(Sound.getVolume()*100);
+  volSlider.style.setProperty('--vp', volSlider.value+'%');
+  document.getElementById('volVal').textContent = volSlider.value+'%';
+  volSlider.addEventListener('input', ()=>{
+    const v = Number(volSlider.value);
+    volSlider.style.setProperty('--vp', v+'%');
+    document.getElementById('volVal').textContent = v+'%';
+    Sound.setVolume(v/100);
+  });
+  const bcChk = document.getElementById('setBroadcastChk');
+  bcChk.checked = broadcastOn;
+  bcChk.addEventListener('change', ()=>{
+    broadcastOn = bcChk.checked;
+    localStorage.setItem('jieyou_broadcast', broadcastOn ? '1' : '0');
+    toast(broadcastOn ? '求签播报已开启：有人抽出隐藏签时屏幕上方会提示' : '求签播报已关闭');
+  });
+
+  setCloudStatus(false);
+  const ok = await Cloud.init();
+  setCloudStatus(ok);
+  if(!ok){
+    refreshUserUI();
+    return;
+  }
+
+  refreshUserUI();
+
+  // 1) 我的签匣
+  await refreshMyCollection();
+  // 2) 我自己的历史摇签次数（隐藏签「天选」按真实次数判定）
+  const mine = await Cloud.fetchMyDrawCount();
+  if(mine !== null){ state.drawCount = mine; save(); }
+  // 3) 动态流历史（最多 200 条写入本地历史日志，供弹窗滚动查看）
+  const feed = await Cloud.fetchFeed(200);
+  if(feed.length){
+    FEED_LOG = feed.map(r=>({n:r.nickname, l:r.sign_level, me:r.user_id===MY_ID?1:0, t:r.created_at, h:r.is_hidden?1:0}));
+    saveFeedLog();
+  }
+  // 4) 实时订阅：别人摇签，我这里自动冒出来
+  Cloud.subscribeFeed(r=>{
+    pushFeedFromRow(r, false);
+    TOTAL_DRAWS++;
+    renderAll();
+  });
+  // 4.5) 好友与聊天：实时订阅 + 未读兜底轮询
+  SOCIAL.subscribeCloud();
+  SOCIAL.pollUnread();
+  setInterval(()=>{ SOCIAL.pollUnread(); }, 20000);
+
+  // 5) 全站统计 + 每 30 秒刷新在线人数
+  await refreshStats();
+  setInterval(refreshStats, 30000);
+}
+boot();
 </script>
 </body>
 </html>
