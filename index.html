@@ -2226,10 +2226,22 @@ function finishDraw(){
 
 function checkHidden(){
   const hour = new Date().getHours();
-  if(hour>=0 && hour<5) return HIDDEN.find(s=>s.id===103);
-  if(state.drawCount>0 && state.drawCount%7===0) return HIDDEN.find(s=>s.id===101);
-  if(state.xiongStreak>=2) return HIDDEN.find(s=>s.id===102);
-  if(state.collected.size>=Math.ceil(SIGNS.length/2)) return HIDDEN.find(s=>s.id===106);
+  // 凌晨0-5点：摸鱼签，25%概率触发，不再必出
+  if(hour>=0 && hour<5 && Math.random() < 0.25){
+    return HIDDEN.find(s=>s.id===103);
+  }
+  // 第7倍数摇签：天选，20%概率触发，不再必出
+  if(state.drawCount>0 && state.drawCount%7===0 && Math.random() < 0.20){
+    return HIDDEN.find(s=>s.id===101);
+  }
+  // 连续2次凶签：摆烂，30%概率触发
+  if(state.xiongStreak>=2 && Math.random() < 0.30){
+    return HIDDEN.find(s=>s.id===102);
+  }
+  // 集齐一半普通签：圆满，15%概率触发，不再满足条件就必出
+  if(state.collected.size>=Math.ceil(SIGNS.length/2) && Math.random() < 0.15){
+    return HIDDEN.find(s=>s.id===106);
+  }
   return null;
 }
 
@@ -2280,7 +2292,7 @@ function timeAgo(iso){
 const FEED_LOG_KEY = CONFIG.STORAGE_KEYS.feedLog;
 const FEED_LOG_MAX = CONFIG.LIMITS.FEED_LOG_MAX;
 const FEED_LOG_VER_KEY = FEED_LOG_KEY + '_v';
-const FEED_LOG_VER = '2';   // 旧版缓存含假昵称，升级时整盘清空
+const FEED_LOG_VER = '3';   // 旧版缓存含假昵称，升级时整盘清空
 let FEED_LOG = [];
 
 if(Storage.get(FEED_LOG_VER_KEY, '') !== FEED_LOG_VER){
@@ -2348,13 +2360,17 @@ function pushFeed(sign, name, me){
 
 const OLD_FAKE_NAMES = ['清风','无名','小舟','阿茶','半夏','长安','南栀','木子','青衫','白鹭'];
 const OLD_FAKE_DEMO  = ['云游签友','树下小舟','青衫客'];
+// 旧版伪造昵称格式：中文名 · 4 位大写编号，例如 砚青·4C73、清风·XXXX
+const LEGACY_FAKE_RE = /^[\u4e00-\u9fa5]{1,4}·[A-Z0-9]{4}$/;
 
 function isFakeNickname(nick){
   if(!nick) return false;
-  const s = String(nick);
+  const s = String(nick).trim();
+  if(!s) return false;
   if(OLD_FAKE_DEMO.indexOf(s) >= 0) return true;
+  if(LEGACY_FAKE_RE.test(s)) return true;
   const base = s.split('·')[0];
-  return OLD_FAKE_NAMES.indexOf(base) >= 0 && s.indexOf('·') >= 0;
+  return OLD_FAKE_NAMES.indexOf(base) >= 0;
 }
 
 function pushFeedFromRow(r, me){
@@ -2632,7 +2648,12 @@ async function renderRank(){
     list.innerHTML = '<div class="empty">还没有人集签，快去摇一签占榜一</div>';
     return;
   }
-  const html = rows.map((r,i)=>{
+  const clean = rows.filter(r => r.user_id === MY_ID || !isFakeNickname(r.nickname));
+  if(!clean.length){
+    list.innerHTML = '<div class="empty">还没有人集签，快去摇一签占榜一</div>';
+    return;
+  }
+  const html = clean.map((r,i)=>{
     const me = r.user_id === MY_ID;
     return `<li><span class="rk">${i+1}</span><span class="nm">${escapeHtml(me?'我':r.nickname)}</span><span class="ct">${r.cnt} 签</span></li>`;
   }).join('');
@@ -3319,10 +3340,11 @@ function openWishHistory(){
   if(!requireLogin()) return;
   const list = document.getElementById('wishHistoryList');
   list.innerHTML = '';
-  if(!FEED_LOG.length){
+  const rows = FEED_LOG.filter(rec => rec.me || !isFakeNickname(rec.n)).slice(0,100);
+  if(!rows.length){
     list.innerHTML = '<div class="empty">还没有祈愿记录<br>去祈一签，你就是第一条</div>';
   }else{
-    FEED_LOG.filter(rec => rec.me || !isFakeNickname(rec.n)).slice(0,100).forEach(rec=>{
+    rows.forEach(rec=>{
       const li = document.createElement('li');
       if(isMeRec(rec)) li.className = 'me';
       li.innerHTML = '<b>' + escapeHtml(rec.me ? '我' : rec.n) + '</b> 祈出了 <em>'
@@ -3846,8 +3868,8 @@ async function boot(){
     state.drawCount = mineRes.value; save();
   }
   if(feedRes.status === 'fulfilled'){
-    const rows = feedRes.value || [];
-    // 云端权威：即使为空也覆盖，避免本地残留假记录
+    // 云端权威：即使为空也覆盖，避免本地残留假记录；同时剔除旧版假昵称
+    const rows = (feedRes.value || []).filter(r => r.user_id === MY_ID || !isFakeNickname(r.nickname));
     FEED_LOG = rows.map(r=>({
       n: r.nickname, l: r.sign_level,
       me: r.user_id === MY_ID ? 1 : 0,
@@ -3898,6 +3920,7 @@ function renderHallMsg(m) {
   const empty = list.querySelector('.empty');
   if(empty) empty.remove();
   const isMe = m.from_id === MY_ID;
+  if(!isMe && isFakeNickname(m.from_nick)) return;   // 旧版假昵称直接不显示
   const time = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   const div = document.createElement('div');
   div.className = 'hall-msg';
@@ -4490,4 +4513,3 @@ if(document.readyState === 'loading'){
 </script>
 </body>
 </html>
-<!-- （注：内容由AI生成） -->
