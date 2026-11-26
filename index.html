@@ -3,6 +3,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -752,6 +753,47 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
   .soc-side{border-right:0;border-bottom:1px dashed rgba(0,0,0,.12);padding-right:0;padding-bottom:8px;}
   .soc-main{min-height:300px;}
 }
+
+/* ============================================================
+   指令系统 CMD：聊天流系统回执 / 输入框指令联想（指令面板已删除，需口令解锁）
+   配色全部沿用 :root 里的 --paper / --red / --ink / --bamboo
+   ============================================================ */
+/* —— 聊天流里的「指令回执」气泡（茶话会 & 私聊通用） —— */
+.cmd-sys{align-self:center;max-width:94%;font-size:12px;line-height:1.85;color:var(--ink-light);
+  background:rgba(201,168,106,.10);border:1px dashed rgba(201,168,106,.55);border-radius:8px;
+  padding:8px 13px;letter-spacing:.5px;animation:fadeIn .3s;word-break:break-word;}
+.cmd-sys b{color:var(--red);font-weight:600;}
+.cmd-sys .cmd-tag{display:inline-block;font-family:'Ma Shan Zheng',cursive;color:var(--red);
+  letter-spacing:2px;margin-right:7px;opacity:.85;}
+.cmd-sys code{background:rgba(44,44,44,.07);border-radius:4px;padding:1px 5px;
+  font-family:inherit;color:var(--ink);letter-spacing:0;}
+.cmd-sys ul{list-style:none;margin:4px 0 0;display:block;}
+.cmd-sys ul li{padding:1px 0;border:0;}
+.cmd-sys .kv{display:flex;justify-content:space-between;gap:12px;padding:2px 0;
+  border-bottom:1px dotted rgba(0,0,0,.08);}
+.cmd-sys .kv:last-child{border-bottom:0;}
+.cmd-sys .kv span:last-child{color:var(--ink);text-align:right;}
+.cmd-sys .cmd-note{margin-top:6px;font-size:11px;opacity:.8;}
+
+/* —— 输入框上方悬浮的指令联想下拉 —— */
+#cmdAc{position:fixed;z-index:460;display:none;min-width:230px;padding:4px;
+  background:#fffdf7;border:1px solid rgba(192,57,43,.35);border-radius:8px;
+  box-shadow:0 12px 30px rgba(0,0,0,.18);max-height:236px;overflow-y:auto;}
+#cmdAc.on{display:block;}
+#cmdAc .ac-item{display:flex;align-items:baseline;gap:9px;padding:6px 9px;border-radius:6px;
+  cursor:pointer;font-size:12.5px;}
+#cmdAc .ac-item.on{background:rgba(192,57,43,.11);}
+#cmdAc .ac-item b{color:var(--red);font-family:'Ma Shan Zheng',cursive;letter-spacing:1px;
+  font-size:14.5px;flex:0 0 auto;}
+#cmdAc .ac-item i{font-style:normal;color:var(--ink-light);font-size:11.5px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#cmdAc .ac-hint{font-size:10.5px;color:var(--ink-light);padding:5px 9px 2px;letter-spacing:1px;
+  border-top:1px dashed rgba(0,0,0,.1);margin-top:3px;}
+
+/* —— 指令面板已删除：改用聊天框口令解锁，指令只在聊天流里回执 —— */
+@media (max-width:600px){
+  #cmdAc{max-width:calc(100vw - 32px);}
+}
 </style>
 </head>
 <body>
@@ -1012,9 +1054,18 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
       <span class="lab">求签播报</span>
       <label class="switch"><input type="checkbox" id="setBroadcastChk"><span class="knob"></span></label>
     </div>
-    <div class="set-row">
-      <span class="lab">氛围动态</span>
-      <label class="switch"><input type="checkbox" id="setVibeChk"><span class="knob"></span></label>
+    <div id="cmdSettings" style="display:none;">
+      <div class="set-row">
+        <span class="lab">指令联想</span>
+        <label class="switch"><input type="checkbox" id="setCmdHintChk"><span class="knob"></span></label>
+      </div>
+      <div class="set-row">
+        <span class="lab">指令功能</span>
+        <div class="acct-wrap">
+          <b id="cmdLockState">已解锁</b>
+          <button class="btn mini" id="cmdLockBtn" onclick="cmdToggleLock()" style="display:none;"></button>
+        </div>
+      </div>
     </div>
     <div class="set-row">
       <span class="lab">账号</span>
@@ -1024,7 +1075,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
         <button class="btn mini" id="acctBtn" onclick="acctAction()">登录</button>
       </div>
     </div>
-    <div class="set-tip">勾选求签播报后，当有人抽出隐藏签时屏幕上方会滑出提示；不勾选则不会提示。勾选「氛围动态」后，站内长时间无人摇签时会补上占位动态让动态流保持流动（仅本机展示，不写入云端、不计入真实统计）；关掉则只显示真实求签。</div>
+    <div class="set-tip">勾选求签播报后，当有人抽出隐藏签时屏幕上方会滑出提示；不勾选则不会提示。</div>
   </div>
 </div>
 
@@ -1095,7 +1146,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
       <div class="empty">连接中…</div>
     </div>
     <div class="soc-input" style="margin-top:10px;">
-      <textarea id="hallMsgInput" rows="1" maxlength="200" placeholder="对大家说点什么…（Enter 发送）"></textarea>
+      <textarea id="hallMsgInput" rows="1" maxlength="200" placeholder="对大家说点什么…"></textarea>
       <button class="btn primary mini" onclick="sendHallMsg()">发送</button>
     </div>
   </div>
@@ -1124,7 +1175,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
         <div class="soc-chat-head" id="socChatHead">选择左侧好友开始聊天</div>
         <div class="soc-msgs" id="socMsgs"><div class="empty">还没有选择聊天对象</div></div>
         <div class="soc-input">
-          <textarea id="socMsgInput" rows="1" maxlength="500" placeholder="说点什么…（Enter 发送，Shift+Enter 换行）"></textarea>
+          <textarea id="socMsgInput" rows="1" maxlength="500" placeholder="说点什么…"></textarea>
           <button class="btn primary mini" onclick="sendMsg()">发送</button>
         </div>
         <div class="soc-tip" id="socTip">已连接云数据库：好友关系与聊天记录存于云端，多设备同步、实时推送。</div>
@@ -2253,6 +2304,21 @@ function timeAgo(iso){
 const FEED_LOG_KEY = 'jieyou_feedlog';
 const FEED_LOG_MAX = 300;
 let FEED_LOG = [];
+
+/* 解析动态记录的时间戳（毫秒）；缺失 / 非法返回 0，排序时排到末尾 */
+function feedTimeMs(rec){
+  if(!rec || !rec.t) return 0;
+  const t = Date.parse(rec.t);
+  return isNaN(t) ? 0 : t;
+}
+/* 按时间倒序：离现在最近的排最上面；时间相同保持原顺序 */
+function sortFeedLog(){
+  FEED_LOG = FEED_LOG
+    .map((r, i) => ({r, i}))
+    .sort((a, b) => (feedTimeMs(b.r) - feedTimeMs(a.r)) || (a.i - b.i))
+    .map(x => x.r);
+}
+
 try{
   const raw = JSON.parse(localStorage.getItem(FEED_LOG_KEY));
   if(Array.isArray(raw)) FEED_LOG = raw;
@@ -2264,12 +2330,12 @@ function saveFeedLog(){
 /* 往动态流插一行（me=true 高亮为"我"；hidden=true 触发求签播报） */
 function addFeedLine(nickname, level, me, iso, hidden){
   const rec = {n:nickname, l:level, me:me?1:0, t:iso||new Date().toISOString(), h:hidden?1:0, u:CUR_USER||'guest'};
-  FEED_LOG.unshift(rec);
+  FEED_LOG.push(rec);
+  sortFeedLog();                                   /* 按时间倒序，最新在最上 */
   while(FEED_LOG.length > FEED_LOG_MAX) FEED_LOG.pop();
   saveFeedLog();
-  if(document.getElementById('feedMask').classList.contains('on')){
-    document.getElementById('feedLogList').prepend(buildFeedLi(rec));
-  }
+  /* 弹窗开着就整体重绘，保证顺序永远跟时间戳一致（不再单条 prepend） */
+  if(document.getElementById('feedMask').classList.contains('on')) renderFeedLog();
   if(hidden) broadcastHidden(nickname, level, me);
 }
 function buildFeedLi(rec){
@@ -2289,6 +2355,7 @@ setInterval(()=>{
 function renderFeedLog(){
   const list = document.getElementById('feedLogList');
   list.innerHTML = '';
+  sortFeedLog();                                   /* 渲染前再排一次，兜底乱序 */
   if(!FEED_LOG.length){
     list.innerHTML = '<div class="empty">还没有求签动态<br>摇一签，你就是第一条</div>';
     return;
@@ -2301,7 +2368,7 @@ function escapeHtml(s){
 
 /* 兼容原调用：pushFeed(sign, name?, isMe?) */
 function pushFeed(sign, name, me){
-  addFeedLine(name || NAMES[Math.floor(Math.random()*NAMES.length)], sign.level, !!me, null, sign.id > 100);
+  addFeedLine(name || '访客', sign.level, !!me, null, sign.id > 100);
 }
 
 /* 云端行记录 → 动态流（实时推送与历史加载共用） */
@@ -2430,6 +2497,7 @@ function openSettings(){
   slider.style.setProperty('--vp', v+'%');
   document.getElementById('volVal').textContent = v+'%';
   document.getElementById('setBroadcastChk').checked = broadcastOn;
+  if(typeof syncCmdLockUI === 'function') syncCmdLockUI();
   document.getElementById('settingsMask').classList.add('on');
 }
 function closeSettings(){ document.getElementById('settingsMask').classList.remove('on'); }
@@ -2470,46 +2538,37 @@ function toast(msg){
    解决「求签动态 / 签运榜不自动更新、更新延迟高」。三层保障：
      ① Supabase Realtime 推送（毫秒级，需后台开 publication + RLS，见 supabase_patch.sql）
      ② 增量轮询兜底（realtime 被代理掐断 / 切后台时，每 10s 只拉新增的几条）
-     ③ 氛围注入（站内长时间无人摇签时，本地生成占位动态，让流始终在动；
-        只进本地展示，不写云端、不计入真实统计，可在「设置」里关闭）
+   说明：动态流只收录云端真实求签记录，不再本地生成任何占位 / 虚拟动态。
    另外：页面切回前台（visibilitychange）立刻补拉一次，避免后台期间静止。
    ============================================ */
 const Live = (()=>{
   const FEED_POLL_MS = 10000;    // 增量轮询周期（realtime 的兜底）
   const RANK_POLL_MS = 15000;    // 签运榜自动刷新周期（弹窗打开期间）
-  const VIBE_IDLE_MS = 45000;    // 静默超过 45s 才开始注入氛围动态
-  const VIBE_GAP_MIN = 9000;     // 两条氛围动态的最小间隔
-  const VIBE_GAP_MAX = 22000;    // 最大间隔（随机，看起来更自然）
   const SEEN_MAX     = 400;
 
-  let feedTimer=null, vibeTimer=null, rankTimer=null, colUnsub=null;
-  let lastFeedTs=0, lastRealAt=Date.now(), syncing=false, rankSyncing=false;
+  let feedTimer=null, rankTimer=null, colUnsub=null;
+  let lastFeedTs=0, syncing=false, rankSyncing=false;
   const seen = new Set();
-  let vibeOn = localStorage.getItem('jieyou_vibe') !== '0';
 
   function key(r){ return (r.created_at||'') + '|' + (r.user_id||'') + '|' + (r.sign_level||''); }
 
-  function markReal(ts){
-    const t = ts ? Date.parse(ts) : Date.now();
-    if(!isNaN(t) && t > lastFeedTs) lastFeedTs = t;
-    lastRealAt = Date.now();
-  }
-
-  /* 把一批云端行合并进本地动态流：按 (时间+用户+签级) 去重，
-     保证 realtime 推送与轮询兜底同时到达时不会插两条重复。 */
-  function absorb(r){                                  // 登记去重键与时间水位
+  /* 登记去重键与时间水位；返回 false 表示这条已登记过 */
+  function absorb(r){
     const k = key(r);
     if(seen.has(k)) return false;
     seen.add(k);
     while(seen.size > SEEN_MAX) seen.delete(seen.values().next().value);
-    markReal(r.created_at);
+    const t = r.created_at ? Date.parse(r.created_at) : NaN;
+    if(!isNaN(t) && t > lastFeedTs) lastFeedTs = t;
     return true;
   }
 
+  /* 把一批云端行合并进本地动态流：按 (时间+用户+签级) 去重，
+     保证 realtime 推送与轮询兜底同时到达时不会插两条重复。 */
   function mergeRows(rows){
     if(!rows || !rows.length) return 0;
     let added = 0;
-    rows.slice().reverse().forEach(r=>{           // 由旧到新 unshift，最终顺序正确
+    rows.slice().reverse().forEach(r=>{           // 由旧到新入列，最终顺序由时间排序兜底
       if(!absorb(r)) return;
       pushFeedFromRow(r, r.user_id === MY_ID);
       added++;
@@ -2532,7 +2591,7 @@ const Live = (()=>{
     renderCounters();
   }
 
-  /* ② 增量轮询兜底 */
+  /* 增量轮询兜底 */
   async function pollFeed(){
     if(!Cloud.isOn() || syncing) return;
     if(document.visibilityState !== 'visible') return;   // 挂后台不打扰
@@ -2543,29 +2602,6 @@ const Live = (()=>{
       const n = mergeRows(rows);
       if(n > 0){ TOTAL_DRAWS += n; renderCounters(); }   // 兜底补到的也计入累计
     }finally{ syncing = false; }
-  }
-
-  /* ③ 氛围注入：站内长时间没人摇签时，本地造一条占位动态，
-     让「求签动态」永远在流动。注意：
-       · 不写 Supabase，不产生真实数据，不影响别人的榜单
-       · 不改动 TOTAL_DRAWS（下一次 refreshStats 会用服务端真值校正）
-       · 不触发隐藏签播报，避免误报 */
-  function scheduleVibe(){
-    clearTimeout(vibeTimer);
-    const wait = VIBE_GAP_MIN + Math.random() * (VIBE_GAP_MAX - VIBE_GAP_MIN);
-    vibeTimer = setTimeout(()=>{
-      try{
-        if(vibeOn && Cloud.isOn() && document.visibilityState === 'visible'
-           && (Date.now() - lastRealAt) > VIBE_IDLE_MS){
-          const name = NAMES[Math.floor(Math.random()*NAMES.length)] + '·'
-                     + Math.random().toString(36).slice(2,6).toUpperCase();
-          const pool = (typeof ALL !== 'undefined' && ALL.length) ? ALL : SIGNS;
-          const sign = pool[Math.floor(Math.random()*pool.length)];
-          addFeedLine(name, sign.level, false, new Date().toISOString(), false);
-        }
-      }catch(e){ /* 氛围注入失败不影响主流程 */ }
-      scheduleVibe();
-    }, wait);
   }
 
   /* 签运榜：弹窗打开期间自动刷新（原来只在打开那一刻拉一次，之后永远不动） */
@@ -2582,10 +2618,9 @@ const Live = (()=>{
     if(!Cloud.isOn()) return;
     clearInterval(feedTimer);
     feedTimer = setInterval(pollFeed, FEED_POLL_MS);
-    scheduleVibe();
     /* 回前台立刻补一次，不等下一个轮询周期 */
     document.addEventListener('visibilitychange', ()=>{
-      if(document.visibilityState === 'visible'){ lastRealAt = Date.now(); pollFeed(); }
+      if(document.visibilityState === 'visible') pollFeed();
     });
     /* 盯住 collection 表：有人集签 → 1.5s 防抖后重拉榜单（榜单正开着才拉） */
     let deb = null;
@@ -2602,14 +2637,8 @@ const Live = (()=>{
   }
   function closeRankModal(){ clearInterval(rankTimer); rankTimer = null; }
 
-  function setVibe(on){
-    vibeOn = !!on;
-    localStorage.setItem('jieyou_vibe', on ? '1' : '0');
-  }
-  function isVibe(){ return vibeOn; }
-
   return { start, onRealtimeRow, pollFeed, mergeRows, warm, openRankModal, closeRankModal,
-           refreshRankSilently, setVibe, isVibe };
+           refreshRankSilently };
 })();
 
 /* ============ 云状态徽标 ============ */
@@ -3804,11 +3833,17 @@ const SOCIAL = (()=>{
   }
 
   async function sendMsg(){
-    if(!CUR_USER){ openLogin('聊天需要先登录'); return; }
-    if(!currentPeer){ toast('先在左侧选择一位好友'); return; }
     const ta = document.getElementById('socMsgInput');
     const text = String(ta.value||'').trim();
     if(!text){ return; }
+    /* ===== 指令 / 口令收口 =====
+       tryHandleCommand 返回 true = 已就地处理（指令执行或口令解锁），吃掉这条消息；
+       返回 false = 照常作为普通聊天消息发出（未解锁时 / 开头也走这里，不拦截、不回执）。 */
+    if(typeof CMD !== 'undefined' && CMD.tryHandleCommand(text, {scope:'chat'})){
+      ta.value=''; ta.style.height='auto'; return;
+    }
+    if(!CUR_USER){ openLogin('聊天需要先登录'); return; }
+    if(!currentPeer){ toast('先在左侧选择一位好友'); return; }
     if(text.length>500){ toast('一条消息最多 500 字'); return; }
     ta.value = '';
     const rec = {from:meId(), fromNick:MY_NICK, text:text, at:Date.now()};
@@ -3995,12 +4030,6 @@ async function boot(){
     document.getElementById('volVal').textContent = v+'%';
     Sound.setVolume(v/100);
   });
-  const vibeChk = document.getElementById('setVibeChk');
-  vibeChk.checked = Live.isVibe();
-  vibeChk.addEventListener('change', ()=>{
-    Live.setVibe(vibeChk.checked);
-    toast(vibeChk.checked ? '氛围动态已开启：站内安静时会补上占位动态' : '氛围动态已关闭：动态流只显示真实求签');
-  });
   const bcChk = document.getElementById('setBroadcastChk');
   bcChk.checked = broadcastOn;
   bcChk.addEventListener('change', ()=>{
@@ -4061,6 +4090,7 @@ async function boot(){
   // 3) 动态流历史（写入本地历史日志，供弹窗滚动查看）
   if(feedRes.status === 'fulfilled' && feedRes.value && feedRes.value.length){
     FEED_LOG = feedRes.value.map(r=>({n:r.nickname, l:r.sign_level, me:r.user_id===MY_ID?1:0, t:r.created_at, h:r.is_hidden?1:0}));
+    sortFeedLog();
     saveFeedLog();
     Live.warm(feedRes.value);                        // 预热去重表与时间水位（不重复插入）
   }
@@ -4078,7 +4108,7 @@ async function boot(){
   await refreshStats();
   setInterval(refreshStats, 30000);
 
-  // 6) 启动活力引擎：动态增量轮询兜底 + 氛围注入 + 榜单联动
+  // 6) 启动活力引擎：动态增量轮询兜底 + 榜单联动
   Live.start();
 }
 
@@ -4122,11 +4152,17 @@ function renderHallMsg(m) {
 }
 
 async function sendHallMsg() {
-  if(!requireLogin('茶话会需要先登录')) return;
-  if(!Cloud.isOn()) return toast('大厅未连接云端');
   const input = document.getElementById('hallMsgInput');
   const txt = input.value.trim();
   if(!txt) return;
+  /* ===== 指令 / 口令收口 =====
+     返回 true = 已就地处理（指令执行或口令解锁），吃掉这条消息；
+     返回 false = 照常作为普通聊天消息发出（未解锁时 / 开头也走这里，不拦截、不回执）。 */
+  if(typeof CMD !== 'undefined' && CMD.tryHandleCommand(txt, {scope:'hall'})){
+    input.value=''; input.style.height='auto'; return;
+  }
+  if(!requireLogin('茶话会需要先登录')) return;
+  if(!Cloud.isOn()) return toast('大厅未连接云端');
   const now = Date.now();
   if(now - lastHallMsgTime < 3000) return toast('请稍等几秒再发送，不要刷屏哦');
 
@@ -4140,5 +4176,538 @@ document.getElementById('hallMsgInput').addEventListener('keydown', e => {
   if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendHallMsg(); }
 });
 </script>
+
+
+<script>
+/* ============================================================
+   ============ 指令系统 CMD ============
+   唯一入口：
+     聊天输入框（茶话会 / 签友私聊）里输入 / 开头的指令，回车执行；
+     输入 / 时会浮出指令联想（可在「设置 → 指令联想」里关掉）
+   指令面板已删除：不再有独立弹窗，也不再有 Ctrl / ⌘ + K 快捷键，
+   所有指令结果都以「指令」系统气泡回显在当前聊天流里。
+   指令锁：默认锁定，解锁状态存本机 localStorage，可用 /锁定 重新上锁。
+   对外隐形原则：
+     · 未解锁时，/ 开头的输入一律作为普通聊天消息放行，不拦截、不回执、不列指令名；
+     · 设置面板里的指令相关行整块隐藏，外人翻设置也看不到；
+     · 解锁口令只在本机输入框静默识别，不进入聊天流、不写入云端。
+   设计要点：
+     · 指令是纯前端动作，只调用页面里已有的函数，不新增任何依赖与网络请求
+     · 所有指令参数都经过 escapeHtml，避免参数里带标签注入页面
+     · 需要登录的指令复用原有的 requireLogin / openLogin 逻辑
+   ============================================================ */
+const CMD = (()=>{
+  const GROUPS = ['求签','查询','社交','设置','系统'];
+  let hintOn = localStorage.getItem('jieyou_cmd_hint') !== '0';
+  let acBox = null, acTarget = null, acItems = [], acIdx = -1;
+
+  /* ---------- 指令锁 ----------
+     指令功能默认锁定；在茶话会 / 私聊输入框里原样输入解锁口令并回车才会解锁。
+     口令不发送、不入库，解锁状态只写本机 localStorage（换设备 / 清站点数据后需重新输入）。 */
+  const PASSPHRASE = '101089456yao';
+  const UNLOCK_KEY = 'jieyou_cmd_unlock';
+  let unlocked = localStorage.getItem(UNLOCK_KEY) === '1';
+
+  /* ---------- 小工具 ---------- */
+  const $ = id => document.getElementById(id);
+  const esc = s => escapeHtml(String(s == null ? '' : s));
+  const sleep = ms => new Promise(r=>setTimeout(r, ms));
+  const pad3 = n => String(n).padStart(3,'0');
+  const kv = (k, v) => '<div class="kv"><span>'+esc(k)+'</span><span>'+v+'</span></div>';
+  const note = t => '<div class="cmd-note">'+t+'</div>';
+  /* 开关类指令的参数：开/关/on/off/1/0…，识别不了返回 null */
+  function parseOnOff(arg){
+    const a = String(arg||'').trim().toLowerCase();
+    if(!a) return null;
+    if(['开','开启','打开','on','true','1','yes','y','enable'].includes(a)) return true;
+    if(['关','关闭','关掉','off','false','0','no','n','disable'].includes(a)) return false;
+    return null;
+  }
+
+  /* ---------- 指令注册表 ----------
+     n 主指令名 / a 别名 / g 分组 / u 用法示例 / d 说明
+     keep:true = 执行后指令面板保持打开（查询类），缺省 = 关闭（动作类）
+     run(arg, ctx) 返回字符串则作为「指令回执」显示，返回空则不回执      */
+  const LIST = [
+    /* ===== 求签 ===== */
+    {n:'签', a:['draw','摇签','yao'], g:'求签', u:'/签', d:'摇一签（等同点击签筒）', run:()=>{
+        if(!CUR_USER){ openLogin('摇签需要先登录'); return '摇签需要先登录，已为你打开登录框'; }
+        if(state.animating) return '上一签还在摇，稍等一下再试';
+        drawSign();
+        const s = state.current;
+        return s ? '已出签：<b>'+esc(s.level)+'</b>（第 '+pad3(s.id)+' 签）' : '签已出，看签面 →';
+      }},
+    {n:'连签', a:['combo','连抽','x'], g:'求签', u:'/连签 3', d:'连摇 N 支签（1~10，默认 3，自动跳过动画）', keep:true, run:async(arg)=>{
+        if(!CUR_USER){ openLogin('摇签需要先登录'); return '摇签需要先登录，已为你打开登录框'; }
+        const k = Math.max(1, Math.min(10, parseInt(arg,10) || 3));
+        const keepAnim = noAnimChk.checked;
+        noAnimChk.checked = true;              /* 连摇走无动画通道，否则动画会互相打断 */
+        const got = [];
+        for(let i=0;i<k;i++){
+          drawSign();
+          const s = state.current;
+          if(s) got.push('<b>'+esc(s.level)+'</b>&nbsp;第'+pad3(s.id)+'签');
+          await sleep(240);
+        }
+        noAnimChk.checked = keepAnim;
+        return '连摇 '+got.length+' 支：' + got.join('　')
+          + note('连摇期间临时关闭了动画，结束后已恢复你原来的设置。');
+      }},
+    {n:'祈愿', a:['wish','抽卡'], g:'求签', u:'/祈愿', d:'打开祈愿界面（天选 / 命定在这里）', run:()=>{ openWish(); return '已打开祈愿'; }},
+    {n:'匣', a:['box','签匣','mybox'], g:'求签', u:'/匣', d:'打开我的签匣', run:()=>{ openMyBox(); return '已打开我的签匣'; }},
+    {n:'榜', a:['rank','签运榜'], g:'求签', u:'/榜', d:'打开签运榜（按集签数排名）', run:()=>{ openRank(); return '已打开签运榜'; }},
+    {n:'动态', a:['feed','求签动态'], g:'求签', u:'/动态', d:'打开求签动态（全站实时流）', run:()=>{ openFeed(); return '已打开求签动态'; }},
+
+    /* ===== 查询 ===== */
+    {n:'help', a:['帮助','指令','命令','cmd','?'], g:'查询', u:'/help', d:'列出全部可用指令', keep:true, run:()=>helpHtml()},
+    {n:'我的', a:['me','我','profile','战绩'], g:'查询', u:'/我的', d:'我的账号、集签与今日战绩', keep:true, run:()=>{
+        const hid = [...state.collected].filter(id=>id>100).length;
+        return kv('账号', esc(CUR_USER||'未登录'))
+          + kv('昵称', esc(MY_NICK))
+          + kv('身份 ID', '<code>'+esc(MY_ID||'—')+'</code>')
+          + kv('累计摇签', '<b>'+state.drawCount+'</b> 次')
+          + kv('今日已摇', todayDraws()+' / '+WUWEI_NEED_TODAY+' 次')
+          + kv('已集签', state.collected.size+' / '+ALL.length+' 支')
+          + kv('其中隐藏签', hid+' / '+HIDDEN.length+' 支')
+          + kv('「无为」今日', wuweiDoneToday()?'已获得':'未获得')
+          + kv('数据通道', Cloud.isOn()?'Supabase 云端':'本地演示模式');
+      }},
+    {n:'统计', a:['stats','全站'], g:'查询', u:'/统计', d:'全站累计求签、在线人数与数据通道', keep:true, run:async()=>{
+        await refreshStats();
+        return kv('全站累计求签','<b>'+TOTAL_DRAWS.toLocaleString()+'</b> 次')
+          + kv('此刻在线', ONLINE+' 人')
+          + kv('签库总量', ALL.length+' 支（普通 '+SIGNS.length+' + 隐藏 '+HIDDEN.length+'）')
+          + kv('数据通道', Cloud.isOn()?'Supabase 云端':'本地演示模式')
+          + kv('动态更新', Cloud.isOn()?'Realtime 推送 + 10 秒增量轮询':'未启用');
+      }},
+    {n:'在线', a:['online','人数'], g:'查询', u:'/在线', d:'此刻在线人数（现拉最新）', keep:true, run:async()=>{
+        await refreshStats();
+        return '此刻 <b>'+ONLINE+'</b> 人在线（近 5 分钟内摇过签的去重账号）';
+      }},
+    {n:'签库', a:['signs','库','图鉴'], g:'查询', u:'/签库', d:'签文库构成与我的收集进度', keep:true, run:()=>{
+        const by = {};
+        ALL.forEach(s=>{ by[s.level] = (by[s.level]||0) + 1; });
+        const rows = Object.keys(by).map(k=>kv(k, by[k]+' 支')).join('');
+        const miss = ALL.filter(s=>!state.collected.has(s.id));
+        return rows
+          + kv('合计', ALL.length+' 支')
+          + kv('我已集', state.collected.size+' 支')
+          + kv('尚缺', miss.length+' 支')
+          + (miss.length ? kv('先补这几支', miss.slice(0,6).map(s=>'第'+pad3(s.id)+'签').join('、')+(miss.length>6?' …':'')) : '');
+      }},
+    {n:'运势', a:['luck','今日','运气'], g:'查询', u:'/运势', d:'今日运势速占（本机随机，娱乐）', keep:true, run:()=>{
+        let h = 2166136261;
+        const seed = (CUR_USER||'guest') + todayStr();
+        for(let i=0;i<seed.length;i++){ h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+        if(!h) h = 123456789;
+        const r = n => { h ^= h<<13; h ^= h>>>17; h ^= h<<5; return Math.abs(h) % n; };
+        const good = ['向前一步','开口表达','整理旧物','联系故人','早点收工','再试一次','把话说开','散步十分钟','早睡'];
+        const bad  = ['冲动下单','熬夜','纠结细节','与人争辩','翻旧账','临时改计划','反复查结果','内耗'];
+        const tiers= ['上上签','上签','中吉','中平','中签'];
+        return kv('今日运势','<b>'+tiers[r(tiers.length)]+'</b>')
+          + kv('宜', good[r(good.length)])
+          + kv('忌', bad[r(bad.length)])
+          + kv('幸运数字', r(99)+1)
+          + kv('幸运方位', ['东','南','西','北','东南','西北'][r(6)])
+          + note('按「账号 + 日期」定出，同一天重复问结果一致；纯本机随机，不入库不上云。');
+      }},
+
+    /* ===== 社交 ===== */
+    {n:'茶话会', a:['hall','大厅'], g:'社交', u:'/茶话会', d:'打开全站公共大厅', run:()=>{ openHall(); return '已打开茶话会'; }},
+    {n:'签友', a:['friends','好友'], g:'社交', u:'/签友', d:'打开好友与私聊面板', run:()=>{ SOCIAL.open(); return '已打开签友面板'; }},
+    {n:'私聊', a:['chat','msg'], g:'社交', u:'/私聊 用户名', d:'搜索某位签友，加好友后即可聊天', keep:true, run:(arg)=>{
+        if(!arg) return '用法：<b>/私聊 用户名</b>，例如 <b>/私聊 清风</b>';
+        SOCIAL.open();
+        const si = $('socSearchInput'); if(si) si.value = arg;
+        SOCIAL.search(arg);
+        return '已在签友面板搜索「<b>'+esc(arg)+'</b>」，点「加好友」后即可私聊';
+      }},
+    {n:'昵称', a:['nick','改名'], g:'社交', u:'/昵称 新名字', d:'修改昵称并同步云端（1~12 字）', keep:true, run:async(arg)=>{
+        if(!CUR_USER){ openLogin('改昵称需要先登录'); return '改昵称需要先登录'; }
+        if(!arg) return '用法：<b>/昵称 新名字</b>（1~12 字）';
+        const nick = arg.slice(0,12);
+        Account.setNick(CUR_USER, nick);
+        MY_NICK = nick;
+        const ok = await Cloud.rename(nick);
+        try{ await Cloud.accountSetNick(CUR_USER, nick); }catch(e){}
+        localStorage.setItem('jieyou_nick', nick);
+        refreshUserUI();
+        return '昵称已改为「<b>'+esc(nick)+'</b>」' + (ok?'（已同步云端）':'（云端未连接，仅本机生效）');
+      }},
+
+    /* ===== 设置 ===== */
+    {n:'音效', a:['sound','声音'], g:'设置', u:'/音效 开|关', d:'开关摇签音效', keep:true, run:(arg)=>{
+        const v = parseOnOff(arg); if(v===null) return '用法：<b>/音效 开</b> 或 <b>/音效 关</b>（也支持 on / off）';
+        Sound.setEnabled(v);
+        const c = $('setSoundChk'); if(c) c.checked = v;
+        return '音效已'+(v?'开启':'关闭');
+      }},
+    {n:'音量', a:['vol','volume'], g:'设置', u:'/音量 50', d:'设置音量（0~100）', keep:true, run:(arg)=>{
+        const n = parseInt(arg,10);
+        if(isNaN(n)) return '用法：<b>/音量 50</b>（0~100）';
+        const v = Math.max(0, Math.min(100, n));
+        Sound.setVolume(v/100);
+        const s = $('volSlider'); if(s){ s.value = v; s.style.setProperty('--vp', v+'%'); }
+        const t = $('volVal'); if(t) t.textContent = v+'%';
+        return '音量已设为 <b>'+v+'%</b>';
+      }},
+    {n:'动画', a:['anim'], g:'设置', u:'/动画 开|关', d:'摇签动画（关掉＝直接出结果，更快）', keep:true, run:(arg)=>{
+        const v = parseOnOff(arg); if(v===null) return '用法：<b>/动画 开</b> 或 <b>/动画 关</b>';
+        noAnimChk.checked = !v;
+        localStorage.setItem('jieyou_noanim', v ? '0' : '1');
+        return '摇签动画已'+(v?'开启':'关闭');
+      }},
+    {n:'播报', a:['broadcast','bc'], g:'设置', u:'/播报 开|关', d:'有人抽中隐藏签时的顶部横幅', keep:true, run:(arg)=>{
+        const v = parseOnOff(arg); if(v===null) return '用法：<b>/播报 开</b> 或 <b>/播报 关</b>';
+        broadcastOn = v;
+        localStorage.setItem('jieyou_broadcast', v ? '1' : '0');
+        const c = $('setBroadcastChk'); if(c) c.checked = v;
+        return '求签播报已'+(v?'开启':'关闭');
+      }},
+    {n:'指令联想', a:['cmdhint','提示'], g:'设置', u:'/指令联想 开|关', d:'聊天框输入 / 时是否弹出指令提示', keep:true, run:(arg)=>{
+        const v = parseOnOff(arg); if(v===null) return '用法：<b>/指令联想 开</b> 或 <b>/指令联想 关</b>';
+        hintOn = v;
+        localStorage.setItem('jieyou_cmd_hint', v ? '1' : '0');
+        const c = $('setCmdHintChk'); if(c) c.checked = v;
+        if(!v) acClose();
+        return '指令联想已'+(v?'开启':'关闭');
+      }},
+    {n:'设置', a:['set','settings'], g:'设置', u:'/设置', d:'打开设置面板', run:()=>{ openSettings(); return '已打开设置'; }},
+
+    /* ===== 指令锁 ===== */
+    {n:'解锁', a:['unlock'], g:'系统', u:'/解锁', d:'查看指令功能状态', keep:true, run:()=>{
+        if(unlocked) return '指令功能<b>已解锁</b>，可直接使用 <code>/help</code> 查看全部指令；想重新锁上请输入 <b>/锁定</b>。';
+        return '指令功能当前处于锁定状态。';
+      }},
+    {n:'锁定', a:['lock'], g:'系统', u:'/锁定', d:'重新锁上指令功能', run:(arg,ctx)=>{
+        if(!unlocked) return '指令功能当前就是<b>锁定</b>状态';
+        lock();
+        return '指令功能已重新<b>锁定</b>，所有指令停止响应。';
+      }},
+
+    /* ===== 系统 ===== */
+    {n:'刷新', a:['refresh','同步','sync'], g:'系统', u:'/刷新', d:'立刻同步动态、统计与签匣', keep:true, run:async()=>{
+        const tasks = [Live.pollFeed(), refreshStats()];
+        if(CUR_USER) tasks.push(refreshMyCollection());
+        await Promise.allSettled(tasks);
+        return '已同步：全站 <b>'+TOTAL_DRAWS.toLocaleString()+'</b> 次求签 · <b>'+ONLINE+'</b> 人在线 · 我集 '+state.collected.size+' 签';
+      }},
+    {n:'清空', a:['clear'], g:'系统', u:'/清空', d:'清掉当前窗口的聊天显示（不删云端记录）', keep:true, run:(arg,ctx)=>{
+        const scope = ctx && ctx.scope;
+        if(scope==='chat'){
+          const box = $('socMsgs'); if(!box) return '当前没有打开私聊窗口';
+          box.innerHTML = '<div class="empty">显示已清空 · 云端记录未删除<br>说第一句话吧</div>';
+          return '私聊显示已清空（云端历史未删，重新打开还在）';
+        }
+        if(scope==='hall'){
+          const box = $('hallMsgs'); if(!box) return '大厅窗口没有打开';
+          box.innerHTML = '<div class="empty">显示已清空 · 云端记录未删除</div>';
+          return '大厅显示已清空（云端历史未删，重新打开还在）';
+        }
+        return '请在「茶话会」或「签友私聊」窗口里使用 <b>/清空</b>';
+      }},
+    {n:'登录', a:['login','注册'], g:'系统', u:'/登录', d:'打开登录 / 注册窗口', run:()=>{
+        if(CUR_USER) return '当前已登录：<b>'+esc(MY_NICK)+'</b>（退出请用 <b>/退出</b>）';
+        openLogin(); return '已打开登录窗口';
+      }},
+    {n:'退出', a:['logout','登出'], g:'系统', u:'/退出', d:'退出当前账号', run:()=>{
+        if(!CUR_USER) return '当前没有登录任何账号';
+        acctAction(); return '已退出登录';
+      }},
+    {n:'关于', a:['about','版本','v'], g:'查询', u:'/关于', d:'站点信息与指令用法', keep:true, run:()=>{
+        return kv('站点','解忧签 · 摇一签，解千愁')
+          + kv('签库', ALL.length+' 支（含隐藏签 '+HIDDEN.length+' 支）')
+          + kv('指令', '共 <b>'+LIST.length+'</b> 条，输入 <b>/help</b> 查看全部')
+          + kv('指令入口','茶话会 / 私聊输入框（面板已移除）')
+          + kv('数据','Supabase 云端（账号 / 签匣 / 动态 / 聊天）')
+          + note('本页面仅供个人使用，签文内容纯属娱乐。');
+      }}
+  ];
+
+  /* ---------- 帮助页 ---------- */
+  function helpHtml(){
+    let html = '共 <b>'+LIST.length+'</b> 条指令，输入 <b>/指令名</b> + 回车执行：';
+    GROUPS.forEach(g=>{
+      const items = LIST.filter(c=>c.g===g);
+      if(!items.length) return;
+      html += '<div style="margin-top:8px;color:var(--red);letter-spacing:2px;font-size:11px">'+esc(g)+'</div><ul>';
+      items.forEach(c=>{
+        html += '<li><code>'+esc(c.u)+'</code> — '+esc(c.d)
+             + (c.a && c.a.length ? ' <span style="opacity:.6">（'+esc(c.a.slice(0,3).join('、'))+'）</span>' : '')
+             + '</li>';
+      });
+      html += '</ul>';
+    });
+    return html + note('指令只能在「茶话会」或「签友私聊」的输入框里敲，回车执行；如需重新上锁请输入 <code>/锁定</code>。');
+  }
+
+  /* ---------- 回执输出：聊天流气泡 / toast ---------- */
+  function plainText(html){
+    const d = document.createElement('div');
+    d.innerHTML = html;
+    return (d.textContent || '').replace(/\s+/g,' ').trim();
+  }
+  function out(html, scope){
+    if(html == null || html === '') return;
+    if(scope==='hall' || scope==='chat'){
+      const box = $(scope==='hall' ? 'hallMsgs' : 'socMsgs');
+      if(box){
+        const empty = box.querySelector('.empty'); if(empty) empty.remove();
+        const d = document.createElement('div');
+        d.className = 'cmd-sys';
+        d.innerHTML = '<span class="cmd-tag">指令</span>' + html;
+        box.appendChild(d);
+        box.scrollTop = box.scrollHeight;
+        return;
+      }
+    }
+    toast(plainText(html).slice(0,46));
+  }
+
+  /* ---------- 解析与查找 ---------- */
+  function isCmd(text){
+    const t = String(text||'').trim();
+    return t.length > 1 && (t[0]==='/' || t[0]==='／');
+  }
+
+  /* ---------- 发送收口（统一入口）----------
+     返回 true = 消息已就地处理（指令执行 / 口令解锁），调用方应清空输入并吃掉；
+     返回 false = 照常作为普通聊天消息发出。
+     对外隐形原则：未解锁时，/ 开头的输入也返回 false，不拦截、不回执、不列指令名。 */
+  function tryHandleCommand(text, ctx){
+    const t = String(text == null ? '' : text).trim();
+    if(!t) return false;
+    /* 口令：任何状态下静默识别，不发送、不入库、不落聊天流气泡 */
+    if(isPass(t)){
+      if(!unlocked) unlock(ctx && ctx.scope);
+      return true;
+    }
+    /* 未解锁：直接放行 */
+    if(!unlocked) return false;
+    if(!isCmd(t)) return false;
+    return !!run(t, ctx);
+  }
+  function find(name){
+    const k = String(name||'').toLowerCase();
+    return LIST.find(c => c.n.toLowerCase()===k || (c.a||[]).some(a=>String(a).toLowerCase()===k)) || null;
+  }
+  function suggest(name){
+    const k = String(name||'').toLowerCase(), hit = [];
+    LIST.forEach(c=>{
+      const keys = [c.n].concat(c.a||[]).map(s=>String(s).toLowerCase());
+      if(keys.some(x => x.startsWith(k) || x.includes(k) || k.includes(x))) hit.push(c);
+    });
+    return hit.slice(0,5);
+  }
+  function matches(q){
+    const k = String(q||'').trim().toLowerCase();
+    if(!k) return LIST.slice();
+    return LIST.filter(c=>{
+      const keys = [c.n].concat(c.a||[]).map(s=>String(s).toLowerCase());
+      return keys.some(x=>x.startsWith(k)) || keys.some(x=>x.includes(k)) || c.d.toLowerCase().includes(k);
+    });
+  }
+
+  /* ---------- 执行入口 ---------- */
+  async function run(raw, ctx){
+    const text = String(raw||'').trim();
+    const scope = (ctx && ctx.scope) || 'hall';
+    if(!isCmd(text)) return false;
+    const m = text.replace(/^／/,'/').match(/^\/(\S+)\s*([\s\S]*)$/);
+    if(!m){ out('指令格式应为 <b>/指令名</b>，输入 <b>/help</b> 查看可用指令', scope); return true; }
+    const name = m[1].toLowerCase(), arg = m[2].trim();
+    /* ===== 指令锁 =====
+       未解锁时不执行任何指令，也不返回回执或指令清单；调用方应把该输入
+       当作普通聊天消息放行（见 tryHandleCommand）。 */
+    if(!unlocked) return false;
+    const cmd = find(name);
+    if(!cmd){
+      const near = suggest(name);
+      out('未找到指令 <b>/'+esc(name)+'</b>'
+        + (near.length ? '，你是不是想用：' + near.map(c=>'<code>/'+esc(c.n)+'</code>').join(' ')
+                       : '，输入 <b>/help</b> 查看全部指令'), scope);
+      return true;
+    }
+    try{
+      const r = await cmd.run(arg, {scope:scope, raw:text});
+      if(r != null && r !== '') out(typeof r==='string' ? r : String(r), scope);
+    }catch(e){
+      console.warn('[指令] /'+cmd.n+' 执行失败：', e);
+      out('指令 <b>/'+esc(cmd.n)+'</b> 执行失败：'+esc(e && e.message ? e.message : '未知错误'), scope);
+    }
+    return true;
+  }
+
+  /* ---------- 输入框上方的指令联想 ---------- */
+  function ensureAc(){
+    if(acBox && document.body.contains(acBox)) return acBox;
+    acBox = document.createElement('div');
+    acBox.id = 'cmdAc';
+    document.body.appendChild(acBox);
+    return acBox;
+  }
+  function positionAc(input){
+    if(!acBox) return;
+    const r = input.getBoundingClientRect();
+    acBox.style.left = Math.max(8, r.left) + 'px';
+    acBox.style.width = Math.max(230, Math.min(r.width || 230, 430)) + 'px';
+    const h = acBox.offsetHeight;
+    const top = r.top - h - 6;
+    acBox.style.top = (top > 8 ? top : Math.min(r.bottom + 6, window.innerHeight - h - 8)) + 'px';
+  }
+  function acClose(){
+    if(acBox){ acBox.classList.remove('on'); acBox.innerHTML=''; }
+    acItems = []; acIdx = -1; acTarget = null;
+  }
+  function acRender(){
+    const box = ensureAc();
+    box.innerHTML = acItems.map((c,i)=>
+        '<div class="ac-item'+(i===acIdx?' on':'')+'" data-i="'+i+'"><b>/'+esc(c.n)+'</b><i>'+esc(c.d)+'</i></div>'
+      ).join('') + '<div class="ac-hint">↑↓ 选择 · Tab 补全 · Enter 执行 · Esc 关闭</div>';
+    box.classList.add('on');
+    box.querySelectorAll('.ac-item').forEach(el=>{
+      el.addEventListener('mousedown', e=>{ e.preventDefault(); acPick(Number(el.dataset.i)); });
+    });
+  }
+  function acUpdate(input){
+    if(!hintOn || !unlocked){ acClose(); return; }   /* 未解锁时不弹联想，不暴露指令表 */
+    const m = String(input.value||'').match(/^[/／]([^\s／]*)$/);   /* 只在「刚敲指令名」这一阶段联想 */
+    if(!m){ acClose(); return; }
+    const items = matches(m[1]).slice(0,8);
+    if(!items.length){ acClose(); return; }
+    acTarget = input; acItems = items; acIdx = 0;
+    acRender();
+    positionAc(input);
+  }
+  function acMove(d){
+    if(!acItems.length) return;
+    acIdx = (acIdx + d + acItems.length) % acItems.length;
+    acRender();
+    if(acTarget) positionAc(acTarget);
+  }
+  function acPick(i){
+    const c = acItems[i]; if(!c || !acTarget) return;
+    const t = acTarget;
+    t.value = '/' + c.n + ' ';
+    acClose();
+    t.focus();
+    t.dispatchEvent(new Event('input', {bubbles:true}));   /* 触发原 textarea 的自动增高 */
+  }
+  function acEnter(){
+    const c = acItems[acIdx]; if(!c || !acTarget) return;
+    /* 带参数的指令：Enter 先补全，让用户接着输参数；无参数的直接执行 */
+    if(c.u.indexOf(' ') >= 0){ acPick(acIdx); return; }
+    const t = acTarget;
+    const scope = t.id==='hallMsgInput' ? 'hall' : 'chat';
+    const raw = t.value;
+    t.value = '';
+    acClose();
+    run(raw, {scope:scope});
+  }
+  function attach(input){
+    if(!input || input.dataset.cmdBound) return;
+    input.dataset.cmdBound = '1';
+    input.addEventListener('input', ()=>acUpdate(input));
+    input.addEventListener('click', ()=>acUpdate(input));
+    input.addEventListener('blur', ()=>setTimeout(acClose, 130));
+  }
+
+  /* ---------- 指令锁：同步设置面板显隐 ----------
+     未解锁时整块隐藏指令相关行；解锁后才显示。锁状态文本只在这个隐藏容器内可见。 */
+  function renderLock(){
+    const box = $('cmdSettings');
+    if(box) box.style.display = unlocked ? '' : 'none';
+    const st = $('cmdLockState'), bt = $('cmdLockBtn');
+    if(st) st.textContent = unlocked ? '已解锁' : '未解锁';
+    if(bt) bt.style.display = 'none';
+  }
+  function setUnlocked(v){
+    unlocked = !!v;
+    try{
+      if(unlocked) localStorage.setItem(UNLOCK_KEY, '1');
+      else localStorage.removeItem(UNLOCK_KEY);
+    }catch(e){ /* 无痕 / 配额满：本次会话内仍然生效 */ }
+    if(!unlocked) acClose();
+    renderLock();
+  }
+  /* 输入内容是否就是解锁口令（首尾空格忽略、大小写不敏感） */
+  function isPass(text){
+    const t = String(text == null ? '' : text).trim();
+    return !!t && t.toLowerCase() === PASSPHRASE.toLowerCase();
+  }
+  /* 执行解锁：只在本机弹极简提示，不落聊天流气泡，别人看不到 */
+  function unlock(scope){
+    if(unlocked){ toast('指令功能已经是解锁状态'); return true; }
+    setUnlocked(true);
+    toast('指令功能已解锁');
+    return true;
+  }
+  function lock(){
+    if(!unlocked) return false;
+    setUnlocked(false);
+    return true;
+  }
+
+  /* ---------- 全局按键：指令联想的键盘导航 ----------
+     用捕获阶段注册，抢在输入框原有的「Enter 发送」监听之前处理。
+     指令面板已删除，因此不再有 Ctrl / ⌘ + K 呼出与面板上下键导航。   */
+  function onKey(e){
+    if(acTarget && acItems.length && e.target===acTarget){
+      if(e.key==='ArrowDown'){ e.preventDefault(); e.stopPropagation(); acMove(1); return; }
+      if(e.key==='ArrowUp'){ e.preventDefault(); e.stopPropagation(); acMove(-1); return; }
+      if(e.key==='Tab'){ e.preventDefault(); e.stopPropagation(); acPick(acIdx); return; }
+      if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); acClose(); return; }
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); e.stopPropagation(); acEnter(); return; }
+    }
+  }
+
+  /* ---------- 初始化 ---------- */
+  function init(){
+    attach($('hallMsgInput'));
+    attach($('socMsgInput'));
+    renderLock();
+    const ch = $('setCmdHintChk');
+    if(ch){
+      ch.checked = hintOn;
+      ch.addEventListener('change', ()=>{
+        hintOn = ch.checked;
+        localStorage.setItem('jieyou_cmd_hint', hintOn ? '1' : '0');
+        toast(hintOn ? '指令联想已开启：输入 / 会弹出可用指令' : '指令联想已关闭');
+      });
+    }
+    document.addEventListener('keydown', onKey, true);
+    window.addEventListener('resize', ()=>{ if(acTarget) positionAc(acTarget); }, {passive:true});
+    window.addEventListener('scroll', ()=>{ if(acTarget) positionAc(acTarget); }, {passive:true});
+  }
+
+  return {
+    init, run, isCmd, helpHtml,
+    list: ()=>LIST.slice(),
+    isPass, unlock, lock, setUnlocked,
+    tryHandleCommand,
+    isUnlocked: ()=>unlocked,
+    syncUI: renderLock,
+    get hintOn(){ return hintOn; }
+  };
+})();
+
+/* 供设置面板内联 onclick 调用：已解锁 → 重新锁定；未解锁 → 不做任何提示 */
+function cmdToggleLock(){
+  if(typeof CMD === 'undefined') return;
+  if(CMD.isUnlocked()){
+    CMD.lock();
+    toast('指令功能已重新锁定');
+  }
+}
+window.CMD = CMD;
+
+/* 配套全局入口：供页面加载 / 解锁后刷新设置面板显隐 */
+function isCmdUnlocked(){ return typeof CMD !== 'undefined' && CMD.isUnlocked(); }
+function syncCmdLockUI(){ if(typeof CMD !== 'undefined' && CMD.syncUI) CMD.syncUI(); }
+
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', CMD.init);
+else CMD.init();
+</script>
 </body>
 </html>
+<!-- （注：内容由AI生成） -->
