@@ -1,18 +1,9 @@
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>解忧签 · 摇一签，解千愁</title>
-<!-- 字体非阻塞加载：原来这条 <link rel=stylesheet> 是「渲染阻塞资源」，
-     国内访问 fonts.googleapis.com 不通时会白屏等它超时（数秒~30s）。
-     改成 media=print + onload 切回 all，字体到了再换，首屏不再等它。 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" media="print" onload="this.media='all'"
@@ -755,10 +746,8 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 }
 
 /* ============================================================
-   指令系统 CMD：聊天流系统回执 / 输入框指令联想（指令面板已删除，需口令解锁）
-   配色全部沿用 :root 里的 --paper / --red / --ink / --bamboo
+   指令系统 CMD：聊天流系统回执 / 输入框指令联想
    ============================================================ */
-/* —— 聊天流里的「指令回执」气泡（茶话会 & 私聊通用） —— */
 .cmd-sys{align-self:center;max-width:94%;font-size:12px;line-height:1.85;color:var(--ink-light);
   background:rgba(201,168,106,.10);border:1px dashed rgba(201,168,106,.55);border-radius:8px;
   padding:8px 13px;letter-spacing:.5px;animation:fadeIn .3s;word-break:break-word;}
@@ -790,7 +779,6 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 #cmdAc .ac-hint{font-size:10.5px;color:var(--ink-light);padding:5px 9px 2px;letter-spacing:1px;
   border-top:1px dashed rgba(0,0,0,.1);margin-top:3px;}
 
-/* —— 指令面板已删除：改用聊天框口令解锁，指令只在聊天流里回执 —— */
 @media (max-width:600px){
   #cmdAc{max-width:calc(100vw - 32px);}
 }
@@ -818,22 +806,6 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 @keyframes msFootIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 @media (max-width:600px){#meishiSplash .ms-foot{font-size:11px;}}
 </style>
-<script>
-(function(){
-  var el=document.getElementById('meishiSplash');
-  if(!el)return;
-  var KEY='meishiSplashSeen',done=false;
-  function remove(){if(done)return;done=true;el.remove();document.body.style.overflow='';}
-  function hide(){if(done)return;el.classList.add('ms-hide');setTimeout(remove,700);}
-  if(sessionStorage.getItem(KEY)){remove();return;}
-  sessionStorage.setItem(KEY,'1');
-  document.body.style.overflow='hidden';
-  var t=setTimeout(hide,4200);
-  function skip(){clearTimeout(t);hide();}
-  document.addEventListener('click',skip,{once:true,capture:true});
-  document.addEventListener('keydown',skip,{once:true,capture:true});
-})();
-</script>
 
 <div class="watermark">签</div>
 <div class="wrap">
@@ -848,27 +820,27 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
       </div>
     </div>
     <div class="meta">
-      自建站以来 <b id="totalCount">0</b> 次求签<br>
-      <span style="font-size:12px"><span class="dot"></span>此刻 <b id="onlineCount" style="font-size:13px">1</b> 人在线</span><br>
+      自建站以来 <b id="totalCount">—</b> 次求签<br>
+      <span style="font-size:12px"><span class="dot"></span>此刻 <b id="onlineCount" style="font-size:13px">—</b> 人在线</span><br>
       <span class="badge local" id="cloudBadge"><span class="lamp"></span><span id="cloudText">正在连接云数据库…</span></span>
     </div>
   </div>
   <nav class="nav">
-    <button class="btn wish-nav" onclick="openWish()" title="进入祈愿界面">祈愿</button>
-    <button class="btn" onclick="openFeed()">求签动态</button>
-    <button class="btn" onclick="openRank()">签运榜</button>
-    <button class="btn primary" onclick="openMyBox()">我的签匣</button>
-    <button class="btn" id="hallBtn" onclick="openHall()" title="无需加好友，全站公共聊天">茶话会<span class="nav-badge" id="hallBadge" hidden>0</span></button>
-    <button class="btn" id="friendBtn" onclick="openSocial()" title="搜索账号、加好友、私聊">签友<span class="nav-badge" id="friendBadge" hidden>0</span></button>
-    <button class="btn" id="nickBtn" onclick="navAccount()" title="账号">登录/注册</button>
-    <button class="btn" onclick="openSettings()" title="设置">⚙ 设置</button>
+    <button class="btn wish-nav" data-action="openWish" title="进入祈愿界面">祈愿</button>
+    <button class="btn" data-action="openFeed">求签动态</button>
+    <button class="btn" data-action="openRank">签运榜</button>
+    <button class="btn primary" data-action="openMyBox">我的签匣</button>
+    <button class="btn" id="hallBtn" data-action="openHall" title="无需加好友，全站公共聊天">茶话会<span class="nav-badge" id="hallBadge" hidden>0</span></button>
+    <button class="btn" id="friendBtn" data-action="openSocial" title="搜索账号、加好友、私聊">签友<span class="nav-badge" id="friendBadge" hidden>0</span></button>
+    <button class="btn" id="nickBtn" data-action="navAccount" title="账号">登录/注册</button>
+    <button class="btn" data-action="openSettings" title="设置">⚙ 设置</button>
   </nav>
 </header>
 
 <main>
   <section class="stage">
     <div class="stage-box" id="stageBox">
-      <button class="skip" id="skipBtn" onclick="skipAnim(event)">跳过 »</button>
+      <button class="skip" id="skipBtn" data-action="skipAnim">跳过 »</button>
 
       <div class="tube-shadow"></div>
       <div class="tube3d" id="tube3d">
@@ -898,8 +870,8 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
         <div class="no" id="signNo">第 001 签</div>
       </div>
       <div class="actions">
-        <button class="btn" onclick="saveSign()">收入签匣</button>
-        <button class="btn" onclick="shareSign()">分享</button>
+        <button class="btn" data-action="saveSign">收入签匣</button>
+        <button class="btn" data-action="shareSign">分享</button>
       </div>
     </div>
   </section>
@@ -909,10 +881,8 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 <footer>愿你所求皆如愿，所行化坦途。</footer>
 </div>
 
-<!-- 全屏金光层（脱离 wrap 的层叠上下文，才能笼罩整屏） -->
 <div class="gold-screen"></div>
 <div class="gold-ring"></div>
-<!-- 飞出的签（浮于金光之上） -->
 <div class="fly-stick" id="flyStick">
   <div class="fly-body" id="flyBody">
     <div class="fseg" style="--sa:0deg"></div>
@@ -923,8 +893,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
   </div>
 </div>
 
-
-<!-- ===== 祈愿主界面（仿祈愿抽卡） ===== -->
+<!-- ===== 祈愿主界面 ===== -->
 <div id="wishScreen" aria-hidden="true">
   <canvas id="wishStars"></canvas>
   <div class="wish-nebula n1"></div>
@@ -933,15 +902,15 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
   <div class="wish-vignette"></div>
   <div class="wish-inner">
     <div class="wish-topbar">
-      <button class="wish-back" onclick="closeWish()">&#8249; 返回</button>
+      <button class="wish-back" data-action="closeWish">&#8249; 返回</button>
       <div class="wish-pool">
         <div class="wish-pool-name">解忧祈愿 · 上上签</div>
         <div class="wish-pool-sub">UP 隐藏签「天选」概率提升中</div>
       </div>
       <div class="wish-right">
         <span class="wish-timer" id="wishTimer">剩余 --:--:--</span>
-        <button class="wish-link" onclick="openWishHistory()">祈愿记录</button>
-        <button class="wish-link" onclick="openWishDetail()">详情</button>
+        <button class="wish-link" data-action="openWishHistory">祈愿记录</button>
+        <button class="wish-link" data-action="openWishDetail">详情</button>
       </div>
     </div>
 
@@ -970,27 +939,26 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
     <div class="wish-actions">
       <div class="wish-cost"><span class="coin">&#10022;</span>签缘 <b id="wishFate">30</b> / 30</div>
       <div class="wish-btns">
-        <button class="wish-btn" id="wishBtnSingle" onclick="doWish(1)"><span class="wb-label">祈愿</span><span class="wb-cost">&#10022; 1</span></button>
-        <button class="wish-btn" id="wishBtnMulti" onclick="doWish(10)"><span class="wb-label">祈愿 ×10</span><span class="wb-cost">&#10022; 10</span></button>
+        <button class="wish-btn" id="wishBtnSingle" data-action="doWish" data-n="1"><span class="wb-label">祈愿</span><span class="wb-cost">&#10022; 1</span></button>
+        <button class="wish-btn" id="wishBtnMulti" data-action="doWish" data-n="10"><span class="wb-label">祈愿 ×10</span><span class="wb-cost">&#10022; 10</span></button>
       </div>
       <div class="wish-note" id="wishPity">距必出天签还需 40 抽</div>
     </div>
   </div>
 </div>
 
-<!-- 流星层：抽卡瞬间的过场动画 -->
 <div class="meteor-layer" id="meteorLayer"></div>
 
 <!-- 祈愿结算 -->
 <div class="wish-result-mask" id="wishResultMask">
   <div class="wr-box">
-    <div class="wr-head"><span id="wrTitle">祈愿结果</span><button onclick="closeWishResult()">&times;</button></div>
+    <div class="wr-head"><span id="wrTitle">祈愿结果</span><button data-action="closeWishResult">&times;</button></div>
     <div class="wish-grid" id="wishGrid"></div>
     <div class="wr-foot">
       <span class="sum" id="wrFoot"></span>
       <span>
-        <button class="wr-btn" onclick="collectAllWish()">全部收入签匣</button>
-        <button class="wr-btn" onclick="closeWishResult()">关闭</button>
+        <button class="wr-btn" data-action="collectAllWish">全部收入签匣</button>
+        <button class="wr-btn" data-action="closeWishResult">关闭</button>
       </span>
     </div>
   </div>
@@ -999,7 +967,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 <!-- 祈愿详情（概率公示） -->
 <div class="mask wish-pop" id="wishDetailMask">
   <div class="pop">
-    <button class="close" onclick="closeWishDetail()">&times;</button>
+    <button class="close" data-action="closeWishDetail">&times;</button>
     <h3>祈愿详情</h3>
     <div class="tip">概率公示 · 与摇签共用同一签库</div>
     <div class="rate-row"><span>命定 · 隐藏签（天选 / 摆烂 / 摸鱼 / 无为 / 碎筒 / 圆满）</span><b class="p-hidden">2.0%</b></div>
@@ -1014,7 +982,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 <!-- 祈愿记录 -->
 <div class="mask wish-pop" id="wishHistoryMask">
   <div class="pop">
-    <button class="close" onclick="closeWishHistory()">&times;</button>
+    <button class="close" data-action="closeWishHistory">&times;</button>
     <h3>祈愿记录</h3>
     <div class="tip">最近 100 条祈愿与求签记录</div>
     <ul class="feedlog" id="wishHistoryList"></ul>
@@ -1022,11 +990,10 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 </div>
 
 <div class="toast" id="toast"></div>
-
 <!-- 签运榜弹窗 -->
 <div class="mask" id="rankMask">
   <div class="pop">
-    <button class="close" onclick="closeRank()">×</button>
+    <button class="close" data-action="closeRank">×</button>
     <h3>签运榜</h3>
     <div class="tip">按「集签数」排名 · 数据来自 Supabase 实时库</div>
     <ul id="rankList"><li>加载中…</li></ul>
@@ -1036,7 +1003,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 <!-- 设置弹窗 -->
 <div class="mask" id="settingsMask">
   <div class="pop">
-    <button class="close" onclick="closeSettings()">×</button>
+    <button class="close" data-action="closeSettings">×</button>
     <h3>设置</h3>
     <div class="tip">声音、音量与求签播报偏好</div>
     <div class="set-row">
@@ -1063,7 +1030,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
         <span class="lab">指令功能</span>
         <div class="acct-wrap">
           <b id="cmdLockState">已解锁</b>
-          <button class="btn mini" id="cmdLockBtn" onclick="cmdToggleLock()" style="display:none;"></button>
+          <button class="btn mini" id="cmdLockBtn" data-action="cmdToggleLock" style="display:none;"></button>
         </div>
       </div>
     </div>
@@ -1071,8 +1038,8 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
       <span class="lab">账号</span>
       <div class="acct-wrap">
         <b id="acctName">未登录</b>
-        <button class="btn mini" onclick="editNick(event)">改昵称</button>
-        <button class="btn mini" id="acctBtn" onclick="acctAction()">登录</button>
+        <button class="btn mini" data-action="editNick">改昵称</button>
+        <button class="btn mini" id="acctBtn" data-action="acctAction">登录</button>
       </div>
     </div>
     <div class="set-tip">勾选求签播报后，当有人抽出隐藏签时屏幕上方会滑出提示；不勾选则不会提示。</div>
@@ -1082,7 +1049,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 <!-- 求签动态弹窗 -->
 <div class="mask" id="feedMask">
   <div class="pop">
-    <button class="close" onclick="closeFeed()">×</button>
+    <button class="close" data-action="closeFeed">×</button>
     <h3>求签动态</h3>
     <div class="tip">滚动查看全部求签动态</div>
     <ul class="feedlog" id="feedLogList"></ul>
@@ -1092,7 +1059,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 <!-- 我的签匣弹窗 -->
 <div class="mask" id="boxMask">
   <div class="pop">
-    <button class="close" onclick="closeMyBox()">×</button>
+    <button class="close" data-action="closeMyBox">×</button>
     <h3>我的签匣</h3>
     <div class="tip" id="boxTip">你的集签进度</div>
     <div class="grid" id="myGrid"></div>
@@ -1100,10 +1067,10 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
   </div>
 </div>
 
-<!-- 签匣详情弹窗：点击签后旋转放大到屏幕中央显示签文 -->
+<!-- 签匣详情弹窗 -->
 <div class="mask" id="signViewMask">
   <div class="pop sv-pop">
-    <button class="close" onclick="closeSignView()">×</button>
+    <button class="close" data-action="closeSignView">×</button>
     <div class="sv-card" id="svCard">
       <span class="level" id="svLevel">上上签</span>
       <p id="svText">签文内容</p>
@@ -1125,13 +1092,13 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
       </div>
     </div>
     <div class="login-tabs">
-      <button id="tabLogin" class="on" onclick="switchLoginTab('login')">登录</button>
-      <button id="tabReg" onclick="switchLoginTab('reg')">注册</button>
+      <button id="tabLogin" class="on" data-action="switchLoginTab" data-tab="login">登录</button>
+      <button id="tabReg" data-action="switchLoginTab" data-tab="reg">注册</button>
     </div>
     <label class="fld"><span>用户名</span><input id="loginUser" maxlength="12" placeholder="你的签名" autocomplete="off"></label>
     <label class="fld"><span>密码</span><input id="loginPw" type="password" placeholder="至少 8 位" autocomplete="off"></label>
     <div class="login-err" id="loginErr"></div>
-    <button class="btn primary wide" id="loginSubmit" onclick="submitLogin()">登录</button>
+    <button class="btn primary wide" id="loginSubmit" data-action="submitLogin">登录</button>
     <div class="login-guest">本站需登录后使用，未登录无法浏览或操作任何功能<br>请先登录或注册一个账号</div>
   </div>
 </div>
@@ -1139,7 +1106,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 <!-- ===== 大厅（茶话会）弹窗 ===== -->
 <div class="mask" id="hallMask">
   <div class="pop hall-pop">
-    <button class="close" onclick="closeHall()">&times;</button>
+    <button class="close" data-action="closeHall">&times;</button>
     <h3>解忧茶话会</h3>
     <div class="tip">全站公共大厅 · 无需加好友即可畅聊</div>
     <div class="hall-msgs" id="hallMsgs">
@@ -1147,22 +1114,22 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
     </div>
     <div class="soc-input" style="margin-top:10px;">
       <textarea id="hallMsgInput" rows="1" maxlength="200" placeholder="对大家说点什么…"></textarea>
-      <button class="btn primary mini" onclick="sendHallMsg()">发送</button>
+      <button class="btn primary mini" data-action="sendHallMsg">发送</button>
     </div>
   </div>
 </div>
 
-<!-- ===== 好友与聊天弹窗：搜索账号 / 好友申请 / 好友列表 / 私聊 ===== -->
+<!-- ===== 好友与聊天弹窗 ===== -->
 <div class="mask social-pop" id="socialMask">
   <div class="pop">
-    <button class="close" onclick="closeSocial()">&times;</button>
+    <button class="close" data-action="closeSocial">&times;</button>
     <h3>签友 · 传话</h3>
     <div class="tip">按用户名搜索其他账号，加好友后即可私聊</div>
     <div class="soc-body">
       <div class="soc-side">
         <div class="soc-search">
           <input id="socSearchInput" maxlength="20" placeholder="搜索用户名 / 昵称" autocomplete="off">
-          <button class="btn mini" onclick="searchUsers()">搜索</button>
+          <button class="btn mini" data-action="searchUsers">搜索</button>
         </div>
         <div class="soc-sec">搜索结果</div>
         <ul class="soc-list" id="socSearchList"><li class="soc-hint">输入用户名后点「搜索」</li></ul>
@@ -1176,7 +1143,7 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
         <div class="soc-msgs" id="socMsgs"><div class="empty">还没有选择聊天对象</div></div>
         <div class="soc-input">
           <textarea id="socMsgInput" rows="1" maxlength="500" placeholder="说点什么…"></textarea>
-          <button class="btn primary mini" onclick="sendMsg()">发送</button>
+          <button class="btn primary mini" data-action="sendMsg">发送</button>
         </div>
         <div class="soc-tip" id="socTip">已连接云数据库：好友关系与聊天记录存于云端，多设备同步、实时推送。</div>
       </div>
@@ -1187,14 +1154,139 @@ input[type=range].vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%
 <!-- 求签播报横幅 -->
 <div class="broadcast" id="broadcastBar"><span class="star">✦</span><span id="broadcastText"></span></div>
 
-<!-- Supabase JS SDK（UMD 版，提供全局 window.supabase）；加载失败时会自动尝试备用 CDN -->
-<!-- 原来这里是不带 defer 的同步脚本 + 未压缩版 supabase.js（约 700KB），
-     会阻塞后面的 HTML 解析。改成 min 版 + defer：不阻塞解析，且保证在
-     DOMContentLoaded 之前执行完（boot 已挂到 DOMContentLoaded 上）。 -->
+<!-- Supabase JS SDK（UMD 版，全局 window.supabase）；加载失败由 Cloud 内兜底 CDN 重试 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
 
 <script>
-/* ============ 签文库 ============ */
+/* ============================================================
+   ★ 重构层 · 阶段 0+1（零风险、可独立上线、可回滚）★
+   本层只做收口：配置 / 存储 / 事件总线 / 弹窗 / 提示 / 开屏 / 委托。
+   业务内核见下方脚本块，原全局函数经兼容桥挂回 window，行为与原版一致。
+   ============================================================ */
+
+/* ---------- 1. 配置收口：签库引用、存储键名、魔法数字、云端凭证 ---------- */
+const CONFIG = (()=>{
+  const STORAGE_KEYS = {
+    sound:'jieyou_sound', volume:'jieyou_vol', nick:'jieyou_nick', visitor:'jieyou_visitor',
+    feedLog:'jieyou_feedlog', broadcast:'jieyou_broadcast', noAnim:'jieyou_noanim',
+    users:'jieyou_users', session:'jieyou_session',
+    fate:'jieyou_fate', unreadPrefix:'jieyou_unread_', friendsPrefix:'jieyou_friends_',
+    reqs:'jieyou_reqs', chatPrefix:'jieyou_chat_', seenPrefix:'jieyou_seen_',
+    cmdHint:'jieyou_cmd_hint', cmdUnlock:'jieyou_cmd_unlock', fetchTimeout:'jieyou_fetch_timeout',
+    pendingPrefix:'jieyou_pending_collect_', tdayPrefix:'jieyou_tday_', wuweiPrefix:'jieyou_wuwei_',
+    pityPrefix:'jieyou_pity_', signPrefix:'jieyou_sign_', signLegacy:'jieyou_sign',
+    splashSeen:'meishiSplashSeen'
+  };
+  const LIMITS = {
+    RECENT_KEEP:12, FATE_MAX:30, PITY_GOLD:40,
+    WUWEI_IDLE_MS:60000, WUWEI_NEED_TODAY:12, PRESS_MS:3000,
+    FEED_LOG_MAX:300, FEED_HISTORY:40, FEED_POLL_MS:10000, RANK_POLL_MS:15000,
+    UNREAD_POLL_MS:20000, STATS_POLL_MS:30000
+  };
+  const SUPABASE = {
+    URL:'https://qwokxoxlojbhhhrhctuc.supabase.co',
+    ANON_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3b2t4b3hsb2piaGhocmhjdHVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzMzU2MzUsImV4cCI6MjExMDkxMTYzNX0.-l7wzlfPBld2fEGk5Fi87fSi_LNg-5IchBmwjb6RcGs'
+  };
+  return { STORAGE_KEYS, LIMITS, SUPABASE };
+})();
+
+/* ---------- 2. 存储封装：统一 localStorage 读写，异常兜底（无痕 / 配额满不炸页面） ---------- */
+const Storage = (()=>{
+  function get(key, fallback){
+    try{ const v = localStorage.getItem(key); return v == null ? fallback : v; }
+    catch(e){ return fallback; }
+  }
+  function set(key, value){
+    try{ localStorage.setItem(key, String(value)); return true; }
+    catch(e){ return false; }
+  }
+  function remove(key){
+    try{ localStorage.removeItem(key); }catch(e){}
+  }
+  function getJSON(key, fallback){
+    try{ const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); }
+    catch(e){ return fallback; }
+  }
+  function setJSON(key, obj){
+    try{ localStorage.setItem(key, JSON.stringify(obj)); return true; }
+    catch(e){ return false; }
+  }
+  return { get, set, remove, getJSON, setJSON };
+})();
+
+/* ---------- 3. 极简事件总线：模块间解耦，兼容桥可把事件回流到老函数 ---------- */
+const Bus = (()=>{
+  const map = {};
+  function on(ev, fn){ (map[ev] = map[ev] || []).push(fn); }
+  function off(ev, fn){ if(!map[ev]) return; map[ev] = map[ev].filter(f=>f!==fn); }
+  function emit(ev, payload){ (map[ev]||[]).forEach(fn=>{ try{ fn(payload); }catch(e){ console.warn('[Bus]', ev, e); } }); }
+  return { on, off, emit };
+})();
+
+/* ---------- 4. 弹窗统一收口：open/close，onOpen 可返回 cleanup，关闭时自动执行 ---------- */
+const Modal = (()=>{
+  const registry = {};   // id -> onOpen
+  const cleanups = {};  // id -> cleanup
+  function register(id, onOpen){ registry[id] = onOpen; }
+  function open(id){
+    const el = document.getElementById(id); if(!el) return;
+    el.classList.add('on');
+    const onOpen = registry[id];
+    if(typeof onOpen === 'function'){
+      let c = null;
+      try{ c = onOpen(); }catch(e){ console.warn('[Modal] onOpen', id, e); }
+      if(typeof c === 'function') cleanups[id] = c;
+    }
+    Bus.emit('modal:open', id);
+  }
+  function close(id){
+    const el = document.getElementById(id); if(!el) return;
+    el.classList.remove('on');
+    if(cleanups[id]){ try{ cleanups[id](); }catch(e){} delete cleanups[id]; }
+    Bus.emit('modal:close', id);
+  }
+  function isOpen(id){ const el = document.getElementById(id); return !!el && el.classList.contains('on'); }
+  return { open, close, register, isOpen };
+})();
+
+/* ---------- 5. 轻提示 ---------- */
+const Toast = (()=>{
+  let timer = null;
+  function show(msg){
+    const t = document.getElementById('toast'); if(!t) return;
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(timer); timer = setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+  return { show };
+})();
+
+/* ---------- 6. 开屏 Splash（原内联 IIFE 迁入；4.2s 自动 / 点击 / 按键跳过） ---------- */
+const Splash = (()=>{
+  let done = false;
+  function remove(el){ if(done) return; done = true; el.remove(); document.body.style.overflow = ''; }
+  function hide(el){ if(done) return; el.classList.add('ms-hide'); setTimeout(()=>remove(el), 700); }
+  function init(){
+    const el = document.getElementById('meishiSplash');
+    if(!el) return;
+    const KEY = CONFIG.STORAGE_KEYS.splashSeen;
+    if(sessionStorage.getItem(KEY)){ remove(el); return; }
+    sessionStorage.setItem(KEY, '1');
+    document.body.style.overflow = 'hidden';
+    const t = setTimeout(()=>hide(el), 4200);
+    function skip(){ clearTimeout(t); hide(el); }
+    document.addEventListener('click', skip, {once:true, capture:true});
+    document.addEventListener('keydown', skip, {once:true, capture:true});
+  }
+  return { init };
+})();
+
+/* ---------- 7. 兼容桥占位：业务脚本把老全局函数挂到这里，bindings 经此调用 ---------- */
+window.__legacy = window.__legacy || {};
+function expose(name, fn){ window.__legacy[name] = fn; window[name] = fn; }
+</script>
+
+<script>
+/* ============ 签文库（业务内核，行为与原版一致） ============ */
 const SIGNS = [
   {id:1,  level:'上上签', type:'ji',    text:'今日宜向前一步，你等的机会已在路上。'},
   {id:2,  level:'上签',   type:'ji',    text:'心之所向，素履以往。'},
@@ -1247,11 +1339,11 @@ const HIDDEN = [
 ];
 const ALL = [...SIGNS, ...HIDDEN];
 
-/* ============ 音效引擎（Web Audio 合成，无需外部音频文件） ============ */
+/* ============ 音效引擎（Web Audio 合成；配置经 Storage 收口） ============ */
 const Sound = (()=>{
   let ctx = null, master = null, rattleTimer = null;
-  let enabled = localStorage.getItem('jieyou_sound') !== '0';
-  let volume = parseFloat(localStorage.getItem('jieyou_vol'));
+  let enabled = Storage.get(CONFIG.STORAGE_KEYS.sound, '1') !== '0';
+  let volume = parseFloat(Storage.get(CONFIG.STORAGE_KEYS.volume, ''));
   if(isNaN(volume)) volume = 0.9;
   volume = Math.min(1, Math.max(0, volume));
 
@@ -1274,7 +1366,6 @@ const Sound = (()=>{
     for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
     return buf;
   }
-  /* 单次竹签碰撞：高频噪声碎响 + 木质短音「咔」 */
   function knock(vol){
     const c = ensure(); if(!c || !enabled) return;
     const t = c.currentTime;
@@ -1297,7 +1388,6 @@ const Sound = (()=>{
     osc.connect(og); og.connect(master);
     osc.start(t); osc.stop(t+0.1);
   }
-  /* 晃动阶段：连续随机碰撞，模拟筒内竹签乱撞 */
   function startRattle(){
     stopRattle();
     const loop = ()=>{
@@ -1307,7 +1397,6 @@ const Sound = (()=>{
     loop();
   }
   function stopRattle(){ clearTimeout(rattleTimer); rattleTimer = null; }
-  /* 「啵」：出签瞬间——音高快速上滑后回落，带一缕气口噪声 */
   function pop(){
     const c = ensure(); if(!c || !enabled) return;
     const t = c.currentTime;
@@ -1330,8 +1419,6 @@ const Sound = (()=>{
     src.connect(hp); hp.connect(ng2); ng2.connect(master);
     src.start(t); src.stop(t+0.14);
   }
-  /* ===== 祈愿新增音效 ===== */
-  /* 流星划过：带通噪声上下扫频（嗖——）+ 低频铺垫，稀有度越高铺垫越厚 */
   function meteor(tier){
     const c = ensure(); if(!c || !enabled) return;
     const t = c.currentTime, dur = (tier==='gold'||tier==='hidden') ? 1.35 : 1.0;
@@ -1358,7 +1445,6 @@ const Sound = (()=>{
     osc.connect(lp); lp.connect(og); og.connect(master);
     osc.start(t); osc.stop(t+dur+0.05);
   }
-  /* 分级铃音：稀有度越高，琶音越长、泛音越亮，命定另加低频轰鸣 */
   function chime(tier){
     const c = ensure(); if(!c || !enabled) return;
     const t0 = c.currentTime;
@@ -1403,7 +1489,6 @@ const Sound = (()=>{
       o.connect(g); g.connect(master); o.start(t); o.stop(t+1.6);
     }
   }
-  /* 结算卡片逐张翻扣的「哒」，音高随序号递增 */
   function tick(i){
     const c = ensure(); if(!c || !enabled) return;
     const t = c.currentTime;
@@ -1417,7 +1502,6 @@ const Sound = (()=>{
     osc.connect(lp); lp.connect(g); g.connect(master);
     osc.start(t); osc.stop(t+0.12);
   }
-  /* 打开祈愿界面：一层缓缓拉开的天幕声 */
   function wishOpen(){
     const c = ensure(); if(!c || !enabled) return;
     const t = c.currentTime;
@@ -1434,42 +1518,32 @@ const Sound = (()=>{
   }
   function setEnabled(v){
     enabled = v;
-    localStorage.setItem('jieyou_sound', v ? '1' : '0');
+    Storage.set(CONFIG.STORAGE_KEYS.sound, v ? '1' : '0');
     if(!v) stopRattle();
   }
   function isEnabled(){ return enabled; }
   function setVolume(v){
     volume = Math.min(1, Math.max(0, v));
-    localStorage.setItem('jieyou_vol', String(volume));
+    Storage.set(CONFIG.STORAGE_KEYS.volume, String(volume));
     if(master) master.gain.value = volume;
   }
   function getVolume(){ return volume; }
-  /* 首次用户手势解锁 AudioContext（浏览器自动播放策略） */
   window.addEventListener('pointerdown', ()=>ensure(), {once:true});
   return {knock, startRattle, stopRattle, pop, meteor, chime, tick, wishOpen, setEnabled, isEnabled, setVolume, getVolume};
 })();
 
-
-/* ============================================================
-   ★★★  新手只需改这两行  ★★★
-   去 Supabase 后台 → 左侧齿轮 Project Settings → API，复制：
-     1) Project URL   （形如 https://abcdefgh.supabase.co）
-     2) anon public   （那一长串 public key，不是 service_role）
-   粘到下面两个引号里，保存文件即可。
-   ★ 没填 / 填错也能正常玩：会自动退回「本地演示模式」，不会白屏。
-   ============================================================ */
-const SUPABASE_URL = 'https://qwokxoxlojbhhhrhctuc.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3b2t4b3hsb2piaGhocmhjdHVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzMzU2MzUsImV4cCI6MjExMDkxMTYzNX0.-l7wzlfPBld2fEGk5Fi87fSi_LNg-5IchBmwjb6RcGs';
+/* 云端凭证（收口到 CONFIG，保留旧常量名兼容） */
+const SUPABASE_URL = CONFIG.SUPABASE.URL;
+const SUPABASE_ANON_KEY = CONFIG.SUPABASE.ANON_KEY;
 
 /* ============ 状态 ============ */
 let state = { drawCount:0, xiongStreak:0, collected:new Set(), current:null,
               recent:[], idleTimer:null, pressTimer:null, longPressed:false, animating:false };
-let MY_ID = null, MY_NICK = localStorage.getItem('jieyou_nick') || '访客';
-let TOTAL_DRAWS = 128456;   // 全站累计求签次数（云端为真实值）
-let ONLINE = 1;             // 此刻在线（近 5 分钟摇过签的去重用户数）
+let MY_ID = null, MY_NICK = Storage.get(CONFIG.STORAGE_KEYS.nick, '访客');
+let TOTAL_DRAWS = null;
+let ONLINE = null;
 
-/* 近期出签记录：最近 12 支内不重复，从源头压低重复率 */
-const RECENT_KEEP = 12;
+const RECENT_KEEP = CONFIG.LIMITS.RECENT_KEEP;
 function pickRecent(){
   let pool = SIGNS.filter(s=>!state.recent.includes(s.id));
   if(pool.length===0){ state.recent=[]; pool = SIGNS.slice(); }
@@ -1479,13 +1553,12 @@ function pickRecent(){
   return sign;
 }
 
-function dataKey(){ return 'jieyou_sign_' + (CUR_USER || 'guest'); }
+function dataKey(){ return CONFIG.STORAGE_KEYS.signPrefix + (CUR_USER || 'guest'); }
 function load(){
-  let raw = localStorage.getItem(dataKey());
-  /* 旧版单账号数据一次性迁移到游客档 */
-  if(!raw && !CUR_USER && localStorage.getItem('jieyou_sign')){
-    localStorage.setItem(dataKey(), localStorage.getItem('jieyou_sign'));
-    raw = localStorage.getItem(dataKey());
+  let raw = Storage.get(dataKey(), null);
+  if(!raw && !CUR_USER && Storage.get(CONFIG.STORAGE_KEYS.signLegacy, null)){
+    Storage.set(dataKey(), Storage.get(CONFIG.STORAGE_KEYS.signLegacy));
+    raw = Storage.get(dataKey());
   }
   if(raw){ const d=JSON.parse(raw);
     state.drawCount=d.drawCount||0; state.collected=new Set(d.collected||[]);
@@ -1494,17 +1567,13 @@ function load(){
   state.xiongStreak=0; state.current=null;
   document.getElementById('result').classList.remove('show');
 }
-/* 本地永远存一份（离线兜底 + 抽取去重记录 + 秒开缓存），按账号分键 */
 function save(){
-  localStorage.setItem(dataKey(), JSON.stringify({
-    drawCount:state.drawCount, collected:[...state.collected], recent:state.recent }));
+  Storage.setJSON(dataKey(), {
+    drawCount:state.drawCount, collected:[...state.collected], recent:state.recent });
 }
-
-/* ============ 云端数据层（Supabase） ============
-   所有对 Supabase 的读写都收在这个模块里：
-   · 未配置 / 网络失败 → available 保持 false，全站自动走本地模式
-   · 页面不会因此报错或白屏
-================================================ */
+</script>
+<script>
+/* ============ 云端数据层（Supabase） ============ */
 const Cloud = (()=>{
   let sb = null, available = false;
 
@@ -1512,7 +1581,6 @@ const Cloud = (()=>{
     /^https?:\/\/.+/.test(SUPABASE_URL) && !SUPABASE_URL.includes('你的') &&
     SUPABASE_ANON_KEY.length > 20 && !SUPABASE_ANON_KEY.includes('粘到');
 
-  /* SDK 兜底：主 CDN 不通时依次试备用源 */
   async function loadSdk(){
     if(window.supabase && window.supabase.createClient) return true;
     const backups = [
@@ -1526,30 +1594,24 @@ const Cloud = (()=>{
           s.onload=res; s.onerror=()=>rej(new Error('sdk load fail'));
           document.head.appendChild(s);
         });
-      }catch(e){ /* 换下一个 */ }
+      }catch(e){}
       if(window.supabase && window.supabase.createClient) return true;
     }
     return false;
   }
 
-  /* 访客身份：优先匿名登录（后台需开启 Anonymous Provider）；
-     没开则降级为本地生成的访客指纹，功能照样可用 */
   async function ensureIdentity(){
-    /* 已登录本地账号：身份以账号为准，不走匿名/访客逻辑 */
     if(CUR_USER){ MY_ID = 'u_' + CUR_USER; MY_NICK = Account.nick(CUR_USER) || CUR_USER; return; }
     let uid = null;
-    /* 性能：先读本地 session（纯内存/本地存储，零网络请求）。
-       原来的 getUser() 每次都会向服务端发一次校验请求，
-       跨境 RTT 下白白的多花 200~400ms。本地拿到就直接用。 */
     try{
       const {data} = await sb.auth.getSession();
       if(data && data.session && data.session.user) uid = data.session.user.id;
-    }catch(e){ /* 忽略，继续试服务端 */ }
+    }catch(e){}
     if(!uid){
       try{
         const {data} = await sb.auth.getUser();
         if(data && data.user) uid = data.user.id;
-      }catch(e){ /* 忽略 */ }
+      }catch(e){}
     }
     if(!uid){
       try{
@@ -1559,27 +1621,23 @@ const Cloud = (()=>{
       }catch(e){ console.warn('[Supabase] 匿名登录异常，降级为本地访客ID：', e); }
     }
     if(!uid){
-      uid = localStorage.getItem('jieyou_visitor');
+      uid = Storage.get(CONFIG.STORAGE_KEYS.visitor, null);
       if(!uid){
         uid = 'v_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
-        localStorage.setItem('jieyou_visitor', uid);
+        Storage.set(CONFIG.STORAGE_KEYS.visitor, uid);
       }
     }
     MY_ID = uid;
-    const saved = localStorage.getItem('jieyou_nick');
-    MY_NICK = saved || (NAMES[Math.floor(Math.random()*NAMES.length)] + '·' + uid.slice(-4).toUpperCase());
-    if(!saved) localStorage.setItem('jieyou_nick', MY_NICK);
+    const saved = Storage.get(CONFIG.STORAGE_KEYS.nick, null);
+    MY_NICK = saved || ('访客' + uid.slice(-4).toUpperCase());
+    if(!saved) Storage.set(CONFIG.STORAGE_KEYS.nick, MY_NICK);
   }
 
   async function init(){
-    if(!configured()){ console.info('[解忧签] 未配置 Supabase，运行在本地演示模式'); return false; }
+    if(!configured()){ console.info('[解忧签] 未配置 Supabase，云端暂不可用'); return false; }
     if(!(await loadSdk())){ console.warn('[解忧签] Supabase SDK 加载失败，转本地模式'); return false; }
     try{
-      /* 性能：给所有 REST 请求加 9 秒超时熔断。
-         原来 Supabase 不可达时（网络抖动 / 区域被墙）每个请求都会挂到
-         浏览器默认超时（30~75s），把整个 boot 链卡死，页面长时间无响应。
-         注意：realtime 走 WebSocket，不受这个 fetch 影响。 */
-      const FETCH_TIMEOUT = Number(localStorage.getItem('jieyou_fetch_timeout')) || 9000;
+      const FETCH_TIMEOUT = Number(Storage.get(CONFIG.STORAGE_KEYS.fetchTimeout, '')) || 9000;
       sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         global: {
           fetch: (input, init) => {
@@ -1589,32 +1647,24 @@ const Cloud = (()=>{
               .finally(()=>clearTimeout(timer));
           }
         },
-        /* 让 realtime 心跳更激进一点，代理环境下更容易保活 */
         realtime: { params: { eventsPerSecond: 20, heartbeatIntervalMs: 15000 } }
       });
       await ensureIdentity();
-      /* 性能：available 先置位，让首屏立刻开始并行拉数据。
-         下面整段「写」操作（读云端昵称 → 写 users 表 → 同步账号名）都不返回
-         页面渲染所需的数据，全部放后台执行，一个 RTT 都不占首屏。 */
       available = true;
       (async ()=>{
-        /* 换设备 / 清过缓存后本机没有该账号的昵称缓存，Account.nick() 只能回用户名本身。
-           此时若直接 users.upsert，会把云端已改过的昵称覆盖回用户名 ——
-           所以先把真实昵称读回来，再写 users 表（仅缺缓存时付这一次往返，且在后台）。 */
         if(CUR_USER && !Account.hasLocal(CUR_USER)){
           const info = await accountInfo(CUR_USER);
           if(info && info.nickname){
             MY_NICK = info.nickname;
-            try{ localStorage.setItem('jieyou_nick', MY_NICK); }catch(e){}
+            try{ Storage.set(CONFIG.STORAGE_KEYS.nick, MY_NICK); }catch(e){}
             Account.setNick(CUR_USER, MY_NICK);
-            try{ refreshUserUI(); }catch(e){}   /* 顶栏 / 设置面板的昵称同步刷新 */
+            try{ refreshUserUI(); }catch(e){}
           }
         }
         const {error} = await sb.from('users').upsert({id:MY_ID, nickname:MY_NICK}, {onConflict:'id'});
         if(error) console.warn('[Supabase] 写入 users 失败：', error.message);
       })().catch(e=>console.warn('[Supabase] users 表同步异常：', e));
-      /* 把用户名一并写入 users 表，供「搜索账号 / 加好友」使用（失败不影响主流程） */
-      try{ syncAccount(CUR_USER, MY_NICK); }catch(e){ /* 忽略 */ }
+      try{ syncAccount(CUR_USER, MY_NICK); }catch(e){}
       return true;
     }catch(err){
       console.warn('[解忧签] 云端初始化失败，已自动回退本地模式：', err);
@@ -1623,7 +1673,6 @@ const Cloud = (()=>{
     }
   }
 
-  /* 摇到一支签 → 写入 draws（动态流 / 累计次数 / 在线人数都靠它） */
   async function recordDraw(sign){
     if(!available) return false;
     const {error} = await sb.from('draws').insert({
@@ -1636,9 +1685,6 @@ const Cloud = (()=>{
 
   const FEED_COLS = 'user_id,nickname,sign_level,is_hidden,created_at';
 
-  /* 动态流历史（最近 n 条）。
-     首屏默认只取 40 条：原来取 200 条，在跨境链路上要多传好几倍字节，
-     而弹窗一次也就显示几十条，本地还有 FEED_LOG 缓存兜着。 */
   async function fetchFeed(limit=40){
     if(!available) return [];
     const {data, error} = await sb.from('draws').select(FEED_COLS)
@@ -1647,9 +1693,6 @@ const Cloud = (()=>{
     return (data||[]).reverse();
   }
 
-  /* 增量拉取：只取比 sinceIso 更新的动态。
-     这是 realtime 断线时的兜底通道 —— 每次只传几条，代价极低，
-     所以可以放心地每 10 秒轮询一次。 */
   async function fetchFeedSince(sinceIso, limit=30){
     if(!available) return [];
     let q = sb.from('draws').select(FEED_COLS).order('created_at', {ascending:false}).limit(limit);
@@ -1659,10 +1702,6 @@ const Cloud = (()=>{
     return (data||[]).reverse();
   }
 
-  /* 实时订阅：别人摇签时自动推给你。
-     加了断线自愈：realtime 的 WebSocket 在代理/切后台/网络抖动下会被掐断，
-     原来掐断后只 console.warn 一句就永久静止了 —— 这正是「动态不更新」的主因。
-     现在按指数退避自动重建通道，并在回前台时立刻重连。 */
   let feedChan = null, feedRetry = 0, feedClosed = false;
   function subscribeFeed(onInsert){
     if(!available) return null;
@@ -1675,8 +1714,8 @@ const Cloud = (()=>{
            {event:'INSERT', schema:'public', table:'draws'},
            payload=>{
              const r = payload.new;
-             feedRetry = 0;                          // 收到消息说明通道健康，退避归零
-             if(r && r.user_id !== MY_ID) onInsert(r);   // 自己那条已本地展示，跳过避免重复
+             feedRetry = 0;
+             if(r && r.user_id !== MY_ID) onInsert(r);
            })
         .subscribe(status=>{
           if(status==='SUBSCRIBED'){ feedRetry = 0; console.info('[Supabase] 动态实时通道已连接'); }
@@ -1695,7 +1734,6 @@ const Cloud = (()=>{
     return open();
   }
 
-  /* 签运榜要能自己变，就得盯住 collection 表：有人集签 → 通知上层重拉榜单 */
   let colChan = null, colRetry = 0, colClosed = false;
   function subscribeCollection(onChange){
     if(!available) return null;
@@ -1719,21 +1757,15 @@ const Cloud = (()=>{
     return open();
   }
 
-  /* ===== 我的签匣（云端为权威，本机 localStorage 只是秒开缓存 + 离线兜底） =====
-     写入失败（断网 / RLS 未开 / 服务抖动）时不再静默丢弃，
-     而是进「待补传队列」按账号分键落盘，下次启动或网络恢复时自动补传。
-     否则就会出现「本机看着有这支签，换设备登录后却少了」的鬼故事。 */
-  function pendingKey(){ return 'jieyou_pending_collect_' + (CUR_USER || MY_ID || 'guest'); }
+  function pendingKey(){ return CONFIG.STORAGE_KEYS.pendingPrefix + (CUR_USER || MY_ID || 'guest'); }
   function readPending(){
-    try{ const a = JSON.parse(localStorage.getItem(pendingKey())); return Array.isArray(a) ? a : []; }
-    catch(e){ return []; }
+    const a = Storage.getJSON(pendingKey(), []); return Array.isArray(a) ? a : [];
   }
   function pushPending(signId){
     const a = readPending();
     if(a.indexOf(signId) < 0) a.push(signId);
-    try{ localStorage.setItem(pendingKey(), JSON.stringify(a)); }catch(e){}
+    Storage.setJSON(pendingKey(), a);
   }
-  /* 补传队列：顺序写，遇到第一个失败就停（保留剩余，下轮再试） */
   async function flushPending(){
     if(!available) return 0;
     const a = readPending();
@@ -1746,13 +1778,12 @@ const Cloud = (()=>{
       n++;
     }
     if(n){
-      try{ localStorage.setItem(pendingKey(), JSON.stringify(readPending().slice(n))); }catch(e){}
+      Storage.setJSON(pendingKey(), readPending().slice(n));
       console.info('[Supabase] 已补传 ' + n + ' 支离线签匣记录');
     }
     return n;
   }
 
-  /* 返回 null = 查询失败（与「云端确实为空」的 [] 区分开，上层才不会误清空本地签匣） */
   async function fetchCollection(){
     if(!available) return null;
     const {data, error} = await sb.from('collection').select('sign_id').eq('user_id', MY_ID);
@@ -1771,11 +1802,6 @@ const Cloud = (()=>{
     return true;
   }
 
-  /* 全站统计：累计次数 + 近 5 分钟在线人数。
-     原实现在浏览器里算在线人数：把近 5 分钟最多 2000 行 user_id 全量拉下来
-     再 new Set 去重 —— 单次上百 KB，还每 30 秒跑一次，是延迟和流量的大头。
-     现在优先走数据库端聚合函数 site_stats()，只回两个数字（几百字节）；
-     函数没建时自动降级为「head 计数 + 200 行抽样」，也不再拉 2000 行。 */
   async function fetchStats(){
     if(!available) return null;
     const {data, error} = await sb.rpc('site_stats', {window_minutes: 5});
@@ -1793,38 +1819,27 @@ const Cloud = (()=>{
     return { total: cnt.count || 0, online: online + 1 };
   }
 
-  /* 我自己的累计摇签次数（隐藏签「天选」按它判定） */
   async function fetchMyDrawCount(){
     if(!available) return null;
     const {count, error} = await sb.from('draws').select('id', {count:'exact', head:true}).eq('user_id', MY_ID);
     return error ? null : (count || 0);
   }
 
-  /* 签运榜：集签数 Top N */
   async function fetchRank(limit=10){
     if(!available) return null;
     const {data, error} = await sb.rpc('top_collectors', {lim: limit});
-    if(error){ console.warn('[Supabase] 排行榜读取失败（请确认已运行 SQL 脚本中的 top_collectors 函数）：', error.message); return null; }
+    if(error){ console.warn('[Supabase] 排行榜读取失败：', error.message); return null; }
     return data||[];
   }
 
-  /* 改昵称：users 表（动态流 / 签运榜显示用）一并更新 */
   async function rename(nick){
     MY_NICK = nick;
-    localStorage.setItem('jieyou_nick', nick);
+    Storage.set(CONFIG.STORAGE_KEYS.nick, nick);
     if(!available) return false;
     const {error} = await sb.from('users').update({nickname:nick}).eq('id', MY_ID);
     return !error;
   }
 
-  /* ===== 云端账号系统（新增）=====
-     账号权威数据在 accounts 表：换设备 / 换浏览器 / 清过缓存后仍能登录，
-     签匣与摇签次数随账号从云端拉回，不再「换设备就得重新注册」。
-     密码永不明文上网、也永不明文入库：
-       · 客户端算 pwHash = SHA-256('jyq::' + username + '::' + password)，用户名作盐
-       · 服务端只存这个哈希；登录比对在 account_login()（SECURITY DEFINER）里完成，
-         哈希不出库，anon 角色对 accounts 表没有 select 权限，拖不走密码哈希。
-     云端不可达时全站自动降级回本机 localStorage 账号（老行为），不报错、不白屏。 */
   function rpcOne(data){ return (Array.isArray(data) ? data[0] : data) || {}; }
 
   async function accountRegister(username, pwHash, pwAlg, nickname){
@@ -1848,8 +1863,6 @@ const Cloud = (()=>{
     }
   }
 
-  /* p_hashes：同一个密码的多种算法哈希（带用户名盐的新算法 + 无盐老算法），
-     服务端命中任一即通过 —— 这样本机老账号原样上云后，换设备仍用原密码可登。 */
   async function accountLogin(username, pwHashes){
     if(!available) return {ok:false, offline:true};
     try{
@@ -1866,7 +1879,6 @@ const Cloud = (()=>{
     }
   }
 
-  /* 读账号信息（换设备后本机没有昵称缓存时，用它把真实昵称拉回来） */
   async function accountInfo(username){
     if(!available) return null;
     try{
@@ -1877,7 +1889,6 @@ const Cloud = (()=>{
     }catch(e){ return null; }
   }
 
-  /* 改昵称同步到账号权威表 */
   async function accountSetNick(username, nickname){
     if(!available) return false;
     try{
@@ -1886,8 +1897,6 @@ const Cloud = (()=>{
     }catch(e){ return false; }
   }
 
-  /* 把本机已注册的老账号静默搬上云（幂等：云端已有同名则跳过，绝不覆盖云端密码）。
-     返回 synced = 云端确认「已写入」或「本来就有」的用户名列表。 */
   async function accountMigrate(list){
     const out = {ok:0, skip:0, fail:0, synced:[]};
     if(!available || !Array.isArray(list) || !list.length) return out;
@@ -1907,13 +1916,6 @@ const Cloud = (()=>{
     return out;
   }
 
-  /* ===== 好友与聊天（新增云端接口） =====
-     依赖两张表：friends（好友关系/申请）、messages（私聊消息）
-     建表与实时 publication 语句见随附的「解忧签-聊天功能.sql」；
-     表不存在或未开 RLS 策略时，这些方法只会 console.warn，不会打断页面。 */
-
-  /* 把用户名一并写进 users 表，供全站「搜索账号」使用。
-     老库没有 username 列时自动降级为只写 nickname。 */
   async function syncAccount(username, nickname){
     if(!available || !username) return false;
     const id = 'u_' + String(username).trim();
@@ -1921,15 +1923,13 @@ const Cloud = (()=>{
     try{
       const {error} = await sb.from('users').upsert(Object.assign({username:String(username).trim()}, base), {onConflict:'id'});
       if(!error) return true;
-    }catch(e){ /* 无 username 列：换下一种写法 */ }
+    }catch(e){}
     try{
       const {error} = await sb.from('users').upsert(base, {onConflict:'id'});
       return !error;
     }catch(e){ console.warn('[Supabase] 账号信息同步失败：', e); return false; }
   }
 
-  /* 搜索账号：取一批 users 后在前端按用户名 / 昵称模糊匹配
-     （用 select('*') 而非指定列，避免表结构差异导致整条查询报错） */
   async function searchUsers(kw){
     if(!available) return [];
     const {data, error} = await sb.from('users').select('*').limit(500);
@@ -1944,14 +1944,13 @@ const Cloud = (()=>{
     }).slice(0, 20);
   }
 
-  /* 发出好友申请（重复发送视为幂等更新） */
   async function sendFriendRequest(toId, toNick){
     if(!available) return false;
     const row = {user_id:MY_ID, friend_id:toId, status:'pending', nickname:MY_NICK, friend_nickname:toNick||''};
     try{
       const {error} = await sb.from('friends').upsert(row, {onConflict:'user_id,friend_id'});
       if(!error) return true;
-    }catch(e){ /* 不支持 upsert 时退回 insert */ }
+    }catch(e){}
     try{
       const {error} = await sb.from('friends').insert(row);
       if(!error) return true;
@@ -1960,20 +1959,17 @@ const Cloud = (()=>{
     }catch(e){ console.warn('[Supabase] 发送好友申请异常：', e); return false; }
   }
 
-  /* 别人发给我的待通过申请 */
   async function fetchRequests(){
     if(!available) return [];
     const {data, error} = await sb.from('friends').select('*').eq('friend_id', MY_ID).eq('status','pending');
     if(error){ console.warn('[Supabase] 读取好友申请失败：', error.message); return []; }
     return data||[];
   }
-  /* 我发出的、尚未被通过的申请 */
   async function fetchSentRequests(){
     if(!available) return [];
     const {data, error} = await sb.from('friends').select('*').eq('user_id', MY_ID).eq('status','pending');
     return error ? [] : (data||[]);
   }
-  /* 已通过的好友关系（双向都算） */
   async function fetchFriends(){
     if(!available) return [];
     const {data, error} = await sb.from('friends').select('*')
@@ -1981,7 +1977,6 @@ const Cloud = (()=>{
     if(error){ console.warn('[Supabase] 读取好友列表失败：', error.message); return []; }
     return data||[];
   }
-  /* 处理申请：接受=改状态，拒绝=删行 */
   async function respondRequest(fromId, accept){
     if(!available) return false;
     if(accept){
@@ -1992,13 +1987,12 @@ const Cloud = (()=>{
     return !error;
   }
 
-  /* 发一条私聊消息（messages 表无 from_nick 列时自动降级） */
   async function sendMessage(toId, text){
     if(!available) return false;
     try{
       const {error} = await sb.from('messages').insert({from_id:MY_ID, to_id:toId, content:text, from_nick:MY_NICK});
       if(!error) return true;
-    }catch(e){ /* 换不带昵称的写法 */ }
+    }catch(e){}
     try{
       const {error} = await sb.from('messages').insert({from_id:MY_ID, to_id:toId, content:text});
       if(!error) return true;
@@ -2006,7 +2000,6 @@ const Cloud = (()=>{
       return false;
     }catch(e){ console.warn('[Supabase] 发送消息异常：', e); return false; }
   }
-  /* 与某人的最近聊天记录（倒序取再翻转，保证 limit 截断的是最新一批） */
   async function fetchMessages(peerId, limit){
     if(!available) return [];
     const lim = limit || 200;
@@ -2016,7 +2009,6 @@ const Cloud = (()=>{
     if(error){ console.warn('[Supabase] 读取聊天记录失败：', error.message); return []; }
     return (data||[]).reverse();
   }
-  /* ===== 大厅聊天（新增） ===== */
   async function sendHallMessage(text) {
     return await sendMessage('public_hall', text);
   }
@@ -2027,14 +2019,12 @@ const Cloud = (()=>{
       .order('created_at', {ascending: false}).limit(limit);
     return error ? [] : (data||[]).reverse();
   }
-  /* 发给我、且晚于某时刻的消息（用于未读红点轮询兜底） */
   async function fetchIncomingSince(ms){
     if(!available) return [];
     const since = new Date(ms || 0).toISOString();
     const {data, error} = await sb.from('messages').select('*').eq('to_id', MY_ID).gt('created_at', since).limit(200);
     return error ? [] : (data||[]);
   }
-  /* 实时订阅：新消息 + 新好友申请，共用一条 channel */
   function subscribeSocial(onEvent){
     if(!available) return null;
     return sb.channel('jieyou-social')
@@ -2051,9 +2041,7 @@ const Cloud = (()=>{
     init, recordDraw, fetchFeed, fetchFeedSince, subscribeFeed, subscribeCollection,
     fetchCollection, collect,
     fetchStats, fetchMyDrawCount, fetchRank, rename,
-    /* 云端账号（新增）：注册 / 登录 / 昵称 / 老账号上云迁移 / 签匣离线补传 */
     accountRegister, accountLogin, accountInfo, accountSetNick, accountMigrate, flushPending,
-    /* 好友与聊天（新增） */
     syncAccount, searchUsers, sendFriendRequest, fetchRequests, fetchSentRequests,
     fetchFriends, respondRequest, sendMessage, fetchMessages, fetchIncomingSince, subscribeSocial,
     sendHallMessage, fetchHallMessages,
@@ -2061,7 +2049,8 @@ const Cloud = (()=>{
     reason: ()=> configured() ? (window.supabase ? '连接失败（看控制台 warn）' : 'SDK 加载失败') : '未填写 URL / Key'
   };
 })();
-
+</script>
+<script>
 /* ============ 3D 建模：圆柱签筒 + 四棱竹签 ============ */
 function mix(c1,c2,t){
   const p=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
@@ -2077,7 +2066,6 @@ for(let i=0;i<TUBE_SEG;i++){
   const a = i*(360/TUBE_SEG);
   const seg = document.createElement('div');
   seg.className = 'seg';
-  // 光源位于左前上方 → 用余弦算每片受光量，做出圆柱明暗过渡
   const lit = (Math.cos((a-318)*Math.PI/180)+1)/2;
   const col = lit>0.5 ? mix('#c9a86a','#f7e6bd',(lit-0.5)*2) : mix('#5a4020','#c9a86a',lit*2);
   seg.style.setProperty('--a', a+'deg');
@@ -2121,14 +2109,12 @@ let pendingSign = null;
 
 function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
 
-/* 把飞出的签对齐到筒口的屏幕坐标 */
 function positionFlyStick(){
   const r = tube3d.getBoundingClientRect();
   flyStick.style.left = (r.left + r.width/2) + 'px';
   flyStick.style.top  = (r.top + 4) + 'px';
 }
 
-/* 金光中心 = 签筒口的屏幕坐标（而非画面中心），滚动/缩放时同步 */
 function updateGoldOrigin(){
   const r = tube3d.getBoundingClientRect();
   const x = r.left + r.width/2;
@@ -2142,7 +2128,7 @@ window.addEventListener('scroll', updateGoldOrigin, {passive:true});
 function drawSign(forceHidden){
   if(!CUR_USER){ openLogin('摇签需要先登录，请登录或注册一个账号'); return; }
   if(state.animating) return;
-  bumpTodayDraws();   /* 当日摇签计数：「无为」隐藏签的门槛之一 */
+  bumpTodayDraws();
   let sign;
   if(forceHidden){ sign = forceHidden; }
   else{
@@ -2154,7 +2140,6 @@ function drawSign(forceHidden){
   runAnimation(sign);
 }
 
-/* 无动画模式：跳过全部动画直接落定结果 */
 function instantDraw(){
   clearTimers();
   clearMeteor();
@@ -2175,23 +2160,19 @@ function runAnimation(sign){
   hint.classList.add('dim');
   skipBtn.classList.add('on');
 
-  // 重置
   box.classList.remove('shaking','glowing','flying');
   document.body.classList.remove('gold-burst','flying');
   void box.offsetWidth;
 
-  const tier = rarityOf(sign);   // 稀有度决定流星颜色、撞击特效与音效
+  const tier = rarityOf(sign);
 
-  // ① 晃动（3D 摆动）+ 竹签碰撞声
   box.classList.add('shaking');
   Sound.startRattle();
 
-  // ② 摇定 → 天幕变暗，按稀有度划过一颗流星
   timers.push(setTimeout(()=>{
     box.classList.remove('shaking');
     Sound.stopRattle();
     playMeteor(tier, ()=>{
-      // ③ 流星撞击：全屏光爆按稀有度染色 + 竹签飞出
       setBurstTheme(tier);
       box.classList.add('glowing');
       updateGoldOrigin();
@@ -2204,11 +2185,9 @@ function runAnimation(sign){
     });
   }, 720));
 
-  // ④ 落定签文（流星撞击后再留一段余韵）
   timers.push(setTimeout(()=>{ finishDraw(); }, 720 + meteorHitMs(tier) + 1400));
 }
 
-/* 跳过：直接跳到最终结果 */
 function skipAnim(e){
   e && e.stopPropagation();
   if(!state.animating){
@@ -2239,7 +2218,6 @@ function finishDraw(){
   save(); renderAll();
   Cloud.recordDraw(sign).then(ok=>{ if(ok) refreshStats(); });
   state.animating = false;
-  // 稍后隐藏飞出的签，回到待摇状态
   timers.push(setTimeout(()=>{
     box.classList.remove('flying');
     document.body.classList.remove('flying');
@@ -2289,7 +2267,6 @@ function shareSign(){
 }
 
 /* ============ 动态流 ============ */
-const NAMES = ['清风','无名','小舟','阿茶','半夏','长安','南栀','木子','青衫','白鹭'];
 
 function timeAgo(iso){
   if(!iso) return '';
@@ -2300,18 +2277,15 @@ function timeAgo(iso){
   return Math.floor(s/86400) + ' 天前';
 }
 
-/* ===== 求签动态历史（本地持久化，弹窗内滚动查看全部） ===== */
-const FEED_LOG_KEY = 'jieyou_feedlog';
-const FEED_LOG_MAX = 300;
+const FEED_LOG_KEY = CONFIG.STORAGE_KEYS.feedLog;
+const FEED_LOG_MAX = CONFIG.LIMITS.FEED_LOG_MAX;
 let FEED_LOG = [];
 
-/* 解析动态记录的时间戳（毫秒）；缺失 / 非法返回 0，排序时排到末尾 */
 function feedTimeMs(rec){
   if(!rec || !rec.t) return 0;
   const t = Date.parse(rec.t);
   return isNaN(t) ? 0 : t;
 }
-/* 按时间倒序：离现在最近的排最上面；时间相同保持原顺序 */
 function sortFeedLog(){
   FEED_LOG = FEED_LOG
     .map((r, i) => ({r, i}))
@@ -2319,22 +2293,18 @@ function sortFeedLog(){
     .map(x => x.r);
 }
 
-try{
-  const raw = JSON.parse(localStorage.getItem(FEED_LOG_KEY));
-  if(Array.isArray(raw)) FEED_LOG = raw;
-}catch(e){ FEED_LOG = []; }
-function saveFeedLog(){
-  try{ localStorage.setItem(FEED_LOG_KEY, JSON.stringify(FEED_LOG)); }catch(e){}
+{
+  const raw = Storage.getJSON(FEED_LOG_KEY, null);
+  FEED_LOG = Array.isArray(raw) ? raw : [];
 }
+function saveFeedLog(){ Storage.setJSON(FEED_LOG_KEY, FEED_LOG); }
 
-/* 往动态流插一行（me=true 高亮为"我"；hidden=true 触发求签播报） */
 function addFeedLine(nickname, level, me, iso, hidden){
   const rec = {n:nickname, l:level, me:me?1:0, t:iso||new Date().toISOString(), h:hidden?1:0, u:CUR_USER||'guest'};
   FEED_LOG.push(rec);
-  sortFeedLog();                                   /* 按时间倒序，最新在最上 */
+  sortFeedLog();
   while(FEED_LOG.length > FEED_LOG_MAX) FEED_LOG.pop();
   saveFeedLog();
-  /* 弹窗开着就整体重绘，保证顺序永远跟时间戳一致（不再单条 prepend） */
   if(document.getElementById('feedMask').classList.contains('on')) renderFeedLog();
   if(hidden) broadcastHidden(nickname, level, me);
 }
@@ -2345,8 +2315,6 @@ function buildFeedLi(rec){
                + `<span class="tm">${timeAgo(rec.t)}</span>`;
   return li;
 }
-/* 相对时间（刚刚 / 3 分钟前）是渲染那一刻算出来的，弹窗开着不会自己变。
-   这里加一个每分钟的重绘，让时间标签跟着走，动态流看起来才是"活的"。 */
 setInterval(()=>{
   const mask = document.getElementById('feedMask');
   if(mask && mask.classList.contains('on')) renderFeedLog();
@@ -2355,7 +2323,7 @@ setInterval(()=>{
 function renderFeedLog(){
   const list = document.getElementById('feedLogList');
   list.innerHTML = '';
-  sortFeedLog();                                   /* 渲染前再排一次，兜底乱序 */
+  sortFeedLog();
   if(!FEED_LOG.length){
     list.innerHTML = '<div class="empty">还没有求签动态<br>摇一签，你就是第一条</div>';
     return;
@@ -2366,18 +2334,14 @@ function escapeHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-/* 兼容原调用：pushFeed(sign, name?, isMe?) */
 function pushFeed(sign, name, me){
   addFeedLine(name || '访客', sign.level, !!me, null, sign.id > 100);
 }
-
-/* 云端行记录 → 动态流（实时推送与历史加载共用） */
 function pushFeedFromRow(r, me){
   addFeedLine(r.nickname, r.sign_level, !!me, r.created_at, !!r.is_hidden);
 }
 
-/* ===== 求签播报：有人抽出隐藏签时屏幕上方提示（由设置开关控制） ===== */
-let broadcastOn = localStorage.getItem('jieyou_broadcast') === '1';
+let broadcastOn = Storage.get(CONFIG.STORAGE_KEYS.broadcast, '1') === '1';
 let bcTimer = null;
 function broadcastHidden(nickname, level, me){
   if(!broadcastOn) return;
@@ -2393,8 +2357,7 @@ function broadcastHidden(nickname, level, me){
 function renderAll(){
   document.getElementById('allCount').textContent = ALL.length;
   document.getElementById('myCount').textContent = state.collected.size;
-  document.getElementById('totalCount').textContent = TOTAL_DRAWS.toLocaleString();
-  document.getElementById('onlineCount').textContent = ONLINE;
+  renderCounters();
   const grid = document.getElementById('myGrid');
   grid.innerHTML = '';
   ALL.forEach(s=>{
@@ -2416,7 +2379,6 @@ function renderAll(){
   });
 }
 
-/* ===== 签匣详情：左键点击已收集的签 → 旋转放大到屏幕中央，显示具体签文 ===== */
 function openSignView(id){
   if(!requireLogin()) return;
   const s = ALL.find(x=>x.id===id);
@@ -2433,7 +2395,6 @@ function openSignView(id){
   Sound.pop();
 }
 function closeSignView(){ document.getElementById('signViewMask').classList.remove('on'); }
-/* 事件委托：仅左键、仅已收集的格子响应 */
 document.getElementById('myGrid').addEventListener('click', e=>{
   if(e.button!==0) return;
   const c = e.target.closest('.cell.on');
@@ -2450,44 +2411,37 @@ box.addEventListener('click', (e)=>{
 });
 box.addEventListener('mousedown', ()=>{
   if(state.animating) return;
-  state.pressTimer = setTimeout(()=>{ state.longPressed=true; drawSign(HIDDEN.find(s=>s.id===105)); }, 3000);
+  state.pressTimer = setTimeout(()=>{ state.longPressed=true; drawSign(HIDDEN.find(s=>s.id===105)); }, CONFIG.LIMITS.PRESS_MS);
 });
 ['mouseup','mouseleave'].forEach(ev=>box.addEventListener(ev, ()=>clearTimeout(state.pressTimer)));
 
-/* ===== 「无为」隐藏签：大"无为"难得 =====
-   旧条件（静置10秒即出）太容易，现改为四条件同时满足才触发：
-   1. 连续 60 秒对页面零操作（点击/按键/滚轮/触摸任一项都重新计时）；
-   2. 当日已摇签满 12 次——先"有为"，才有资格"无为"；
-   3. 页面全程保持前台可见（切走挂后台不算静置）；
-   4. 同一账号每日限得一次。 */
-const WUWEI_IDLE_MS = 60000;
-const WUWEI_NEED_TODAY = 12;
+const WUWEI_IDLE_MS = CONFIG.LIMITS.WUWEI_IDLE_MS;
+const WUWEI_NEED_TODAY = CONFIG.LIMITS.WUWEI_NEED_TODAY;
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
 function todayDraws(){
   if(!CUR_USER) return 0;
-  try{ const o=JSON.parse(localStorage.getItem('jieyou_tday_'+CUR_USER)||'null'); return (o && o.d===todayStr()) ? (o.n||0) : 0; }catch(e){ return 0; }
+  const o = Storage.getJSON(CONFIG.STORAGE_KEYS.tdayPrefix+CUR_USER, null);
+  return (o && o.d===todayStr()) ? (o.n||0) : 0;
 }
 function bumpTodayDraws(){
   if(!CUR_USER) return;
-  localStorage.setItem('jieyou_tday_'+CUR_USER, JSON.stringify({d:todayStr(), n:todayDraws()+1}));
+  Storage.setJSON(CONFIG.STORAGE_KEYS.tdayPrefix+CUR_USER, {d:todayStr(), n:todayDraws()+1});
 }
-function wuweiDoneToday(){ return !!CUR_USER && localStorage.getItem('jieyou_wuwei_'+CUR_USER)===todayStr(); }
+function wuweiDoneToday(){ return !!CUR_USER && Storage.get(CONFIG.STORAGE_KEYS.wuweiPrefix+CUR_USER, '')===todayStr(); }
 function resetIdle(){
   clearTimeout(state.idleTimer);
   if(!CUR_USER) return;
   state.idleTimer = setTimeout(()=>{
     if(state.animating || !CUR_USER) return;
-    if(document.visibilityState!=='visible') return resetIdle();   /* 挂后台不算静置，回前台重新计时 */
-    if(todayDraws() < WUWEI_NEED_TODAY || wuweiDoneToday()) return; /* 条件不齐，无为仍静默隐藏 */
-    localStorage.setItem('jieyou_wuwei_'+CUR_USER, todayStr());
+    if(document.visibilityState!=='visible') return resetIdle();
+    if(todayDraws() < WUWEI_NEED_TODAY || wuweiDoneToday()) return;
+    Storage.set(CONFIG.STORAGE_KEYS.wuweiPrefix+CUR_USER, todayStr());
     drawSign(HIDDEN.find(s=>s.id===104));
   }, WUWEI_IDLE_MS);
 }
-/* 任何真实交互都打断"静置"计数 */
 ['pointerdown','keydown','wheel','touchstart'].forEach(ev=>document.addEventListener(ev, ()=>resetIdle(), {passive:true}));
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') resetIdle(); });
 
-/* ===== 设置弹窗 ===== */
 function openSettings(){
   if(!requireLogin()) return;
   document.getElementById('setSoundChk').checked = Sound.isEnabled();
@@ -2502,16 +2456,14 @@ function openSettings(){
 }
 function closeSettings(){ document.getElementById('settingsMask').classList.remove('on'); }
 
-/* ===== 求签动态弹窗 ===== */
 function openFeed(){
   if(!requireLogin()) return;
   renderFeedLog();
   document.getElementById('feedMask').classList.add('on');
-  Live.pollFeed();        // 打开瞬间先补一次增量，不等下一个轮询周期
+  Live.pollFeed();
 }
 function closeFeed(){ document.getElementById('feedMask').classList.remove('on'); }
 
-/* ===== 我的签匣弹窗 ===== */
 function openMyBox(){
   if(!requireLogin()) return;
   document.getElementById('boxTip').textContent = CUR_USER ? `你是「${MY_NICK}」 · 集签进度` : '游客模式 · 登录后签匣随账号保存';
@@ -2519,7 +2471,6 @@ function openMyBox(){
 }
 function closeMyBox(){ document.getElementById('boxMask').classList.remove('on'); }
 
-/* 弹窗统一关闭：点遮罩 / 按 Esc（登录弹窗不可关闭，必须先登录） */
 [['settingsMask', closeSettings], ['feedMask', closeFeed], ['boxMask', closeMyBox], ['rankMask', closeRank], ['signViewMask', closeSignView]]
   .forEach(([id, fn])=>{
     document.getElementById(id).addEventListener('click', e=>{ if(e.target.id===id) fn(); });
@@ -2533,17 +2484,12 @@ function toast(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
 }
-
-/* ============ 实时活力引擎 Live ============
-   解决「求签动态 / 签运榜不自动更新、更新延迟高」。三层保障：
-     ① Supabase Realtime 推送（毫秒级，需后台开 publication + RLS，见 supabase_patch.sql）
-     ② 增量轮询兜底（realtime 被代理掐断 / 切后台时，每 10s 只拉新增的几条）
-   说明：动态流只收录云端真实求签记录，不再本地生成任何占位 / 虚拟动态。
-   另外：页面切回前台（visibilitychange）立刻补拉一次，避免后台期间静止。
-   ============================================ */
+</script>
+<script>
+/* ============ 实时活力引擎 Live ============ */
 const Live = (()=>{
-  const FEED_POLL_MS = 10000;    // 增量轮询周期（realtime 的兜底）
-  const RANK_POLL_MS = 15000;    // 签运榜自动刷新周期（弹窗打开期间）
+  const FEED_POLL_MS = CONFIG.LIMITS.FEED_POLL_MS;
+  const RANK_POLL_MS = CONFIG.LIMITS.RANK_POLL_MS;
   const SEEN_MAX     = 400;
 
   let feedTimer=null, rankTimer=null, colUnsub=null;
@@ -2552,7 +2498,6 @@ const Live = (()=>{
 
   function key(r){ return (r.created_at||'') + '|' + (r.user_id||'') + '|' + (r.sign_level||''); }
 
-  /* 登记去重键与时间水位；返回 false 表示这条已登记过 */
   function absorb(r){
     const k = key(r);
     if(seen.has(k)) return false;
@@ -2563,12 +2508,10 @@ const Live = (()=>{
     return true;
   }
 
-  /* 把一批云端行合并进本地动态流：按 (时间+用户+签级) 去重，
-     保证 realtime 推送与轮询兜底同时到达时不会插两条重复。 */
   function mergeRows(rows){
     if(!rows || !rows.length) return 0;
     let added = 0;
-    rows.slice().reverse().forEach(r=>{           // 由旧到新入列，最终顺序由时间排序兜底
+    rows.slice().reverse().forEach(r=>{
       if(!absorb(r)) return;
       pushFeedFromRow(r, r.user_id === MY_ID);
       added++;
@@ -2576,35 +2519,31 @@ const Live = (()=>{
     return added;
   }
 
-  /* 首屏历史预热：只登记去重键与时间水位，不再往 FEED_LOG 里插一遍
-     （FEED_LOG 在 boot 里已经用同一批数据整体赋值过了） */
   function warm(rows){
     if(!rows || !rows.length) return;
     rows.forEach(absorb);
   }
 
-  /* realtime 推来一条 */
   function onRealtimeRow(r){
     if(!absorb(r)) return;
     pushFeedFromRow(r, r.user_id === MY_ID);
-    TOTAL_DRAWS++;
+    if(TOTAL_DRAWS !== null) TOTAL_DRAWS++;
     renderCounters();
   }
 
-  /* 增量轮询兜底 */
   async function pollFeed(){
     if(!Cloud.isOn() || syncing) return;
-    if(document.visibilityState !== 'visible') return;   // 挂后台不打扰
+    if(document.visibilityState !== 'visible') return;
     syncing = true;
     try{
       const since = lastFeedTs ? new Date(lastFeedTs).toISOString() : null;
       const rows = await Cloud.fetchFeedSince(since, 30);
       const n = mergeRows(rows);
-      if(n > 0){ TOTAL_DRAWS += n; renderCounters(); }   // 兜底补到的也计入累计
+      if(n > 0 && TOTAL_DRAWS !== null) TOTAL_DRAWS += n;
+      renderCounters();
     }finally{ syncing = false; }
   }
 
-  /* 签运榜：弹窗打开期间自动刷新（原来只在打开那一刻拉一次，之后永远不动） */
   async function refreshRankSilently(){
     if(rankSyncing || !Cloud.isOn()) return;
     const mask = document.getElementById('rankMask');
@@ -2618,11 +2557,9 @@ const Live = (()=>{
     if(!Cloud.isOn()) return;
     clearInterval(feedTimer);
     feedTimer = setInterval(pollFeed, FEED_POLL_MS);
-    /* 回前台立刻补一次，不等下一个轮询周期 */
     document.addEventListener('visibilitychange', ()=>{
       if(document.visibilityState === 'visible') pollFeed();
     });
-    /* 盯住 collection 表：有人集签 → 1.5s 防抖后重拉榜单（榜单正开着才拉） */
     let deb = null;
     colUnsub = Cloud.subscribeCollection(()=>{
       clearTimeout(deb);
@@ -2645,34 +2582,27 @@ const Live = (()=>{
 function setCloudStatus(on){
   const b = document.getElementById('cloudBadge'), t = document.getElementById('cloudText');
   b.className = 'badge ' + (on ? 'cloud' : 'local');
-  t.textContent = on ? '已连接云数据库 · 动态实时推送中' : '本地演示模式（' + Cloud.reason() + '）';
+  t.textContent = on ? '已连接云数据库 · 动态实时推送中' : '云端暂不可用（' + Cloud.reason() + '）';
 }
 
-/* 只刷新头部 4 个数字。
-   原来 refreshStats 每 30 秒调一次 renderAll()，而 renderAll 会把整个签匣
-   网格（100+ 个 DOM 节点）innerHTML='' 后全部重建 —— 实时推送一来还要再来一次，
-   这是页面上明显的卡顿来源。数字更新走这个轻量函数即可。 */
 function renderCounters(){
-  document.getElementById('totalCount').textContent = TOTAL_DRAWS.toLocaleString();
-  document.getElementById('onlineCount').textContent = ONLINE;
+  const t = document.getElementById('totalCount');
+  const o = document.getElementById('onlineCount');
+  if(t) t.textContent = (TOTAL_DRAWS === null) ? '—' : TOTAL_DRAWS.toLocaleString();
+  if(o) o.textContent = (ONLINE === null || ONLINE <= 0) ? '—' : ONLINE;
 }
 
-/* 刷新全站统计：累计求签次数 + 近 5 分钟在线人数 */
 async function refreshStats(){
   const s = await Cloud.fetchStats();
-  if(!s) return;
-  TOTAL_DRAWS = s.total;
-  ONLINE = s.online;
+  if(s){ TOTAL_DRAWS = s.total; ONLINE = s.online; }
   renderCounters();
 }
 
-/* 我的签匣（云端） */
 async function refreshMyCollection(){
   const ids = await Cloud.fetchCollection();
   if(ids){ state.collected = new Set(ids); save(); renderAll(); }
 }
 
-/* 签运榜：渲染一次（自动刷新与手动打开共用） */
 async function renderRank(){
   const list = document.getElementById('rankList');
   if(!list) return;
@@ -2685,7 +2615,7 @@ async function renderRank(){
     const me = r.user_id === MY_ID;
     return `<li><span class="rk">${i+1}</span><span class="nm">${escapeHtml(me?'我':r.nickname)}</span><span class="ct">${r.cnt} 签</span></li>`;
   }).join('');
-  list.innerHTML = html;      // 一次性写入，避免逐条 appendChild 造成的重排闪烁
+  list.innerHTML = html;
 }
 
 async function openRank(){
@@ -2694,13 +2624,11 @@ async function openRank(){
   const list = document.getElementById('rankList');
   mask.classList.add('on');
   if(!Cloud.isOn()){
-    list.innerHTML = '<div class="empty">本地演示模式暂无榜单<br>接入 Supabase 后自动显示全网排名</div>';
+    list.innerHTML = '<div class="empty">云端暂不可用，暂无榜单</div>';
     return;
   }
   list.innerHTML = '<li>加载中…</li>';
   await renderRank();
-  /* 关键修复：榜单原来只在弹窗打开的那一刻拉一次，之后 collection 表怎么变
-     它都不会动。现在打开期间每 15 秒自动重拉，并叠加 collection 表的实时订阅。 */
   Live.openRankModal();
 }
 function closeRank(){
@@ -2708,7 +2636,6 @@ function closeRank(){
   Live.closeRankModal();
 }
 
-/* 改昵称（同步到 users 表） */
 async function editNick(e){
   e && e.stopPropagation();
   if(!CUR_USER){ openLogin('改昵称需要先登录'); return; }
@@ -2719,57 +2646,30 @@ async function editNick(e){
   Account.setNick(CUR_USER, nick);
   MY_NICK = nick;
   const ok = await Cloud.rename(nick);
-  /* 账号权威表里的昵称一并更新：换设备登录后显示的名字才一致 */
   try{ await Cloud.accountSetNick(CUR_USER, nick); }catch(e){}
-  localStorage.setItem('jieyou_nick', nick);
+  Storage.set(CONFIG.STORAGE_KEYS.nick, nick);
   refreshUserUI();
   toast(ok ? `昵称已改为「${nick}」` : `已本地改名为「${nick}」（云端未连接）`);
 }
 
-/* ============ 账号系统（云端为权威 + 本机 localStorage 缓存） ============
-   改造要点：账号不再只存在本机浏览器。
-     · 注册 / 登录都先走云端 accounts 表（Cloud.accountRegister / accountLogin），
-       换设备、换浏览器、清过缓存之后，用同一个用户名 + 密码就能重新登录，
-       登录成功后 boot() / onLogin() 会把云端的签匣与摇签次数拉回来。
-     · 本机 localStorage 退化为「缓存 + 离线兜底」：断网时仍能登录已缓存的账号，
-       页面不会因为 Supabase 不可达而白屏。
-     · 本机只存密码哈希，绝不存明文密码。
-   注意：本模块在 Cloud 之后定义，但只在运行时被调用，可以安全引用 Cloud。 */
+/* ============ 账号系统（云端权威 + 本机缓存兜底） ============ */
 const Account = (()=>{
-  const USERS_KEY='jieyou_users', SESSION_KEY='jieyou_session';
-
-  /* 修复①：用户名保留字。
-     'guest' 会和「未登录游客」共用同一套 localStorage 主键
-     （dataKey()='jieyou_sign_guest'、jieyou_unread_guest、jieyou_tday_guest…），
-     注册一个叫 guest 的账号 = 直接读写游客的历史签匣，两边数据互相污染。 */
+  const USERS_KEY=CONFIG.STORAGE_KEYS.users, SESSION_KEY=CONFIG.STORAGE_KEYS.session;
   const RESERVED = ['guest','admin','root','public','public_hall','demo','null','undefined'];
 
-  /* 修复②：一律用 hasOwnProperty 判断键是否存在。
-     原来写 `if(u[name])`，当用户名是 __proto__ / toString / constructor / valueOf
-     这类原型链上的键时恒为 truthy → 永远提示「该用户名已注册，请直接登录」，
-     而这些名字其实根本没被注册过（JSON.stringify 不会序列化原型）。 */
   function has(u,k){ return Object.prototype.hasOwnProperty.call(u,k); }
 
-  /* 用 null 原型对象承载账号表：这样 '__proto__' 也能作为普通键正常读写与序列化，
-     不会出现「注册返回成功、实际没落盘、下次登不进来」的静默失败。 */
   function users(){
-    let u = null;
-    try{ u = JSON.parse(localStorage.getItem(USERS_KEY)); }catch(e){ u = null; }
+    let u = Storage.getJSON(USERS_KEY, null);
     return (u && typeof u==='object' && u) ? Object.assign(Object.create(null), u) : Object.create(null);
   }
-  /* 注意：这里不能 Object.assign({}, u) —— 普通对象带 __proto__ 访问器，
-     会把名为 __proto__ 的账号键吞掉，导致注册「成功」却没落盘。 */
-  function saveUsers(u){ localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+  function saveUsers(u){ Storage.setJSON(USERS_KEY, u); }
 
   function fbHash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return 'f'+(h>>>0).toString(16); }
   async function sha(pw){
     const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('jyq::'+pw));
     return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');
   }
-  /* 修复③：哈希记录里带上算法标记，登录时按标记（老数据按长度推断）回验。
-     原来 hash() 在 crypto.subtle 不可用时静默降级成 32 位 FNV，
-     同一个账号在 https 下注册（存 SHA-256）、换到 http://内网IP / 旧浏览器登录（算 FNV），
-     两个哈希永远对不上 → 密码明明输对了却提示「密码不正确」，且无任何线索。 */
   async function makeHash(pw){
     try{ return {alg:'sha256', pw:await sha(pw)}; }
     catch(e){ return {alg:'fnv', pw:fbHash('jyq::'+pw)}; }
@@ -2777,23 +2677,17 @@ const Account = (()=>{
   async function verify(rec, pw, name){
     if(!rec || !rec.pw) return false;
     const alg = rec.alg || (String(rec.pw).length > 16 ? 'sha256' : 'fnv');
-    /* 新版：用户名作盐（云端账号就是这个算法） */
     if(alg === 'sha256u'){
       try{ return (await sha(String(name||'') + '::' + pw)) === rec.pw; }catch(e){ return false; }
     }
     if(alg === 'sha256'){
       let h = null;
       try{ h = await sha(pw); }catch(e){}
-      return h === rec.pw || fbHash('jyq::'+pw) === rec.pw;   /* 后者兜极老的降级数据 */
+      return h === rec.pw || fbHash('jyq::'+pw) === rec.pw;
     }
     return fbHash('jyq::'+pw) === rec.pw;
   }
 
-  /* 同一个密码算出「带用户名盐」与「无盐老算法」两份哈希。
-     · 注册：取第一份（sha256u）上云；
-     · 登录：两份一起送给服务端，命中任一即通过 ——
-       这样「老版本在本机注册的无盐账号」原样搬上云后，
-       换设备依然能用原密码登录，不需要重设密码。 */
   async function pwHashesFor(name, pw){
     const list = [];
     try{ list.push(await sha(String(name) + '::' + pw)); }catch(e){}
@@ -2801,13 +2695,8 @@ const Account = (()=>{
     if(!list.length){ list.push(fbHash('jyq::'+name+'::'+pw), fbHash('jyq::'+pw)); }
     return list;
   }
-  /* 本机是否已有该账号的缓存记录（决定要不要花一次往返去云端读昵称） */
   function hasLocal(n){ return has(users(), n); }
 
-  /* 修复④：用户名合法性校验。
-     用户名会被拼进 PostgREST 的 .or() 过滤串（好友列表、聊天记录），
-     也直接当 localStorage 键用；含 , . : * ( ) 时查询语法会被破坏，
-     表现为「登录成功但好友/聊天永远空白」这类说不清的故障。 */
   function checkName(name){
     name = String(name==null?'':name).trim();
     if(!name) return {ok:false,msg:'请填写用户名'};
@@ -2825,10 +2714,6 @@ const Account = (()=>{
     const u=users();
     if(has(u,name)) return {ok:false,msg:'该用户名已注册，请直接登录'};
 
-    /* ① 云端优先：用户名是否可用由服务端唯一约束说了算。
-          原来只查本机 localStorage，两个人（或同一人换浏览器）注册同名会各自
-          「注册成功」，而 user_id = 'u_' + 用户名 完全相同 →
-          签匣、求签动态、签运榜、好友、私聊全部串号。现在由云端一票否决。 */
     let cloud = {ok:false, offline:true};
     if(Cloud.isOn()){
       const hs = await pwHashesFor(name, pw);
@@ -2836,13 +2721,9 @@ const Account = (()=>{
       if(!cloud.ok && cloud.exists) return {ok:false, msg:'该用户名已注册，请直接登录'};
     }
 
-    /* ② 本机同时留一份哈希：断网时可离线登录，也作为秒开缓存。
-       修复⑤：配额写满 / 无痕模式 / 禁用站点数据时 setItem 会抛异常，
-       必须转成人话提示，否则异常会一路冒到 submitLogin 把按钮永久禁掉。 */
     const h = await makeHash(pw);
     u[name]={pw:h.pw, alg:h.alg, nick:name, created:Date.now(), cloudSynced:!!cloud.ok};
-    try{ saveUsers(u); }
-    catch(e){ return {ok:false,msg:'本地存储写入失败：浏览器可能禁用了站点数据，或存储空间已满'}; }
+    if(!saveUsers(u)) return {ok:false,msg:'本地存储写入失败：浏览器可能禁用了站点数据，或存储空间已满'};
     if(!cloud.ok) return {ok:true, offline:true, msg:'已在本机注册，联网后会自动同步到云端'};
     return {ok:true, cloud:true};
   }
@@ -2850,22 +2731,19 @@ const Account = (()=>{
     const chk = checkName(name);
     if(!chk.ok) return chk;
     name = chk.name;
-    if(!pw) return {ok:false,msg:'请输入密码'};   /* 修复⑥：原来空密码会走到哈希比对，误报「密码不正确」 */
+    if(!pw) return {ok:false,msg:'请输入密码'};
     const u = users();
 
-    /* ① 云端优先：换设备 / 换浏览器 / 清过缓存时本机根本没有这个账号，
-          必须让服务端来认 —— 这正是「换设备登不上」的根因。 */
     if(Cloud.isOn()){
       const hs = await pwHashesFor(name, pw);
       const c = await Cloud.accountLogin(name, hs);
       if(c.ok){
-        /* 把云端账号镜像到本机（存哈希不存明文），下次断网也能登 */
         if(!has(u,name)){
           u[name] = {pw:hs[0], alg:'sha256u', nick:c.nickname||name, created:Date.now(), cloudSynced:true};
-          try{ saveUsers(u); }catch(e){}
+          saveUsers(u);
         }else if(c.nickname && u[name].nick !== c.nickname){
           u[name].nick = c.nickname;
-          try{ saveUsers(u); }catch(e){}
+          saveUsers(u);
         }
         try{ setSession(name); }
         catch(e){ return {ok:false,msg:'本地存储写入失败，请检查浏览器的隐私/站点数据设置'}; }
@@ -2873,22 +2751,18 @@ const Account = (()=>{
       }
       if(c.reason === 'badpw') return {ok:false,msg:'密码不正确'};
       if(c.reason === 'nouser'){
-        /* 云端没这个账号：可能是本机老账号还没上云 → 交给下面的本地校验兜底 */
         if(!has(u,name)) return {ok:false,msg:'用户名未注册，请先注册'};
       }else{
-        /* 云端不可达 / 函数没建：降级本机校验，保证老用户不被锁在门外 */
         if(!has(u,name)) return {ok:false,msg:'用户名未注册，请先注册（当前连不上云端）'};
       }
     }else if(!has(u,name)){
       return {ok:false,msg:'用户名未注册，请先注册'};
     }
 
-    /* ② 本地校验（离线兜底 / 尚未上云的老账号） */
     let ok=false;
     try{ ok = await verify(u[name], pw, name); }
     catch(e){ ok = (u[name].pw === fbHash('jyq::'+pw)); }
     if(!ok){
-      /* 本机镜像存的是带用户名盐的哈希，而 verify 走异常分支时可能漏比，补一次 */
       try{ ok = (u[name].pw === await sha(name + '::' + pw)); }catch(e){}
     }
     if(!ok) return {ok:false,msg:'密码不正确'};
@@ -2896,21 +2770,15 @@ const Account = (()=>{
     catch(e){ return {ok:false,msg:'本地存储写入失败，请检查浏览器的隐私/站点数据设置'}; }
     return {ok:true};
   }
-  function setSession(n){ localStorage.setItem(SESSION_KEY, n); }
-  function logout(){ localStorage.removeItem(SESSION_KEY); }
-  /* 会话里的用户名直接采信：账号权威在云端，本机 users 表只是缓存。
-     原来要求「本机 users 表里必须有这个键」才认登录态，换设备 / 清过缓存之后
-     本机必然没有 → 明明云端有账号，刷新一下页面就被当成没登录。 */
+  function setSession(n){ Storage.set(SESSION_KEY, n); }
+  function logout(){ Storage.remove(SESSION_KEY); }
   function current(){
-    const n = localStorage.getItem(SESSION_KEY);
+    const n = Storage.get(SESSION_KEY, null);
     return (n && String(n).trim()) ? String(n).trim() : null;
   }
   function nick(n){ const u=users(); return has(u,n)?(u[n].nick||n):n; }
   function setNick(n,nick){ const u=users(); if(has(u,n)){ u[n].nick=nick; saveUsers(u); } }
 
-  /* 把本机已注册、但尚未上云的账号静默搬上云（幂等，绝不覆盖云端已有密码）。
-     老账号存的是无盐哈希，原样上云（alg=sha256）；登录时客户端新老两种哈希一起送验，
-     所以换设备后依然能用原密码登录，不需要重设密码。 */
   async function migrateToCloud(){
     const out = {ok:0, skip:0, fail:0};
     if(!Cloud.isOn()) return out;
@@ -2925,7 +2793,7 @@ const Account = (()=>{
     if(r && r.synced && r.synced.length){
       const u2 = users();
       for(const nm of r.synced){ if(has(u2,nm)) u2[nm].cloudSynced = true; }
-      try{ saveUsers(u2); }catch(e){}
+      saveUsers(u2);
     }
     out.ok = r ? r.ok : 0; out.skip = r ? r.skip : 0; out.fail = r ? r.fail : 0;
     if(out.ok) console.info('[账号] 已把 ' + out.ok + ' 个本机账号同步到云端');
@@ -2943,36 +2811,25 @@ let loginMode = 'login';
 function openLogin(msg){
   const mask = document.getElementById('loginMask');
   const alreadyOpen = mask.classList.contains('on');
-  /* 修复⑦：只在「重新打开」时复位到「登录」页签。
-     原来 loginMode 只在点标签时改变，openLogin 从不重置 —— 只要注册过一次
-     （或手动切到过「注册」页签），之后每次弹窗都会停在注册态：
-     按钮写着「注册并登录」，用户输入正确的账号密码点下去，走的是 register 分支
-     → 永远提示「该用户名已注册，请直接登录」。
-     这就是典型的「登录好像坏了，但说不上来哪里坏」。
-     弹窗已经开着时不重置，避免误触遮罩把用户填了一半的注册表单清空。 */
   if(!alreadyOpen){
     switchLoginTab('login');
     const pwEl = document.getElementById('loginPw');
-    if(pwEl) pwEl.value = '';                 /* 修复⑧：不残留上一个账号的密码 */
+    if(pwEl) pwEl.value = '';
   }
   const btn = document.getElementById('loginSubmit');
-  if(btn) btn.disabled = false;               /* 修复⑧：清掉可能残留的禁用态（弹窗不可关闭，一旦灰死就再也进不去） */
+  if(btn) btn.disabled = false;
   document.getElementById('loginErr').textContent = msg || '';
   mask.classList.add('on');
   setTimeout(()=>document.getElementById('loginUser').focus(), 60);
 }
 function closeLogin(){ document.getElementById('loginMask').classList.remove('on'); }
 
-/* 登录守卫：已登录返回 true，未登录则弹出登录框并返回 false */
 function requireLogin(msg){
   if(CUR_USER) return true;
   openLogin(msg || '请先登录账号后再使用本站');
   return false;
 }
 
-/* ===== 全局强制登录拦截 =====
-   未登录时，点击 / 按键一律在捕获阶段拦截并弹出登录框，同时阻断原本要触发的操作；
-   登录弹窗内部（输入框、标签页、登录按钮）不拦截。 */
 document.addEventListener('click', e=>{
   if(CUR_USER) return;
   if(e.target && e.target.closest && e.target.closest('#loginMask')) return;
@@ -3001,7 +2858,7 @@ async function submitLogin(){
   const pwEl   = document.getElementById('loginPw');
   const err = document.getElementById('loginErr');
   const btn = document.getElementById('loginSubmit');
-  if(btn.disabled) return;                     /* 修复⑨：防连点重复提交 */
+  if(btn.disabled) return;
   const name = String(nameEl.value||'').trim();
   const pw   = String(pwEl.value||'');
   err.textContent = '';
@@ -3011,19 +2868,13 @@ async function submitLogin(){
   try{
     if(isReg){
       r = await Account.register(name, pw);
-      if(r.ok) Account.setSession(name);      /* 原来这里硬编码字面量 'jieyou_session'，与 SESSION_KEY 常量脱钩 */
+      if(r.ok) Account.setSession(name);
     }else{
       r = await Account.login(name, pw);
     }
-    /* 云端优先：r.nickname（云端真实昵称）/ r.offline（仅本机注册成功）透传给 onLogin */
     if(!r.ok){ err.textContent = r.msg; return; }
     pwEl.value = '';
     closeLogin();
-    /* 修复⑨：原来整段没有 try/catch/finally。
-       Account.register 里的 localStorage.setItem 一旦抛错（配额写满 / 无痕模式 /
-       浏览器禁用站点数据），btn.disabled 就永远停在 true，
-       而登录弹窗按设计不可关闭 → 按钮永久灰死，整站再也进不去。
-       现在先关弹窗再异步收尾，登录反馈不被云端往返拖住。 */
     Promise.resolve(onLogin(name, {registered: isReg, offline: !!r.offline, nickname: r.nickname || ''}))
            .catch(e=>console.warn('[登录] 登录后初始化异常：', e));
   }catch(e){
@@ -3035,11 +2886,11 @@ async function submitLogin(){
 }
 async function onLogin(name, opts){
   const isReg = !!(opts && opts.registered);
-  save();                 /* 先把当前游客/上一账号的数据落盘 */
+  save();
   CUR_USER = name;
   MY_NICK = (opts && opts.nickname) || Account.nick(name) || name;
   MY_ID = 'u_' + name;
-  load();                 /* 本机缓存秒开（换设备时为空），紧接着用云端数据覆盖 */
+  load();
   resetIdle();
   refreshUserUI();
   renderAll();
@@ -3048,25 +2899,17 @@ async function onLogin(name, opts){
         ? `已在本机注册「${MY_NICK}」，联网后会自动同步到云端`
         : `注册成功，欢迎「${MY_NICK}」，账号与签匣已存云端`)
     : `欢迎回来，「${MY_NICK}」，签匣正从云端同步`);
-  Cloud.syncAccount(name, MY_NICK);   /* 让本账号可被他人搜索到 */
+  Cloud.syncAccount(name, MY_NICK);
   SOCIAL.afterAuthChange();
 
-  /* 修复⑩：登录成功后立刻和云端对齐一次。
-     原来 onLogin 只 load() 本地 localStorage，而「刷新页面」走的 boot() 会再拉一次
-     Cloud.fetchCollection()/fetchMyDrawCount() 覆盖本地 —— 两条路径口径不一致，
-     于是出现：刚登录时「我的签匣」是空的、次数是 0，但「签运榜」上你的集签数是真实的；
-     刷新一下页面数字又突然变多。顺手摇一签还会把不完整的数据 save() 回本地。 */
   if(Cloud.isOn()){
     try{
-      /* 先把离线期间攒下的签匣记录补传，再去拉云端全量，避免拉完又被本地旧值盖住 */
       await Cloud.flushPending();
       const [colRes, cntRes] = await Promise.allSettled([
         Cloud.fetchCollection(), Cloud.fetchMyDrawCount()
       ]);
-      if(CUR_USER !== name) return;              /* 期间已切号/退出，丢弃这次结果 */
+      if(CUR_USER !== name) return;
       if(colRes.status==='fulfilled' && Array.isArray(colRes.value)){
-        /* 云端为权威：换设备登录后签匣就是靠这一步回来的。
-           云端为空而本地有数据时不覆盖（修复⑫：[] 也是 truthy 的老坑）。 */
         if(colRes.value.length || state.collected.size===0){
           state.collected = new Set(colRes.value); save(); renderAll();
         }
@@ -3077,7 +2920,7 @@ async function onLogin(name, opts){
          && (cntRes.value>0 || state.drawCount===0)){
         state.drawCount = cntRes.value; save();
       }
-    }catch(e){ /* 云端不可用就沿用本地数据，不打断登录 */ }
+    }catch(e){}
   }
 }
 function acctAction(){
@@ -3085,10 +2928,7 @@ function acctAction(){
     save();
     Account.logout();
     CUR_USER = null;
-    /* 修复⑪：退出后取回本机访客昵称，而不是硬编码 '访客'。
-       原来这里写死 MY_NICK='访客'，但 localStorage 里的 jieyou_nick 没有同步，
-       结果退出当场显示「访客」，一刷新又变回原来的访客昵称，前后不一致。 */
-    MY_NICK = localStorage.getItem('jieyou_nick') || '访客';
+    MY_NICK = Storage.get(CONFIG.STORAGE_KEYS.nick, '访客');
     MY_ID = null;
     load();
     resetIdle();
@@ -3111,12 +2951,10 @@ function refreshUserUI(){
 }
 document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') submitLogin(); });
 document.getElementById('loginPw').addEventListener('keydown', e=>{ if(e.key==='Enter') submitLogin(); });
-
-
+</script>
+<script>
 /* ============================================================
    ============ 祈愿系统：稀有度 / 流星过场 / 结算 ============
-   稀有度分五档：grey 凡签 → blue 吉签 → purple 上吉 → gold 天签 → hidden 命定
-   档位决定：流星颜色、撞击环数与火星数量、全屏爆光配色、铃音长度
    ============================================================ */
 const TIER_ORDER = ['grey','blue','purple','gold','hidden'];
 const TIER_META = {
@@ -3126,7 +2964,6 @@ const TIER_META = {
   gold  :{star:'★★★★★',  name:'天签'},
   hidden:{star:'★★★★★★', name:'命定'}
 };
-/* 签 → 稀有度 */
 function rarityOf(sign){
   if(sign.type==='hidden-sig') return 'hidden';
   if(sign.level==='上上签')     return 'gold';
@@ -3134,7 +2971,6 @@ function rarityOf(sign){
   if(sign.type==='zhong')       return 'blue';
   return 'grey';
 }
-/* 稀有度 → 从对应签池里抽一支 */
 function signByTier(tier){
   let pool;
   if(tier==='hidden')            pool = HIDDEN;
@@ -3146,7 +2982,6 @@ function signByTier(tier){
   return pool[Math.floor(Math.random()*pool.length)];
 }
 
-/* 流星配色：[亮色, 光晕色] */
 const METEOR_COLORS = {
   grey  :['#cdd8e6','#6c7b92'],
   blue  :['#a8d4ff','#3a7fd0'],
@@ -3154,7 +2989,6 @@ const METEOR_COLORS = {
   gold  :['#fff2c4','#e8b53a'],
   hidden:['#ffd9f4','#c264f0']
 };
-/* 全屏爆光配色：核心→外缘 7 段 + 光环色 */
 const BURST = {
   grey  :['#f4f7fa','#e3eaf2','#c3cfdd','#9aa8bc','rgba(120,140,165,.55)','rgba(120,140,165,.2)','rgba(120,140,165,0)','#e0e8f2'],
   blue  :['#f2fbff','#dcf1ff','#a9d7ff','#6fa8ff','rgba(70,145,225,.55)','rgba(70,145,225,.2)','rgba(70,145,225,0)','#c3e4ff'],
@@ -3162,7 +2996,6 @@ const BURST = {
   gold  :['#fffef8','#fff6cf','#ffe9a0','#f4c95c','rgba(232,180,70,.6)','rgba(232,180,70,.2)','rgba(232,180,70,0)','#fff6d8'],
   hidden:['#fff6fd','#ffdff8','#f0b4ff','#c07cf0','rgba(138,92,240,.6)','rgba(138,92,240,.22)','rgba(138,92,240,0)','#ffd9f6']
 };
-/* 把稀有度写进 CSS 变量，金光层 / 筒口光 / 光环 / 放射线一起换色 */
 function setBurstTheme(tier){
   const c = BURST[tier] || BURST.gold, s = document.documentElement.style;
   s.setProperty('--b0',c[0]); s.setProperty('--b1',c[1]); s.setProperty('--b2',c[2]);
@@ -3197,7 +3030,7 @@ function playMeteor(tier, onImpact, onDone){
   m.style.setProperty('--dur', dur+'ms');
   layer.appendChild(m);
 
-  const m2 = document.createElement('div');      // 第二颗细尾迹，增加层次
+  const m2 = document.createElement('div');
   m2.className = 'meteor trail2';
   m2.style.setProperty('--mc', col[0]); m2.style.setProperty('--mg', col[1]);
   m2.style.setProperty('--dur', Math.round(dur*1.15)+'ms');
@@ -3250,10 +3083,9 @@ function playMeteor(tier, onImpact, onDone){
 }
 
 /* ===== 签缘（每日次数）与保底 ===== */
-const FATE_MAX = 30, PITY_GOLD = 40;
+const FATE_MAX = CONFIG.LIMITS.FATE_MAX, PITY_GOLD = CONFIG.LIMITS.PITY_GOLD;
 function fateInfo(){
-  let o = null;
-  try{ o = JSON.parse(localStorage.getItem('jieyou_fate')); }catch(e){ o = null; }
+  let o = Storage.getJSON(CONFIG.STORAGE_KEYS.fate, null);
   if(!o || o.d !== todayStr()) o = {d:todayStr(), n:FATE_MAX};
   return o;
 }
@@ -3261,19 +3093,17 @@ function fateSpend(k){
   const o = fateInfo();
   if(o.n < k) return false;
   o.n -= k;
-  localStorage.setItem('jieyou_fate', JSON.stringify(o));
+  Storage.setJSON(CONFIG.STORAGE_KEYS.fate, o);
   renderWishCost();
   return true;
 }
-function pityKey(){ return 'jieyou_pity_' + (CUR_USER || 'guest'); }
+function pityKey(){ return CONFIG.STORAGE_KEYS.pityPrefix + (CUR_USER || 'guest'); }
 function pityGet(){
-  try{
-    const p = JSON.parse(localStorage.getItem(pityKey()));
-    if(p && typeof p==='object') return {g:p.g||0, p:p.p||0};
-  }catch(e){}
+  const p = Storage.getJSON(pityKey(), null);
+  if(p && typeof p==='object') return {g:p.g||0, p:p.p||0};
   return {g:0, p:0};
 }
-function pitySet(p){ localStorage.setItem(pityKey(), JSON.stringify(p)); }
+function pitySet(p){ Storage.setJSON(pityKey(), p); }
 
 function renderWishCost(){
   const f = fateInfo();
@@ -3286,7 +3116,6 @@ function renderWishCost(){
   if(m) m.disabled = state.animating || f.n < 10;
 }
 
-/* 单抽：先走保底，再按概率表掷骰 */
 function rollOne(p){
   p.g++; p.p++;
   let tier;
@@ -3344,7 +3173,6 @@ function startStars(){
 function stopStars(){
   if(wishStarsRAF){ cancelAnimationFrame(wishStarsRAF); wishStarsRAF = null; }
 }
-/* 倒计时到每日 04:00（签缘恢复点） */
 function wishCountdown(){
   const now = new Date(), end = new Date(now);
   end.setHours(4,0,0,0);
@@ -3394,9 +3222,8 @@ function doWish(n){
     state.drawCount++;
     bumpTodayDraws();
     Cloud.recordDraw(s);
-    TOTAL_DRAWS++;
+    if(TOTAL_DRAWS !== null) TOTAL_DRAWS++;
   }
-  /* 十连保底：整组没有上吉及以上，就把最后一张换成上吉 */
   if(n>=10 && !results.some(s=>TIER_ORDER.indexOf(rarityOf(s))>=2)){
     results[results.length-1] = signByTier('purple');
   }
@@ -3413,7 +3240,7 @@ function doWish(n){
 }
 function finishWish(){
   state.animating = false;
-  showSign(wishBest);                 // 主页卡片展示本次最好的一支
+  showSign(wishBest);
   wishResults.forEach(s=>pushFeed(s, MY_NICK, true));
   save(); renderAll(); renderWishCost();
   openWishResult(wishResults);
@@ -3499,41 +3326,21 @@ document.addEventListener('keydown', e=>{
   if(document.getElementById('wishScreen').classList.contains('on')) closeWish();
 });
 
-/* 登录态变化后刷新签缘/保底显示（保底按账号分别计） */
 const _prevRefreshUserUI = refreshUserUI;
 refreshUserUI = function(){ _prevRefreshUserUI(); renderWishCost(); };
 renderWishCost();
-
+</script>
+<script>
 /* ============================================================
    ============ 好友与聊天：搜索账号 / 加好友 / 私聊 ============
-   与全站「云端优先、本地兜底」策略保持一致，两条数据通路：
-   ① 云端（Supabase）：users 搜索账号、friends 好友关系、
-      messages 私聊消息，并走 postgres_changes 实时推送；
-   ② 本地演示模式（未配置 / 连不上云）：好友关系、申请与聊天记录
-      全部落 localStorage；同一浏览器多开标签页（登录不同账号）
-      可凭 storage 事件实时互聊，并内置 3 位「演示签友」自动回话。
-   入口：顶部导航「签友」按钮 → openSocial()
    ============================================================ */
 const SOCIAL = (()=>{
-  let currentPeer = null;      // 当前会话对象 {id, nickname}
-  let SEARCH_CACHE = [];       // 最近一次搜索结果，用于刷新按钮态
+  let currentPeer = null;
+  let SEARCH_CACHE = [];
   let socChannel = null;
-  let demoTimer = null;
   let unread = {};
 
-  /* 本地演示模式下的内置签友（仅离线兜底时出现，云端模式不掺入） */
-  const DEMO_USERS = [
-    {id:'u_demo_yun', nickname:'云游签友',
-     reply:['幸会。你今日摇到什么签？','签文只指方向，路还得自己走。','我也是摇完一签才肯走的。']},
-    {id:'u_demo_shu', nickname:'树下小舟',
-     reply:['你好呀，久仰签名。','我攒到「圆满」了，你集了几支？','别连着摇，越摇越糊。']},
-    {id:'u_demo_qing', nickname:'青衫客',
-     reply:['深夜摇签的人，多半有心事。','说与我听也无妨。','签好就笑一笑，签差就睡一觉。']}
-  ];
-
   const cloudOn = ()=> Cloud.isOn();
-  /* 本地存储统一主键：登录后 MY_ID = 'u_' + 用户名；未登录兜底为 u_guest。
-     好友表 / 会话记录 / 申请箱全部用它，避免 CUR_USER 与 MY_ID 两套主键读写错位。 */
   const meId = ()=> MY_ID || ('u_' + (CUR_USER || 'guest'));
   const esc = s => escapeHtml(s);
   function avatarText(nick){
@@ -3548,12 +3355,11 @@ const SOCIAL = (()=>{
   }
   const maskOn = ()=>{ const m=document.getElementById('socialMask'); return !!m && m.classList.contains('on'); };
 
-  /* ---------- 未读红点 ---------- */
-  const unreadKey = ()=> 'jieyou_unread_' + (CUR_USER || 'guest');
+  const unreadKey = ()=> CONFIG.STORAGE_KEYS.unreadPrefix + (CUR_USER || 'guest');
   function loadUnread(){
-    try{ const o=JSON.parse(localStorage.getItem(unreadKey())); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; }
+    const o = Storage.getJSON(unreadKey(), null); return (o&&typeof o==='object')?o:{};
   }
-  function saveUnread(){ localStorage.setItem(unreadKey(), JSON.stringify(unread)); renderBadge(); }
+  function saveUnread(){ Storage.setJSON(unreadKey(), unread); renderBadge(); }
   function renderBadge(){
     const el = document.getElementById('friendBadge'); if(!el) return;
     const n = Object.keys(unread).reduce((a,k)=>a+(unread[k]||0), 0);
@@ -3563,49 +3369,43 @@ const SOCIAL = (()=>{
   function bumpUnread(peerId){ if(!peerId) return; unread[peerId]=(unread[peerId]||0)+1; saveUnread(); }
   function clearUnread(peerId){ if(unread[peerId]!==undefined){ delete unread[peerId]; saveUnread(); } }
 
-  /* ---------- 本地存储（演示模式） ---------- */
-  const fkey = u=> 'jieyou_friends_' + u;
+  const fkey = u=> CONFIG.STORAGE_KEYS.friendsPrefix + u;
   function lFriends(){
-    try{ const o=JSON.parse(localStorage.getItem(fkey(meId()))); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; }
+    const o=Storage.getJSON(fkey(meId()), null); return (o&&typeof o==='object')?o:{};
   }
   function lFriendAdd(aId, aNick, bId, bNick){
-    const A = JSON.parse(localStorage.getItem(fkey(aId))||'{}');
-    const B = JSON.parse(localStorage.getItem(fkey(bId))||'{}');
+    const A = Storage.getJSON(fkey(aId), {}) || {};
+    const B = Storage.getJSON(fkey(bId), {}) || {};
     A[bId] = {nickname:bNick||bId, at:Date.now()};
     B[aId] = {nickname:aNick||aId, at:Date.now()};
-    localStorage.setItem(fkey(aId), JSON.stringify(A));
-    localStorage.setItem(fkey(bId), JSON.stringify(B));
+    Storage.setJSON(fkey(aId), A);
+    Storage.setJSON(fkey(bId), B);
   }
-  const REQ_KEY = 'jieyou_reqs';
+  const REQ_KEY = CONFIG.STORAGE_KEYS.reqs;
   function lReqs(){
-    try{ const o=JSON.parse(localStorage.getItem(REQ_KEY)); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; }
+    const o=Storage.getJSON(REQ_KEY, null); return (o&&typeof o==='object')?o:{};
   }
-  function lSetReqs(o){ localStorage.setItem(REQ_KEY, JSON.stringify(o)); }
+  function lSetReqs(o){ Storage.setJSON(REQ_KEY, o); }
   function lIncoming(){ return (lReqs()[meId()]||[]).filter(r=>r.status==='pending'); }
   function lOutgoing(){
     const R=lReqs(), out=[];
     Object.keys(R).forEach(to=>{ (R[to]||[]).forEach(r=>{ if(r.from===meId() && r.status==='pending') out.push({id:to}); }); });
     return out;
   }
-  /* 会话键按 id 排序，保证双方读写同一份记录 */
-  function chatKey(a,b){ const p=[a,b].sort(); return 'jieyou_chat_'+p[0]+'__'+p[1]; }
+  function chatKey(a,b){ const p=[a,b].sort(); return CONFIG.STORAGE_KEYS.chatPrefix+p[0]+'__'+p[1]; }
   function lMsgs(a,b){
-    try{ const o=JSON.parse(localStorage.getItem(chatKey(a,b))); return Array.isArray(o)?o:[]; }catch(e){ return []; }
+    const o=Storage.getJSON(chatKey(a,b), null); return Array.isArray(o)?o:[];
   }
   function lPushMsg(a,b,rec){
     const arr=lMsgs(a,b); arr.push(rec);
     while(arr.length>500) arr.shift();
-    localStorage.setItem(chatKey(a,b), JSON.stringify(arr));
+    Storage.setJSON(chatKey(a,b), arr);
   }
-  /* 本地账号目录：本机已注册账号 + 演示签友 */
   function localDirectory(){
-    let u={}; try{ u = JSON.parse(localStorage.getItem('jieyou_users'))||{}; }catch(e){ u={}; }
-    const rows = Object.keys(u).map(n=>({id:'u_'+n, nickname:u[n].nick||n}));
-    return rows.concat(DEMO_USERS.map(d=>({id:d.id, nickname:d.nickname})));
+    const u = Storage.getJSON(CONFIG.STORAGE_KEYS.users, {}) || {};
+    return Object.keys(u).map(n=>({id:'u_'+n, nickname:u[n].nick||n}));
   }
-  const isDemo = id=> DEMO_USERS.some(d=>d.id===id);
 
-  /* ---------- 好友 / 申请（云端 + 本地合并） ---------- */
   async function myFriends(){
     const map = {};
     const lf = lFriends();
@@ -3639,7 +3439,6 @@ const SOCIAL = (()=>{
     return out;
   }
 
-  /* ---------- 渲染：搜索结果 ---------- */
   async function renderSearch(){
     const ul = document.getElementById('socSearchList');
     if(!ul) return;
@@ -3684,14 +3483,13 @@ const SOCIAL = (()=>{
     SEARCH_CACHE = rows;
     if(!rows.length){
       ul.innerHTML = '<li class="soc-hint">没有找到与「'+esc(kw)+'」匹配的账号<br>'
-                   + (cloudOn() ? '对方需已登录过本站（账号会同步到云端目录）' : '本地演示模式只能搜到本机已注册的账号与演示签友')
+                   + (cloudOn() ? '对方需已登录过本站（账号会同步到云端目录）' : '云端未连接，只能搜到本机已注册的账号')
                    + '</li>';
       return;
     }
     await renderSearch();
   }
 
-  /* ---------- 渲染：好友申请 ---------- */
   async function renderRequests(){
     const ul = document.getElementById('socReqList'), cnt = document.getElementById('reqCount');
     if(!ul) return;
@@ -3711,7 +3509,6 @@ const SOCIAL = (()=>{
     });
   }
 
-  /* ---------- 渲染：好友列表 ---------- */
   async function renderFriends(){
     const ul = document.getElementById('socFriendList');
     if(!ul) return;
@@ -3732,13 +3529,11 @@ const SOCIAL = (()=>{
     });
   }
 
-  /* ---------- 加好友 / 处理申请 ---------- */
   async function addFriend(id, nickname){
     if(!CUR_USER){ openLogin('加好友需要先登录'); return; }
     if(id===meId()){ toast('不能加自己为好友'); return; }
     const fr = await myFriends();
     if(fr.some(f=>f.id===id)){ openChat({id:id, nickname:nickname}); return; }
-    /* 本地申请箱：写在「对方」名下，对方在同一浏览器登录即可看到 */
     const R = lReqs(), arr = R[id] || (R[id]=[]);
     if(!arr.some(x=>x.from===meId() && x.status==='pending')){
       arr.push({from:meId(), fromNick:MY_NICK, at:Date.now(), status:'pending'});
@@ -3747,22 +3542,8 @@ const SOCIAL = (()=>{
     let cloudOk = false;
     if(cloudOn()) cloudOk = await Cloud.sendFriendRequest(id, nickname);
 
-    if(!cloudOn() && isDemo(id)){
-      /* 演示签友：稍后自动通过，方便单机体验完整链路 */
-      toast('已向「'+nickname+'」发出好友申请');
-      clearTimeout(demoTimer);
-      demoTimer = setTimeout(()=>{
-        lFriendAdd(meId(), MY_NICK, id, nickname);
-        const R2 = lReqs();
-        if(R2[id]) R2[id] = R2[id].filter(x=>x.from!==meId());
-        lSetReqs(R2);
-        toast('「'+nickname+'」通过了你的好友申请');
-        renderFriends(); renderSearch();
-      }, 1200);
-    }else{
-      toast(cloudOn() ? (cloudOk ? '好友申请已发出，等待对方通过' : '申请发送失败，请检查云端好友表是否已建')
-                      : '申请已记在本机（本地演示模式：对方在本浏览器登录后即可看到）');
-    }
+    toast(cloudOn() ? (cloudOk ? '好友申请已发出，等待对方通过' : '申请发送失败，请检查云端好友表是否已建')
+                    : '申请已记在本机（云端未连接：对方在本浏览器登录后即可看到）');
     renderSearch();
   }
 
@@ -3776,7 +3557,6 @@ const SOCIAL = (()=>{
     renderRequests(); renderFriends(); renderSearch();
   }
 
-  /* ---------- 私聊 ---------- */
   function buildMsg(rec){
     const me = rec.from===meId();
     const d = document.createElement('div');
@@ -3836,9 +3616,6 @@ const SOCIAL = (()=>{
     const ta = document.getElementById('socMsgInput');
     const text = String(ta.value||'').trim();
     if(!text){ return; }
-    /* ===== 指令 / 口令收口 =====
-       tryHandleCommand 返回 true = 已就地处理（指令执行或口令解锁），吃掉这条消息；
-       返回 false = 照常作为普通聊天消息发出（未解锁时 / 开头也走这里，不拦截、不回执）。 */
     if(typeof CMD !== 'undefined' && CMD.tryHandleCommand(text, {scope:'chat'})){
       ta.value=''; ta.style.height='auto'; return;
     }
@@ -3847,32 +3624,16 @@ const SOCIAL = (()=>{
     if(text.length>500){ toast('一条消息最多 500 字'); return; }
     ta.value = '';
     const rec = {from:meId(), fromNick:MY_NICK, text:text, at:Date.now()};
-    appendMsg(rec);                              /* 先本地即时上屏 */
+    appendMsg(rec);
     if(cloudOn()){
       const ok = await Cloud.sendMessage(currentPeer.id, text);
       if(!ok) toast('消息未送达云端，请检查 messages 表与权限策略');
     }else{
-      lPushMsg(meId(), currentPeer.id, rec);      /* 本地演示模式落盘 */
-      demoReply(currentPeer.id);
+      lPushMsg(meId(), currentPeer.id, rec);
+      toast('云端未连接，消息仅保存在本机浏览器');
     }
   }
 
-  /* 演示签友自动回话（仅本地演示模式） */
-  function demoReply(peerId){
-    const d = DEMO_USERS.find(x=>x.id===peerId);
-    if(!d) return;
-    setTimeout(()=>{
-      const pool = d.reply, reply = {
-        from:d.id, fromNick:d.nickname,
-        text:pool[Math.floor(Math.random()*pool.length)], at:Date.now()
-      };
-      lPushMsg(meId(), d.id, reply);
-      if(maskOn() && currentPeer && currentPeer.id===d.id) appendMsg(reply);
-      else { bumpUnread(d.id); if(maskOn()) renderFriends(); }
-    }, 900 + Math.random()*1100);
-  }
-
-  /* ---------- 云端实时订阅与未读轮询 ---------- */
   function subscribeCloud(){
     if(!cloudOn() || socChannel) return;
     socChannel = Cloud.subscribeSocial(ev=>{
@@ -3910,12 +3671,11 @@ const SOCIAL = (()=>{
     });
   }
 
-  /* 实时通道之外的一层兜底：定时补算未读（断线、切后台时不漏消息） */
   async function pollUnread(){
     if(!cloudOn() || !CUR_USER) return;
-    const key = 'jieyou_seen_' + (CUR_USER||'guest');
-    const last = Number(localStorage.getItem(key))||0;
-    if(!last){ localStorage.setItem(key, String(Date.now())); return; }
+    const key = CONFIG.STORAGE_KEYS.seenPrefix + (CUR_USER||'guest');
+    const last = Number(Storage.get(key, '0'))||0;
+    if(!last){ Storage.set(key, String(Date.now())); return; }
     const rows = await Cloud.fetchIncomingSince(last);
     if(rows && rows.length){
       rows.forEach(r=>{
@@ -3924,10 +3684,9 @@ const SOCIAL = (()=>{
       });
       saveUnread();
     }
-    localStorage.setItem(key, String(Date.now()));
+    Storage.set(key, String(Date.now()));
   }
 
-  /* ---------- 开关面板 ---------- */
   function openSocial(){
     if(!CUR_USER){ openLogin('搜索账号、加好友与聊天都需要先登录'); return; }
     document.getElementById('socialMask').classList.add('on');
@@ -3935,15 +3694,13 @@ const SOCIAL = (()=>{
     if(tip){
       tip.textContent = cloudOn()
         ? '已连接云数据库：好友关系与聊天记录存于云端，多设备同步、实时推送。'
-        : '本地演示模式：好友与聊天记录只存在本机浏览器；再开一个标签页注册另一个账号即可互聊（或搜索「签友」找演示账号）。';
+        : '云端未连接：好友与聊天记录只存在本机浏览器；再开一个标签页注册另一个账号即可互聊。';
     }
     renderRequests(); renderFriends();
-    /* 面板打开且已有会话对象：视为已读该会话 */
     if(currentPeer){ clearUnread(currentPeer.id); loadMsgs(); }
   }
   function closeSocial(){ document.getElementById('socialMask').classList.remove('on'); }
 
-  /* 登录 / 退出后重置会话与红点 */
   function afterAuthChange(){
     currentPeer = null;
     SEARCH_CACHE = [];
@@ -3957,7 +3714,6 @@ const SOCIAL = (()=>{
     if(CUR_USER){ renderRequests(); renderFriends(); }
   }
 
-  /* ---------- 初始化 ---------- */
   function init(){
     unread = loadUnread(); renderBadge();
     const si = document.getElementById('socSearchInput');
@@ -3965,7 +3721,7 @@ const SOCIAL = (()=>{
     const ta = document.getElementById('socMsgInput');
     if(ta){
       ta.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMsg(); } });
-      ta.addEventListener('input', ()=>{                    /* 自动增高 */
+      ta.addEventListener('input', ()=>{
         ta.style.height='auto';
         ta.style.height = Math.min(96, Math.max(38, ta.scrollHeight)) + 'px';
       });
@@ -3973,7 +3729,6 @@ const SOCIAL = (()=>{
     const mask = document.getElementById('socialMask');
     if(mask) mask.addEventListener('click', e=>{ if(e.target.id==='socialMask') closeSocial(); });
     document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSocial(); });
-    /* 本地演示模式：另一标签页（另一账号）的操作实时同步过来 */
     window.addEventListener('storage', e=>{
       if(!e.key) return;
       if(e.key===REQ_KEY) renderRequests();
@@ -3987,12 +3742,13 @@ const SOCIAL = (()=>{
           subscribeCloud, pollUnread, afterAuthChange, renderBadge};
 })();
 
-/* 供 HTML 内联 onclick 调用的全局入口 */
+/* 供兼容桥 / bindings 调用的全局入口 */
 function openSocial(){ SOCIAL.open(); }
 function closeSocial(){ SOCIAL.close(); }
 function searchUsers(){ SOCIAL.search(document.getElementById('socSearchInput').value); }
 function sendMsg(){ SOCIAL.sendMsg(); }
-
+</script>
+<script>
 /* ============ 启动 ============ */
 async function boot(){
   if(CUR_USER){ MY_NICK = Account.nick(CUR_USER) || CUR_USER; MY_ID = 'u_' + CUR_USER; }
@@ -4003,17 +3759,15 @@ async function boot(){
   updateGoldOrigin();
   SOCIAL.init();
 
-  /* 未登录一律先弹出登录框，阻断游客使用 */
   if(!CUR_USER) openLogin('请先登录账号后再使用本站');
 
-  noAnimChk.checked = localStorage.getItem('jieyou_noanim')==='1';
+  noAnimChk.checked = Storage.get(CONFIG.STORAGE_KEYS.noAnim, '0')==='1';
   noAnimChk.addEventListener('change', ()=>{
-    localStorage.setItem('jieyou_noanim', noAnimChk.checked ? '1' : '0');
+    Storage.set(CONFIG.STORAGE_KEYS.noAnim, noAnimChk.checked ? '1' : '0');
     toast(noAnimChk.checked ? '已开启无动画模式：摇签直接出结果' : '已开启动画模式：晃动 → 金光 → 出签');
   });
   refreshUserUI();
 
-  /* 设置面板控件接线 */
   const setSoundChk = document.getElementById('setSoundChk');
   setSoundChk.checked = Sound.isEnabled();
   setSoundChk.addEventListener('change', ()=>{
@@ -4034,17 +3788,13 @@ async function boot(){
   bcChk.checked = broadcastOn;
   bcChk.addEventListener('change', ()=>{
     broadcastOn = bcChk.checked;
-    localStorage.setItem('jieyou_broadcast', broadcastOn ? '1' : '0');
+    Storage.set(CONFIG.STORAGE_KEYS.broadcast, broadcastOn ? '1' : '0');
     toast(broadcastOn ? '求签播报已开启：有人抽出隐藏签时屏幕上方会提示' : '求签播报已关闭');
   });
 
   setCloudStatus(false);
   const ok = await Cloud.init();
   setCloudStatus(ok);
-  /* ===== 云端账号迁移（新增）=====
-     把本机 localStorage 里已注册、但还没上云的账号静默搬进 accounts 表，
-     并把离线期间没写进云端的签匣记录补传。两者都幂等、失败静默重试，
-     不阻塞首屏 —— 老用户不需要重新注册，升级后自动就「换设备也能登录」了。 */
   if(ok){
     Promise.resolve(Account.migrateToCloud())
       .then(r=>{ if(r && r.ok) toast('已把本机 ' + r.ok + ' 个账号同步到云端，换设备可直接登录'); })
@@ -4060,62 +3810,39 @@ async function boot(){
 
   refreshUserUI();
 
-  /* ===== 首屏：4 个互不依赖的查询并行发出 =====
-     原来这里是 4 个串行的 await（签匣 → 我的次数 → 动态 200 条 → 全站统计），
-     在跨境链路上每一个都要付 200~400ms 的 RTT，累加起来就是好几秒白屏。
-     并行之后总耗时 ≈ 最慢的那一个。 */
   const [colRes, mineRes, feedRes] = await Promise.allSettled([
     Cloud.fetchCollection(),
     Cloud.fetchMyDrawCount(),
-    Cloud.fetchFeed(40)
+    Cloud.fetchFeed(CONFIG.LIMITS.FEED_HISTORY)
   ]);
 
-  // 1) 我的签匣
-  // 1) 我的签匣
-  /* 修复⑫：云端返回「空数组」不再无条件覆盖本地并落盘。
-     原来 `if(colRes.value)` 里 [] 也是 truthy —— 只要 collection 表按当前身份查不到行
-     （新的匿名访客身份、项目迁移、表被清、RLS 策略改动、bot 清理误伤），
-     就会把本地已有的签匣清空并 save()，数据永久丢失且没有任何提示。
-     现在只在「云端确实有数据」或「本地本来就是空的」时才覆盖。 */
   if(colRes.status === 'fulfilled' && Array.isArray(colRes.value)
      && (colRes.value.length || state.collected.size === 0)){
     state.collected = new Set(colRes.value); save(); renderAll();
   }
-  // 2) 我自己的历史摇签次数（隐藏签「天选」按真实次数判定）
-  /* 修复⑬：同上，云端 count 为 0 而本地有记录时不覆盖 */
   if(mineRes.status === 'fulfilled' && typeof mineRes.value === 'number'
      && (mineRes.value > 0 || state.drawCount === 0)){
     state.drawCount = mineRes.value; save();
   }
-  // 3) 动态流历史（写入本地历史日志，供弹窗滚动查看）
   if(feedRes.status === 'fulfilled' && feedRes.value && feedRes.value.length){
     FEED_LOG = feedRes.value.map(r=>({n:r.nickname, l:r.sign_level, me:r.user_id===MY_ID?1:0, t:r.created_at, h:r.is_hidden?1:0}));
     sortFeedLog();
     saveFeedLog();
-    Live.warm(feedRes.value);                        // 预热去重表与时间水位（不重复插入）
+    Live.warm(feedRes.value);
   }
   if(document.getElementById('feedMask').classList.contains('on')) renderFeedLog();
 
-  // 4) 实时订阅：别人摇签，我这里自动冒出来（带去重 + 断线自愈）
   Cloud.subscribeFeed(r=>Live.onRealtimeRow(r));
 
-  // 4.5) 好友与聊天：实时订阅 + 未读兜底轮询
   SOCIAL.subscribeCloud();
   SOCIAL.pollUnread();
-  setInterval(()=>{ SOCIAL.pollUnread(); }, 20000);
+  setInterval(()=>{ SOCIAL.pollUnread(); }, CONFIG.LIMITS.UNREAD_POLL_MS);
 
-  // 5) 全站统计 + 每 30 秒刷新在线人数（轻量：只改两个数字，不重建网格）
   await refreshStats();
-  setInterval(refreshStats, 30000);
+  setInterval(refreshStats, CONFIG.LIMITS.STATS_POLL_MS);
 
-  // 6) 启动活力引擎：动态增量轮询兜底 + 榜单联动
   Live.start();
 }
-
-/* SDK 是 defer 加载的，必须等 DOMContentLoaded 之后再 boot，
-   否则 window.supabase 还没注入，会白跑一次备用 CDN 重试。 */
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-else boot();
 
 /* ================= 大厅前端逻辑 ================= */
 let unreadHallCount = 0, lastHallMsgTime = 0;
@@ -4155,9 +3882,6 @@ async function sendHallMsg() {
   const input = document.getElementById('hallMsgInput');
   const txt = input.value.trim();
   if(!txt) return;
-  /* ===== 指令 / 口令收口 =====
-     返回 true = 已就地处理（指令执行或口令解锁），吃掉这条消息；
-     返回 false = 照常作为普通聊天消息发出（未解锁时 / 开头也走这里，不拦截、不回执）。 */
   if(typeof CMD !== 'undefined' && CMD.tryHandleCommand(txt, {scope:'hall'})){
     input.value=''; input.style.height='auto'; return;
   }
@@ -4176,46 +3900,25 @@ document.getElementById('hallMsgInput').addEventListener('keydown', e => {
   if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendHallMsg(); }
 });
 </script>
-
-
 <script>
 /* ============================================================
    ============ 指令系统 CMD ============
-   唯一入口：
-     聊天输入框（茶话会 / 签友私聊）里输入 / 开头的指令，回车执行；
-     输入 / 时会浮出指令联想（可在「设置 → 指令联想」里关掉）
-   指令面板已删除：不再有独立弹窗，也不再有 Ctrl / ⌘ + K 快捷键，
-   所有指令结果都以「指令」系统气泡回显在当前聊天流里。
-   指令锁：默认锁定，解锁状态存本机 localStorage，可用 /锁定 重新上锁。
-   对外隐形原则：
-     · 未解锁时，/ 开头的输入一律作为普通聊天消息放行，不拦截、不回执、不列指令名；
-     · 设置面板里的指令相关行整块隐藏，外人翻设置也看不到；
-     · 解锁口令只在本机输入框静默识别，不进入聊天流、不写入云端。
-   设计要点：
-     · 指令是纯前端动作，只调用页面里已有的函数，不新增任何依赖与网络请求
-     · 所有指令参数都经过 escapeHtml，避免参数里带标签注入页面
-     · 需要登录的指令复用原有的 requireLogin / openLogin 逻辑
    ============================================================ */
 const CMD = (()=>{
   const GROUPS = ['求签','查询','社交','设置','系统'];
-  let hintOn = localStorage.getItem('jieyou_cmd_hint') !== '0';
+  let hintOn = Storage.get(CONFIG.STORAGE_KEYS.cmdHint, '1') !== '0';
   let acBox = null, acTarget = null, acItems = [], acIdx = -1;
 
-  /* ---------- 指令锁 ----------
-     指令功能默认锁定；在茶话会 / 私聊输入框里原样输入解锁口令并回车才会解锁。
-     口令不发送、不入库，解锁状态只写本机 localStorage（换设备 / 清站点数据后需重新输入）。 */
   const PASSPHRASE = '101089456yao';
-  const UNLOCK_KEY = 'jieyou_cmd_unlock';
-  let unlocked = localStorage.getItem(UNLOCK_KEY) === '1';
+  const UNLOCK_KEY = CONFIG.STORAGE_KEYS.cmdUnlock;
+  let unlocked = Storage.get(UNLOCK_KEY, '') === '1';
 
-  /* ---------- 小工具 ---------- */
   const $ = id => document.getElementById(id);
   const esc = s => escapeHtml(String(s == null ? '' : s));
   const sleep = ms => new Promise(r=>setTimeout(r, ms));
   const pad3 = n => String(n).padStart(3,'0');
   const kv = (k, v) => '<div class="kv"><span>'+esc(k)+'</span><span>'+v+'</span></div>';
   const note = t => '<div class="cmd-note">'+t+'</div>';
-  /* 开关类指令的参数：开/关/on/off/1/0…，识别不了返回 null */
   function parseOnOff(arg){
     const a = String(arg||'').trim().toLowerCase();
     if(!a) return null;
@@ -4224,12 +3927,7 @@ const CMD = (()=>{
     return null;
   }
 
-  /* ---------- 指令注册表 ----------
-     n 主指令名 / a 别名 / g 分组 / u 用法示例 / d 说明
-     keep:true = 执行后指令面板保持打开（查询类），缺省 = 关闭（动作类）
-     run(arg, ctx) 返回字符串则作为「指令回执」显示，返回空则不回执      */
   const LIST = [
-    /* ===== 求签 ===== */
     {n:'签', a:['draw','摇签','yao'], g:'求签', u:'/签', d:'摇一签（等同点击签筒）', run:()=>{
         if(!CUR_USER){ openLogin('摇签需要先登录'); return '摇签需要先登录，已为你打开登录框'; }
         if(state.animating) return '上一签还在摇，稍等一下再试';
@@ -4241,7 +3939,7 @@ const CMD = (()=>{
         if(!CUR_USER){ openLogin('摇签需要先登录'); return '摇签需要先登录，已为你打开登录框'; }
         const k = Math.max(1, Math.min(10, parseInt(arg,10) || 3));
         const keepAnim = noAnimChk.checked;
-        noAnimChk.checked = true;              /* 连摇走无动画通道，否则动画会互相打断 */
+        noAnimChk.checked = true;
         const got = [];
         for(let i=0;i<k;i++){
           drawSign();
@@ -4258,7 +3956,6 @@ const CMD = (()=>{
     {n:'榜', a:['rank','签运榜'], g:'求签', u:'/榜', d:'打开签运榜（按集签数排名）', run:()=>{ openRank(); return '已打开签运榜'; }},
     {n:'动态', a:['feed','求签动态'], g:'求签', u:'/动态', d:'打开求签动态（全站实时流）', run:()=>{ openFeed(); return '已打开求签动态'; }},
 
-    /* ===== 查询 ===== */
     {n:'help', a:['帮助','指令','命令','cmd','?'], g:'查询', u:'/help', d:'列出全部可用指令', keep:true, run:()=>helpHtml()},
     {n:'我的', a:['me','我','profile','战绩'], g:'查询', u:'/我的', d:'我的账号、集签与今日战绩', keep:true, run:()=>{
         const hid = [...state.collected].filter(id=>id>100).length;
@@ -4270,19 +3967,21 @@ const CMD = (()=>{
           + kv('已集签', state.collected.size+' / '+ALL.length+' 支')
           + kv('其中隐藏签', hid+' / '+HIDDEN.length+' 支')
           + kv('「无为」今日', wuweiDoneToday()?'已获得':'未获得')
-          + kv('数据通道', Cloud.isOn()?'Supabase 云端':'本地演示模式');
+          + kv('数据通道', Cloud.isOn()?'Supabase 云端':'云端暂不可用');
       }},
     {n:'统计', a:['stats','全站'], g:'查询', u:'/统计', d:'全站累计求签、在线人数与数据通道', keep:true, run:async()=>{
         await refreshStats();
-        return kv('全站累计求签','<b>'+TOTAL_DRAWS.toLocaleString()+'</b> 次')
-          + kv('此刻在线', ONLINE+' 人')
+        return kv('全站累计求签','<b>'+(TOTAL_DRAWS===null?'—':TOTAL_DRAWS.toLocaleString())+'</b> 次')
+          + kv('此刻在线', (ONLINE===null||ONLINE<=0?'—':ONLINE)+' 人')
           + kv('签库总量', ALL.length+' 支（普通 '+SIGNS.length+' + 隐藏 '+HIDDEN.length+'）')
-          + kv('数据通道', Cloud.isOn()?'Supabase 云端':'本地演示模式')
+          + kv('数据通道', Cloud.isOn()?'Supabase 云端':'云端暂不可用')
           + kv('动态更新', Cloud.isOn()?'Realtime 推送 + 10 秒增量轮询':'未启用');
       }},
     {n:'在线', a:['online','人数'], g:'查询', u:'/在线', d:'此刻在线人数（现拉最新）', keep:true, run:async()=>{
         await refreshStats();
-        return '此刻 <b>'+ONLINE+'</b> 人在线（近 5 分钟内摇过签的去重账号）';
+        return (ONLINE===null||ONLINE<=0)
+          ? '在线人数暂不可用（云端未连接）'
+          : '此刻 <b>'+ONLINE+'</b> 人在线（近 5 分钟内摇过签的去重账号）';
       }},
     {n:'签库', a:['signs','库','图鉴'], g:'查询', u:'/签库', d:'签文库构成与我的收集进度', keep:true, run:()=>{
         const by = {};
@@ -4312,11 +4011,10 @@ const CMD = (()=>{
           + note('按「账号 + 日期」定出，同一天重复问结果一致；纯本机随机，不入库不上云。');
       }},
 
-    /* ===== 社交 ===== */
     {n:'茶话会', a:['hall','大厅'], g:'社交', u:'/茶话会', d:'打开全站公共大厅', run:()=>{ openHall(); return '已打开茶话会'; }},
     {n:'签友', a:['friends','好友'], g:'社交', u:'/签友', d:'打开好友与私聊面板', run:()=>{ SOCIAL.open(); return '已打开签友面板'; }},
     {n:'私聊', a:['chat','msg'], g:'社交', u:'/私聊 用户名', d:'搜索某位签友，加好友后即可聊天', keep:true, run:(arg)=>{
-        if(!arg) return '用法：<b>/私聊 用户名</b>，例如 <b>/私聊 清风</b>';
+        if(!arg) return '用法：<b>/私聊 用户名</b>，例如 <b>/私聊 昵称</b>';
         SOCIAL.open();
         const si = $('socSearchInput'); if(si) si.value = arg;
         SOCIAL.search(arg);
@@ -4330,12 +4028,11 @@ const CMD = (()=>{
         MY_NICK = nick;
         const ok = await Cloud.rename(nick);
         try{ await Cloud.accountSetNick(CUR_USER, nick); }catch(e){}
-        localStorage.setItem('jieyou_nick', nick);
+        Storage.set(CONFIG.STORAGE_KEYS.nick, nick);
         refreshUserUI();
         return '昵称已改为「<b>'+esc(nick)+'</b>」' + (ok?'（已同步云端）':'（云端未连接，仅本机生效）');
       }},
 
-    /* ===== 设置 ===== */
     {n:'音效', a:['sound','声音'], g:'设置', u:'/音效 开|关', d:'开关摇签音效', keep:true, run:(arg)=>{
         const v = parseOnOff(arg); if(v===null) return '用法：<b>/音效 开</b> 或 <b>/音效 关</b>（也支持 on / off）';
         Sound.setEnabled(v);
@@ -4354,27 +4051,26 @@ const CMD = (()=>{
     {n:'动画', a:['anim'], g:'设置', u:'/动画 开|关', d:'摇签动画（关掉＝直接出结果，更快）', keep:true, run:(arg)=>{
         const v = parseOnOff(arg); if(v===null) return '用法：<b>/动画 开</b> 或 <b>/动画 关</b>';
         noAnimChk.checked = !v;
-        localStorage.setItem('jieyou_noanim', v ? '0' : '1');
+        Storage.set(CONFIG.STORAGE_KEYS.noAnim, v ? '0' : '1');
         return '摇签动画已'+(v?'开启':'关闭');
       }},
     {n:'播报', a:['broadcast','bc'], g:'设置', u:'/播报 开|关', d:'有人抽中隐藏签时的顶部横幅', keep:true, run:(arg)=>{
         const v = parseOnOff(arg); if(v===null) return '用法：<b>/播报 开</b> 或 <b>/播报 关</b>';
         broadcastOn = v;
-        localStorage.setItem('jieyou_broadcast', v ? '1' : '0');
+        Storage.set(CONFIG.STORAGE_KEYS.broadcast, v ? '1' : '0');
         const c = $('setBroadcastChk'); if(c) c.checked = v;
         return '求签播报已'+(v?'开启':'关闭');
       }},
     {n:'指令联想', a:['cmdhint','提示'], g:'设置', u:'/指令联想 开|关', d:'聊天框输入 / 时是否弹出指令提示', keep:true, run:(arg)=>{
         const v = parseOnOff(arg); if(v===null) return '用法：<b>/指令联想 开</b> 或 <b>/指令联想 关</b>';
         hintOn = v;
-        localStorage.setItem('jieyou_cmd_hint', v ? '1' : '0');
+        Storage.set(CONFIG.STORAGE_KEYS.cmdHint, v ? '1' : '0');
         const c = $('setCmdHintChk'); if(c) c.checked = v;
         if(!v) acClose();
         return '指令联想已'+(v?'开启':'关闭');
       }},
     {n:'设置', a:['set','settings'], g:'设置', u:'/设置', d:'打开设置面板', run:()=>{ openSettings(); return '已打开设置'; }},
 
-    /* ===== 指令锁 ===== */
     {n:'解锁', a:['unlock'], g:'系统', u:'/解锁', d:'查看指令功能状态', keep:true, run:()=>{
         if(unlocked) return '指令功能<b>已解锁</b>，可直接使用 <code>/help</code> 查看全部指令；想重新锁上请输入 <b>/锁定</b>。';
         return '指令功能当前处于锁定状态。';
@@ -4385,12 +4081,12 @@ const CMD = (()=>{
         return '指令功能已重新<b>锁定</b>，所有指令停止响应。';
       }},
 
-    /* ===== 系统 ===== */
     {n:'刷新', a:['refresh','同步','sync'], g:'系统', u:'/刷新', d:'立刻同步动态、统计与签匣', keep:true, run:async()=>{
         const tasks = [Live.pollFeed(), refreshStats()];
         if(CUR_USER) tasks.push(refreshMyCollection());
         await Promise.allSettled(tasks);
-        return '已同步：全站 <b>'+TOTAL_DRAWS.toLocaleString()+'</b> 次求签 · <b>'+ONLINE+'</b> 人在线 · 我集 '+state.collected.size+' 签';
+        return '已同步：全站 <b>'+(TOTAL_DRAWS===null?'—':TOTAL_DRAWS.toLocaleString())+'</b> 次求签 · <b>'
+             + (ONLINE===null||ONLINE<=0?'—':ONLINE) + '</b> 人在线 · 我集 '+state.collected.size+' 签';
       }},
     {n:'清空', a:['clear'], g:'系统', u:'/清空', d:'清掉当前窗口的聊天显示（不删云端记录）', keep:true, run:(arg,ctx)=>{
         const scope = ctx && ctx.scope;
@@ -4424,7 +4120,6 @@ const CMD = (()=>{
       }}
   ];
 
-  /* ---------- 帮助页 ---------- */
   function helpHtml(){
     let html = '共 <b>'+LIST.length+'</b> 条指令，输入 <b>/指令名</b> + 回车执行：';
     GROUPS.forEach(g=>{
@@ -4441,7 +4136,6 @@ const CMD = (()=>{
     return html + note('指令只能在「茶话会」或「签友私聊」的输入框里敲，回车执行；如需重新上锁请输入 <code>/锁定</code>。');
   }
 
-  /* ---------- 回执输出：聊天流气泡 / toast ---------- */
   function plainText(html){
     const d = document.createElement('div');
     d.innerHTML = html;
@@ -4464,25 +4158,18 @@ const CMD = (()=>{
     toast(plainText(html).slice(0,46));
   }
 
-  /* ---------- 解析与查找 ---------- */
   function isCmd(text){
     const t = String(text||'').trim();
     return t.length > 1 && (t[0]==='/' || t[0]==='／');
   }
 
-  /* ---------- 发送收口（统一入口）----------
-     返回 true = 消息已就地处理（指令执行 / 口令解锁），调用方应清空输入并吃掉；
-     返回 false = 照常作为普通聊天消息发出。
-     对外隐形原则：未解锁时，/ 开头的输入也返回 false，不拦截、不回执、不列指令名。 */
   function tryHandleCommand(text, ctx){
     const t = String(text == null ? '' : text).trim();
     if(!t) return false;
-    /* 口令：任何状态下静默识别，不发送、不入库、不落聊天流气泡 */
     if(isPass(t)){
       if(!unlocked) unlock(ctx && ctx.scope);
       return true;
     }
-    /* 未解锁：直接放行 */
     if(!unlocked) return false;
     if(!isCmd(t)) return false;
     return !!run(t, ctx);
@@ -4508,7 +4195,6 @@ const CMD = (()=>{
     });
   }
 
-  /* ---------- 执行入口 ---------- */
   async function run(raw, ctx){
     const text = String(raw||'').trim();
     const scope = (ctx && ctx.scope) || 'hall';
@@ -4516,9 +4202,6 @@ const CMD = (()=>{
     const m = text.replace(/^／/,'/').match(/^\/(\S+)\s*([\s\S]*)$/);
     if(!m){ out('指令格式应为 <b>/指令名</b>，输入 <b>/help</b> 查看可用指令', scope); return true; }
     const name = m[1].toLowerCase(), arg = m[2].trim();
-    /* ===== 指令锁 =====
-       未解锁时不执行任何指令，也不返回回执或指令清单；调用方应把该输入
-       当作普通聊天消息放行（见 tryHandleCommand）。 */
     if(!unlocked) return false;
     const cmd = find(name);
     if(!cmd){
@@ -4538,7 +4221,6 @@ const CMD = (()=>{
     return true;
   }
 
-  /* ---------- 输入框上方的指令联想 ---------- */
   function ensureAc(){
     if(acBox && document.body.contains(acBox)) return acBox;
     acBox = document.createElement('div');
@@ -4570,8 +4252,8 @@ const CMD = (()=>{
     });
   }
   function acUpdate(input){
-    if(!hintOn || !unlocked){ acClose(); return; }   /* 未解锁时不弹联想，不暴露指令表 */
-    const m = String(input.value||'').match(/^[/／]([^\s／]*)$/);   /* 只在「刚敲指令名」这一阶段联想 */
+    if(!hintOn || !unlocked){ acClose(); return; }
+    const m = String(input.value||'').match(/^[/／]([^\s／]*)$/);
     if(!m){ acClose(); return; }
     const items = matches(m[1]).slice(0,8);
     if(!items.length){ acClose(); return; }
@@ -4591,11 +4273,10 @@ const CMD = (()=>{
     t.value = '/' + c.n + ' ';
     acClose();
     t.focus();
-    t.dispatchEvent(new Event('input', {bubbles:true}));   /* 触发原 textarea 的自动增高 */
+    t.dispatchEvent(new Event('input', {bubbles:true}));
   }
   function acEnter(){
     const c = acItems[acIdx]; if(!c || !acTarget) return;
-    /* 带参数的指令：Enter 先补全，让用户接着输参数；无参数的直接执行 */
     if(c.u.indexOf(' ') >= 0){ acPick(acIdx); return; }
     const t = acTarget;
     const scope = t.id==='hallMsgInput' ? 'hall' : 'chat';
@@ -4612,8 +4293,6 @@ const CMD = (()=>{
     input.addEventListener('blur', ()=>setTimeout(acClose, 130));
   }
 
-  /* ---------- 指令锁：同步设置面板显隐 ----------
-     未解锁时整块隐藏指令相关行；解锁后才显示。锁状态文本只在这个隐藏容器内可见。 */
   function renderLock(){
     const box = $('cmdSettings');
     if(box) box.style.display = unlocked ? '' : 'none';
@@ -4623,19 +4302,15 @@ const CMD = (()=>{
   }
   function setUnlocked(v){
     unlocked = !!v;
-    try{
-      if(unlocked) localStorage.setItem(UNLOCK_KEY, '1');
-      else localStorage.removeItem(UNLOCK_KEY);
-    }catch(e){ /* 无痕 / 配额满：本次会话内仍然生效 */ }
+    if(unlocked) Storage.set(UNLOCK_KEY, '1');
+    else Storage.remove(UNLOCK_KEY);
     if(!unlocked) acClose();
     renderLock();
   }
-  /* 输入内容是否就是解锁口令（首尾空格忽略、大小写不敏感） */
   function isPass(text){
     const t = String(text == null ? '' : text).trim();
     return !!t && t.toLowerCase() === PASSPHRASE.toLowerCase();
   }
-  /* 执行解锁：只在本机弹极简提示，不落聊天流气泡，别人看不到 */
   function unlock(scope){
     if(unlocked){ toast('指令功能已经是解锁状态'); return true; }
     setUnlocked(true);
@@ -4648,9 +4323,6 @@ const CMD = (()=>{
     return true;
   }
 
-  /* ---------- 全局按键：指令联想的键盘导航 ----------
-     用捕获阶段注册，抢在输入框原有的「Enter 发送」监听之前处理。
-     指令面板已删除，因此不再有 Ctrl / ⌘ + K 呼出与面板上下键导航。   */
   function onKey(e){
     if(acTarget && acItems.length && e.target===acTarget){
       if(e.key==='ArrowDown'){ e.preventDefault(); e.stopPropagation(); acMove(1); return; }
@@ -4661,7 +4333,6 @@ const CMD = (()=>{
     }
   }
 
-  /* ---------- 初始化 ---------- */
   function init(){
     attach($('hallMsgInput'));
     attach($('socMsgInput'));
@@ -4671,7 +4342,7 @@ const CMD = (()=>{
       ch.checked = hintOn;
       ch.addEventListener('change', ()=>{
         hintOn = ch.checked;
-        localStorage.setItem('jieyou_cmd_hint', hintOn ? '1' : '0');
+        Storage.set(CONFIG.STORAGE_KEYS.cmdHint, hintOn ? '1' : '0');
         toast(hintOn ? '指令联想已开启：输入 / 会弹出可用指令' : '指令联想已关闭');
       });
     }
@@ -4691,7 +4362,6 @@ const CMD = (()=>{
   };
 })();
 
-/* 供设置面板内联 onclick 调用：已解锁 → 重新锁定；未解锁 → 不做任何提示 */
 function cmdToggleLock(){
   if(typeof CMD === 'undefined') return;
   if(CMD.isUnlocked()){
@@ -4701,13 +4371,94 @@ function cmdToggleLock(){
 }
 window.CMD = CMD;
 
-/* 配套全局入口：供页面加载 / 解锁后刷新设置面板显隐 */
 function isCmdUnlocked(){ return typeof CMD !== 'undefined' && CMD.isUnlocked(); }
 function syncCmdLockUI(){ if(typeof CMD !== 'undefined' && CMD.syncUI) CMD.syncUI(); }
+</script>
+<script>
+/* ============================================================
+   ============ 事件委托 bindings（阶段 1 收口） ============
+   所有按钮点击统一在捕获阶段按 data-action 分发到兼容桥函数；
+   不再保留内联 onclick。业务老函数经 __legacy 登记，便于后续灰度回滚。
+   ============================================================ */
+const Bindings = (()=>{
+  const HANDLERS = {
+    openWish:        ()=>openWish(),
+    openFeed:        ()=>openFeed(),
+    openRank:        ()=>openRank(),
+    openMyBox:       ()=>openMyBox(),
+    openHall:        ()=>openHall(),
+    openSocial:      ()=>openSocial(),
+    navAccount:      ()=>navAccount(),
+    openSettings:    ()=>openSettings(),
+    skipAnim:        (e)=>skipAnim(e),
+    saveSign:        ()=>saveSign(),
+    shareSign:       ()=>shareSign(),
+    closeWish:       ()=>closeWish(),
+    openWishHistory: ()=>openWishHistory(),
+    openWishDetail:  ()=>openWishDetail(),
+    doWish:          (e, el)=>doWish(Number(el.dataset.n)||1),
+    closeWishResult: ()=>closeWishResult(),
+    collectAllWish:  ()=>collectAllWish(),
+    closeWishDetail: ()=>closeWishDetail(),
+    closeWishHistory:()=>closeWishHistory(),
+    closeRank:       ()=>closeRank(),
+    closeSettings:   ()=>closeSettings(),
+    closeFeed:       ()=>closeFeed(),
+    closeMyBox:      ()=>closeMyBox(),
+    closeSignView:   ()=>closeSignView(),
+    switchLoginTab:  (e, el)=>switchLoginTab(el.dataset.tab || 'login'),
+    submitLogin:     ()=>submitLogin(),
+    closeHall:       ()=>closeHall(),
+    sendHallMsg:     ()=>sendHallMsg(),
+    closeSocial:     ()=>closeSocial(),
+    searchUsers:     ()=>searchUsers(),
+    sendMsg:         ()=>sendMsg(),
+    editNick:        (e)=>editNick(e),
+    acctAction:      ()=>acctAction(),
+    cmdToggleLock:   ()=>cmdToggleLock()
+  };
 
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', CMD.init);
-else CMD.init();
+  function onClick(e){
+    const el = e.target.closest && e.target.closest('[data-action]');
+    if(!el) return;
+    const act = el.dataset.action;
+    const fn = HANDLERS[act];
+    if(!fn){ console.warn('[bindings] 未注册的 action：', act); return; }
+    fn(e, el);
+  }
+
+  /* 兼容桥登记：阶段 4/5 可据此逐个摘除老函数；过渡期事件回流到老函数 */
+  function registerLegacy(){
+    const fns = ['openWish','closeWish','openFeed','closeFeed','openRank','closeRank',
+      'openMyBox','closeMyBox','closeSignView','openHall','closeHall','openSocial','closeSocial',
+      'openSettings','closeSettings','navAccount','skipAnim','saveSign','shareSign',
+      'openWishHistory','closeWishHistory','openWishDetail','closeWishDetail','closeWishResult',
+      'collectAllWish','doWish','submitLogin','switchLoginTab','acctAction','editNick',
+      'searchUsers','sendMsg','sendHallMsg','cmdToggleLock'];
+    fns.forEach(n=>{ if(typeof window[n] === 'function') window.__legacy[n] = window[n]; });
+  }
+
+  function init(){
+    registerLegacy();
+    document.addEventListener('click', onClick, true);
+    Bus.emit('bindings:ready');
+  }
+  return { init };
+})();
+
+/* ============ 启动编排 ============ */
+function startApp(){
+  Splash.init();
+  CMD.init();
+  Bindings.init();
+  boot();
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', startApp);
+}else{
+  startApp();
+}
 </script>
 </body>
 </html>
-<!-- （注：内容由AI生成） -->
