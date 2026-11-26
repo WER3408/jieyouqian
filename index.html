@@ -2279,7 +2279,14 @@ function timeAgo(iso){
 
 const FEED_LOG_KEY = CONFIG.STORAGE_KEYS.feedLog;
 const FEED_LOG_MAX = CONFIG.LIMITS.FEED_LOG_MAX;
+const FEED_LOG_VER_KEY = FEED_LOG_KEY + '_v';
+const FEED_LOG_VER = '2';   // 旧版缓存含假昵称，升级时整盘清空
 let FEED_LOG = [];
+
+if(Storage.get(FEED_LOG_VER_KEY, '') !== FEED_LOG_VER){
+  Storage.remove(FEED_LOG_KEY);
+  Storage.set(FEED_LOG_VER_KEY, FEED_LOG_VER);
+}
 
 function feedTimeMs(rec){
   if(!rec || !rec.t) return 0;
@@ -2324,11 +2331,12 @@ function renderFeedLog(){
   const list = document.getElementById('feedLogList');
   list.innerHTML = '';
   sortFeedLog();
-  if(!FEED_LOG.length){
+  const rows = FEED_LOG.filter(rec => rec.me || !isFakeNickname(rec.n));
+  if(!rows.length){
     list.innerHTML = '<div class="empty">还没有求签动态<br>摇一签，你就是第一条</div>';
     return;
   }
-  FEED_LOG.forEach(rec=>list.appendChild(buildFeedLi(rec)));
+  rows.forEach(rec=>list.appendChild(buildFeedLi(rec)));
 }
 function escapeHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2337,7 +2345,20 @@ function escapeHtml(s){
 function pushFeed(sign, name, me){
   addFeedLine(name || '访客', sign.level, !!me, null, sign.id > 100);
 }
+
+const OLD_FAKE_NAMES = ['清风','无名','小舟','阿茶','半夏','长安','南栀','木子','青衫','白鹭'];
+const OLD_FAKE_DEMO  = ['云游签友','树下小舟','青衫客'];
+
+function isFakeNickname(nick){
+  if(!nick) return false;
+  const s = String(nick);
+  if(OLD_FAKE_DEMO.indexOf(s) >= 0) return true;
+  const base = s.split('·')[0];
+  return OLD_FAKE_NAMES.indexOf(base) >= 0 && s.indexOf('·') >= 0;
+}
+
 function pushFeedFromRow(r, me){
+  if(!me && isFakeNickname(r.nickname)) return;   // 已知假昵称直接丢
   addFeedLine(r.nickname, r.sign_level, !!me, r.created_at, !!r.is_hidden);
 }
 
@@ -3301,7 +3322,7 @@ function openWishHistory(){
   if(!FEED_LOG.length){
     list.innerHTML = '<div class="empty">还没有祈愿记录<br>去祈一签，你就是第一条</div>';
   }else{
-    FEED_LOG.slice(0,100).forEach(rec=>{
+    FEED_LOG.filter(rec => rec.me || !isFakeNickname(rec.n)).slice(0,100).forEach(rec=>{
       const li = document.createElement('li');
       if(isMeRec(rec)) li.className = 'me';
       li.innerHTML = '<b>' + escapeHtml(rec.me ? '我' : rec.n) + '</b> 祈出了 <em>'
@@ -3824,11 +3845,18 @@ async function boot(){
      && (mineRes.value > 0 || state.drawCount === 0)){
     state.drawCount = mineRes.value; save();
   }
-  if(feedRes.status === 'fulfilled' && feedRes.value && feedRes.value.length){
-    FEED_LOG = feedRes.value.map(r=>({n:r.nickname, l:r.sign_level, me:r.user_id===MY_ID?1:0, t:r.created_at, h:r.is_hidden?1:0}));
+  if(feedRes.status === 'fulfilled'){
+    const rows = feedRes.value || [];
+    // 云端权威：即使为空也覆盖，避免本地残留假记录
+    FEED_LOG = rows.map(r=>({
+      n: r.nickname, l: r.sign_level,
+      me: r.user_id === MY_ID ? 1 : 0,
+      t: r.created_at, h: r.is_hidden ? 1 : 0,
+      u: r.user_id || ''
+    }));
     sortFeedLog();
     saveFeedLog();
-    Live.warm(feedRes.value);
+    if(rows.length) Live.warm(rows);
   }
   if(document.getElementById('feedMask').classList.contains('on')) renderFeedLog();
 
@@ -4462,3 +4490,4 @@ if(document.readyState === 'loading'){
 </script>
 </body>
 </html>
+<!-- （注：内容由AI生成） -->
